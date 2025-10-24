@@ -1,0 +1,20 @@
+base: luau
+name: engine
+globals:
+  engine.version:
+    property: read-only
+  engine.quit:
+    args: []
+  engine.connectToUpdate:
+    args:
+      - type: function
+    method: true
+  engine_DispatchNative:
+    args:
+      - type: string
+  engine_DrawText:
+    args:
+      - type: string
+  engine_panic:
+    args:
+      - type: string

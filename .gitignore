@@ -1,0 +1,11 @@
+# built binary
+Nyanners
+# cmake stuff
+CMakeFiles
+build
+CMakeCache.txt
+cmake_install.cmake
+
+# cloned projects
+vendor/libs
+vendor/luau

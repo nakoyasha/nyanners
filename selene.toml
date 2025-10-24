@@ -1,0 +1,2 @@
+std = "engine/edit/engine"
+exclude = ["*.d.luau"]
