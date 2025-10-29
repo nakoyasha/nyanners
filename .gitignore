@@ -1,11 +1,22 @@
 # built binary
 Nyanners
 # cmake stuff
+cmake_stuff
 CMakeFiles
 build
 CMakeCache.txt
 cmake_install.cmake
+out
+CPackConfig.cmake
+CPackSourceConfig.cmake
+
+# imgui
+imgui.ini
 
 # cloned projects
 vendor/libs
 vendor/luau
+vendor/raylib
+vendor/imgui
+vendor/rlimgui
+vendor/tinyfiledialogs

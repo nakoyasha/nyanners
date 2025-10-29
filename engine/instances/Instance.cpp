@@ -1,6 +1,4 @@
 #include "Instance.h"
-#include <iostream>
-#include <string>
 
 using namespace Nyanners::Instances;
 
@@ -20,11 +18,11 @@ Instance::Instance(std::string className)
     m_className = className;
 }
 
-// void Instance::addChild(Instance* instance)
-// {
-// children[childrenIndex] = instance;
-// childrenIndex += 1;
-// }
+void Instance::addChild(Instance* instance)
+{
+    instance->m_parent = this;
+    children.push_back(instance);
+}
 
 Instance::~Instance()
 {

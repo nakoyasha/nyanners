@@ -1,11 +1,11 @@
 #pragma once
 
-#include "Instance.h"
+#include "UIDrawable.h"
 #include "raylib.h"
 
 namespace Nyanners {
 namespace Instances {
-    class Rectangle : public Instance {
+    class Rectangle : public UIDrawable {
     private:
         bool isReversed = false;
 
@@ -17,10 +17,14 @@ namespace Instances {
         double height = 32;
 
         Rectangle()
-            : Instance("Rectangle")
+            : UIDrawable("Rectangle")
         {
             this->m_className = "Rectangle";
             this->m_name = "Rectangle";
+        }
+
+        void draw() {
+            DrawRectangle(positionX, positionY, width, height, WHITE);
         }
 
         void update()
@@ -36,7 +40,7 @@ namespace Instances {
                 width += 1;
             }
 
-            if (positionX >= 600) {
+            if (positionX >= GetScreenWidth()) {
                 positionX = 0;
             };
 
@@ -51,8 +55,6 @@ namespace Instances {
             if (width == 32 && height == 32) {
                 isReversed = false;
             }
-
-            DrawRectangle(positionX, positionY, width, height, WHITE);
         }
     };
 }

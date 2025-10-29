@@ -3,6 +3,8 @@ name: engine
 globals:
   engine.version:
     property: read-only
+  script.Name:
+    property: read-only
   engine.quit:
     args: []
   engine.connectToUpdate:

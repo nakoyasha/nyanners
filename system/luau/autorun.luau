@@ -1,23 +1,14 @@
-function testString(a: string)
-	print(a)
-end
-
-print("this is running from luau!")
-testString("hii, it's typed!")
-
 local tick = 0
 
 function engine_update()
 	tick += 1
-	print(tick)
-
-	-- if tick >= 100 then
-	-- print(engine.quit())
-	-- end
-
-	engine_DrawText("Hii!")
-	-- print("will we halt the thread")
+	-- engine_DrawText(script.Name)
 end
+
+-- script.Name = "hi"
+-- print("Our name is", script.Name)
+-- print("My parent is", script.Parent.Name)
+-- local invalid = script.Capabilities
 
 -- while true do
 -- print("h")
@@ -25,4 +16,4 @@ end
 
 -- engine_DispatchNative("Engine.Exit")
 
--- engine_panic(string.rep("a", 1000))
+-- engine_panic(string.rep("a", 10000))

@@ -1,32 +1,26 @@
 #pragma once
 
 #include "Instance.h"
-#include "Script.h"
+#include "UIDrawable.h"
 #include "iostream"
+#include "Camera.h"
 
 namespace Nyanners {
 namespace Instances {
     class DataModel : public Instance {
     public:
+        CameraInstance* camera = new CameraInstance;
         DataModel()
             : Instance("DataModel")
         {
             this->m_className = "DataModel";
             this->m_name = "Game";
+
+            this->addChild(camera);
         };
 
-        void update()
-        {
-            // for (int i = 0; i < children.size(); i++) {
-            //     children[i]->update();
-            // }
-
-            for (auto instance : this->children) {
-                // std::cout << instance->m_className << std::endl;
-
-                instance->update();
-            }
-        }
+        void draw();
+        void update();
     };
 }
 }
