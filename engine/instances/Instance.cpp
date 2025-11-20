@@ -8,7 +8,7 @@ bool Instance::isA(std::string className)
     return this->m_className == className;
 }
 
-Instance* Instance::getChild(std::string className)
+Instance* Instance::getChild(const std::string className)
 {
     for (Instance* inst : children) {
         if (inst->m_className == className) {
@@ -30,7 +30,7 @@ void Instance::clearChild(Instance* instance)
         children.erase(it);
 }
 
-Instance::Instance(std::string className)
+Instance::Instance(const std::string className)
 {
     std::cout << className << std::endl;
     m_className = className;
@@ -59,7 +59,7 @@ int Instance::luaDestroy(lua_State* context)
     return 0;
 }
 
-int Instance::luaIndex(lua_State* context, std::string keyName)
+int Instance::luaIndex(lua_State* context, const std::string keyName)
 {
     if (keyName == "Name") {
         lua_pushstring(context, m_name.c_str());

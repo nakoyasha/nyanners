@@ -21,9 +21,9 @@ namespace Instances {
         Instance* m_parent = nullptr;
         std::vector<Instance*> children;
 
-        Instance(std::string className);
+        Instance(const std::string className);
         ~Instance();
-        bool isA(std::string className);
+        bool isA(const std::string className);
 
         virtual void update() { };
         virtual void draw() { };
@@ -39,7 +39,7 @@ namespace Instances {
         }
 
         void addChild(Instance* instance);
-        Instance* getChild(std::string className);
+        Instance* getChild(const std::string className);
         // TODO: implement like actual children lmao
         void clearChild(Instance* instance);
     };

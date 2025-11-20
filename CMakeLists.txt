@@ -48,6 +48,7 @@ add_executable(
     engine/instances/Script.cpp
     engine/services/HttpService.cpp
 )
+set_property(TARGET Nyanners PROPERTY CXX_STANDARD 23)
 message(RAYLIB_LIBRARIES="${raylib_LIBRARIES}")
 message(raylib_LIBRARIES="${raylib_LIBRARIES}")
 target_link_libraries(Nyanners ${raylib_LIBRARIES})
@@ -59,5 +60,5 @@ link_directories(${CMAKE_ARCHIVE_OUTPUT_DIRECTORY}/Debug)
 # endif (UNIX)
 
 # if (WIN32)
-target_link_libraries(Nyanners Luau.VM Luau.Compiler raylib)
+target_link_libraries(Nyanners Luau.VM Luau.Compiler raylib ssl crypto)
 # endif (WIN32)

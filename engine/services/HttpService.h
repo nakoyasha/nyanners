@@ -2,6 +2,8 @@
 
 #include "instances/Instance.h"
 #include "lua/system.h"
+#define CPPHTTPLIB_OPENSSL_SUPPORT
+#include "http/httplib.h"
 
 enum HttpMethod {
     GET,
@@ -21,6 +23,6 @@ public:
 
     int makeLuaRequest(lua_State* context);
     int luaIndex(lua_State* context, const std::string property);
-    HttpResponse request(HttpMethod method, const std::string url);
+    httplib::Result request(HttpMethod method, const std::string url, const std::string path);
 };
 }
