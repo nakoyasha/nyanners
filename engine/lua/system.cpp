@@ -73,7 +73,7 @@ int engine_LuaEnginePanic(lua_State* context)
 
 int engine_LuaEngineExit(lua_State* context)
 {
-    Application::instance().exit();
+    Application::instance().stop();
     return 0;
 }
 
@@ -194,7 +194,7 @@ int engine_LuaDispatchMessage(lua_State* context)
 
     if (message == "Engine.Exit") {
         std::cout << "Lua requested engine exit" << std::endl;
-        Application::instance().exit();
+        Application::instance().stop();
     } else {
         lua_throwError(context, "Invalid dispatch message");
     }

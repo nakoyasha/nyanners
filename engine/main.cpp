@@ -23,7 +23,7 @@ void Application::panic(std::string message)
 {
     std::cout << message.c_str() << std::endl;
     tinyfd_messageBox("Engine Failure", message.c_str(), "OK", "error", 0);
-    exit();
+    stop();
 }
 
 void Application::setFPS(double fpsCap)

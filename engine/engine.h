@@ -1,10 +1,12 @@
 #pragma once
 
-#include <string>
 #include "instances/DataModel.h"
+#include <string>
 
 void engine_panic(std::string message);
 void engine_exit();
+
+// #define _exit(...) exit
 
 class Application {
 public:
@@ -17,12 +19,14 @@ public:
 
     char codeToEvaluate;
 
-    static Application& instance() {
+    static Application& instance()
+    {
         static Application app;
         return app;
     }
 
-    static Application* instancePointer() {
+    static Application* instancePointer()
+    {
         Application* app;
         return app;
     }
@@ -33,7 +37,8 @@ public:
     void start();
     void draw();
     void update();
-    void exit() {
-        // _exit(1);
+    void stop()
+    {
+        exit(1);
     }
 };
