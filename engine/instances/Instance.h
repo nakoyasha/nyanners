@@ -39,7 +39,7 @@ namespace Instances {
         }
 
         void addChild(Instance* instance);
-
+        Instance* getChild(std::string className);
         // TODO: implement like actual children lmao
         void clearChild(Instance* instance);
     };

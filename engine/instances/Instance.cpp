@@ -8,11 +8,22 @@ bool Instance::isA(std::string className)
     return this->m_className == className;
 }
 
+Instance* Instance::getChild(std::string className)
+{
+    for (Instance* inst : children) {
+        if (inst->m_className == className) {
+            return inst;
+        }
+    }
+
+    return nullptr;
+}
+
 void Instance::clearChild(Instance* instance)
 {
     auto it = std::find_if(children.begin(), children.end(),
         [&](const auto& child) {
-            return child == instance; // or child.get() == instance if using smart pointers
+            return child == instance;
         });
 
     if (it != children.end())
@@ -23,6 +34,7 @@ Instance::Instance(std::string className)
 {
     std::cout << className << std::endl;
     m_className = className;
+    m_name = className;
 }
 
 void Instance::addChild(Instance* instance)

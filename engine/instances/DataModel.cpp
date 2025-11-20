@@ -52,8 +52,16 @@ int DataModel::luaIndex(lua_State* context, std::string keyName)
             std::string serviceName = luaL_checkstring(context, -1);
 
             if (serviceName == "HttpService") {
-                Nyanners::Instances::HttpService* http = new Nyanners::Instances::HttpService;
-                reflection_exposeInstanceToLua(context, http);
+                HttpService* existingHttp = (HttpService*)this->getChild("HttpService");
+
+                if (existingHttp != nullptr) {
+                    reflection_exposeInstanceToLua(context, existingHttp);
+                } else {
+                    Nyanners::Instances::HttpService* http = new Nyanners::Instances::HttpService;
+                    this->addChild(http);
+                    reflection_exposeInstanceToLua(context, http);
+                }
+
                 return 1;
             }
 
