@@ -155,12 +155,43 @@ int reflection_luaMethodWrapper(lua_State* context)
 int reflection_luaPushMethod(lua_State* context, ReflectionMethod method)
 {
     // this is cursed, this is horror, but it works... somehow?
-    auto* ud = static_cast<ReflectionMethod*>(lua_newuserdata(context, sizeof(ReflectionMethod*)));
+    // NOTE TO FUTURE SELF: sizeof(ReflectionMethod* <--- THE POINTER HERE CAUSED A CRASH!!!!! omg C++ IS EVIL)
+    auto* ud = static_cast<ReflectionMethod*>(lua_newuserdata(context, sizeof(ReflectionMethod)));
     new (ud) ReflectionMethod(std::move(method));
 
     lua_pushcclosure(context, reflection_luaMethodWrapper, "Instance::_reflectionMethod", 1);
 
     return 1;
+}
+
+void reflection_luaPushValue(lua_State* context, const LuaValue& value)
+{
+    if (std::holds_alternative<std::string>(value)) {
+        std::string cStr = std::get<std::string>(value);
+        lua_pushlstring(context, cStr.c_str(), cStr.size());
+        return;
+    } else if (std::holds_alternative<int>(value)) {
+        lua_pushnumber(context, std::get<int>(value));
+        return;
+    } else if (std::holds_alternative<double>(value)) {
+        lua_pushnumber(context, std::get<double>(value));
+        return;
+    }
+}
+
+void reflection_luaPushStruct(lua_State* context, const std::map<std::string, LuaValue>& map)
+{
+    lua_newtable(context);
+    int stackTop = lua_gettop(context);
+
+    for (auto it = map.begin(); it != map.end(); ++it) {
+        std::string key = it->first;
+        LuaValue value = it->second; // <-- value is a LuaValue&
+
+        lua_pushlstring(context, key.c_str(), key.size());
+        reflection_luaPushValue(context, value);
+        lua_settable(context, stackTop);
+    }
 }
 
 static void lua_dumpstack(lua_State* L)

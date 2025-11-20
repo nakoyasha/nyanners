@@ -52,7 +52,7 @@ int DataModel::luaIndex(lua_State* context, std::string keyName)
             std::string serviceName = luaL_checkstring(context, -1);
 
             if (serviceName == "HttpService") {
-                HttpService* existingHttp = (HttpService*)this->getChild("HttpService");
+                HttpService* existingHttp = (HttpService*)this->getChildByClass("HttpService");
 
                 if (existingHttp != nullptr) {
                     reflection_exposeInstanceToLua(context, existingHttp);

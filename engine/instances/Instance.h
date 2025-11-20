@@ -39,7 +39,8 @@ namespace Instances {
         }
 
         void addChild(Instance* instance);
-        Instance* getChild(const std::string className);
+        Instance* getChildByClass(const std::string className);
+        Instance* getChildByName(const std::string className);
         // TODO: implement like actual children lmao
         void clearChild(Instance* instance);
     };

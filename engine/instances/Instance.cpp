@@ -8,10 +8,21 @@ bool Instance::isA(std::string className)
     return this->m_className == className;
 }
 
-Instance* Instance::getChild(const std::string className)
+Instance* Instance::getChildByClass(const std::string className)
 {
     for (Instance* inst : children) {
         if (inst->m_className == className) {
+            return inst;
+        }
+    }
+
+    return nullptr;
+}
+
+Instance* Instance::getChildByName(const std::string name)
+{
+    for (Instance* inst : children) {
+        if (inst->m_name == name) {
             return inst;
         }
     }
@@ -90,6 +101,13 @@ int Instance::luaIndex(lua_State* context, const std::string keyName)
         });
         return 1;
     } else {
+        Instance* instance = this->getChildByName(keyName);
+
+        if (instance != nullptr) {
+            reflection_exposeInstanceToLua(context, instance);
+            return 1;
+        }
+
         lua_throwError(context, std::string("Attempt to index invalid property " + keyName).c_str());
         return 0;
     }
