@@ -46,10 +46,11 @@ namespace Instances {
         };
 
         int callMethod(std::string method);
-
+        int luaIndex(lua_State* context, std::string keyName);
         void update();
 
         void loadFromFile(std::string filePath);
+        void loadFromString(std::string code);
         ~Script()
         {
             lua_close(context);

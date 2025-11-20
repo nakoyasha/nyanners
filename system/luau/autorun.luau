@@ -2,13 +2,32 @@ local tick = 0
 
 function engine_update()
 	tick += 1
-	-- engine_DrawText(script.Name)
+	-- print("Tick", tick)
+	-- -- engine_DrawText(script.Name)
+
+	if tick == 100 then
+		print("killing ourselves")
+		script:Destroy()
+	end
+
+	-- if tick >= 600 then
+	-- 	print("shouldn't be able to execute here")
+	-- end
 end
 
 -- script.Name = "hi"
--- print("Our name is", script.Name)
--- print("My parent is", script.Parent.Name)
--- local invalid = script.Capabilities
+print("Our name is", tostring(script))
+print("My parent is", script.Parent.Name)
+
+print("Game is", game.Name)
+print("trying to set fps cap to 120")
+game:setFPS(120)
+
+print("trying to set our name")
+script.Name = "hi"
+print(script.Name)
+print("trying to set invalid name")
+-- script.Name = nil
 
 -- while true do
 -- print("h")

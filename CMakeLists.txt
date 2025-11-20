@@ -12,6 +12,7 @@ endif (UNIX)
 
 set(CMAKE_C_STANDARD 17)
 set(CMAKE_GENERATOR_PLATFORM x64)
+set(WORKING_DIRECTORY .)
 # set (CMAKE_CXX_COMPILER /usr/bin/x86_64-w64-mingw32-g++)
 message(RAYLIB_INCLUDE_DIR="${raylib_INCLUDE_DIR}")
 
@@ -33,6 +34,7 @@ add_executable(
     # vendor
     vendor/tinyfiledialogs/tinyfiledialogs.c 
     vendor/imgui/imgui.cpp 
+    vendor/imgui/imgui_demo.cpp
     vendor/imgui/imgui_draw.cpp 
     vendor/imgui/imgui_tables.cpp 
     vendor/imgui/imgui_widgets.cpp  
@@ -41,9 +43,9 @@ add_executable(
     engine/main.cpp
     engine/lua/system.cpp
     engine/lua/utils.cpp
-    engine/Instances/Instance.cpp
-    engine/Instances/DataModel.cpp
-    engine/Instances/Script.cpp
+    engine/instances/Instance.cpp
+    engine/instances/DataModel.cpp
+    engine/instances/Script.cpp
 )
 message(RAYLIB_LIBRARIES="${raylib_LIBRARIES}")
 message(raylib_LIBRARIES="${raylib_LIBRARIES}")
@@ -51,10 +53,10 @@ target_link_libraries(Nyanners ${raylib_LIBRARIES})
 message(Linking Luau)
 link_directories(${CMAKE_ARCHIVE_OUTPUT_DIRECTORY}/Debug)
 
-if (UNIX)
-    target_link_libraries(Nyanners libLuau.VM libLuau.Compiler libraylib libLuaBridge)
-endif (UNIX)
+# if (UNIX)
+    # target_link_libraries(Nyanners libLuau.VM libLuau.Compiler libraylib libLuaBridge)
+# endif (UNIX)
 
-if (WIN32)
-    target_link_libraries(Nyanners Luau.VM Luau.Compiler raylib)
-endif (WIN32)
+# if (WIN32)
+target_link_libraries(Nyanners Luau.VM Luau.Compiler raylib)
+# endif (WIN32)

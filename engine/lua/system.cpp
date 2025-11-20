@@ -1,5 +1,7 @@
 #include "system.h"
 
+using Method = void (DataModel::*)(int);
+
 void lua_throwError(lua_State* context, std::string error)
 {
     lua_pushstring(context, error.c_str());
@@ -18,15 +20,27 @@ int luabridge_receiveMessageFromLua(lua_State* context)
     int argumentCount = lua_gettop(context);
     lua_getglobal(context, SCRIPT_NAME_GLOBAL);
     std::string scriptPath = lua_tostring(context, argumentCount + 1);
+    std::string output = "";
 
     for (int index = 1; index <= argumentCount; index++) {
-        if (lua_isstring(context, index)) {
-            std::string argument = lua_tostring(context, index);
-            std::cout << "[Lua::" + scriptPath + "] " << argument << std::endl;
-        } else {
-            continue;
+        // if (lua_isstring(context, index)) {
+        size_t length = 0;
+        auto argument = luaL_tolstring(context, index, &length);
+
+        if (argument == nullptr) {
+            argument = "<error during __tostring>";
         }
+
+        if (output != "") {
+            output = output + " " + argument;
+        } else {
+            output = output + argument;
+        }
+        // } {
+        //     continue;
+        // }
     }
+    std::cout << "[Lua::" + scriptPath + "] " << output << std::endl;
 
     return 0;
 }
@@ -63,63 +77,55 @@ int engine_LuaEngineExit(lua_State* context)
     return 0;
 }
 
-Instance* reflection_getInstance(lua_State* context) {
+Instance* reflection_getInstance(lua_State* context)
+{
     Instance* instance = *(Instance**)(lua_touserdata(context, 1));
     return instance;
 }
 
-int reflection_proxyInstanceMethod(lua_State* context, void (Instance::*)()) {
-    method();
-    return 0;
-}
-
-int reflection_metaIndex(lua_State* context) {
+int reflection_metaIndex(lua_State* context)
+{
     Instance* instance = reflection_getInstance(context);
     std::string property = lua_tostring(context, 2);
 
-    if (property == "Name") {
-        lua_pushstring(context, instance->m_name.c_str());
-        return 1;
-    } else if (property == "ClassName") {
-        lua_pushstring(context, instance->m_className.c_str());
-    } else if (property == "Parent") {
-        Instance** self = (Instance**)lua_newuserdata(context, sizeof(Instance*));
-        *self = instance->m_parent;
-
-        if (luaL_newmetatable(context, "lua_instance")) {
-            luaL_Reg sRegs[] =
-                {
-                    { "__index", &reflection_metaIndex },
-                    { nullptr, nullptr }
-                };
-            luaL_register(context, nullptr, sRegs);
-        }
-
-        lua_setmetatable(context, -2);
-        return 1;
-    } else if (property == "setFPS") {
-        // Application app = Application::instance();
-        // reflection_proxyInstanceMethod(context, &app);
-    }
-    else {
-        lua_throwError(context, std::string("Attempt to index invalid property " + property).c_str());
-        return 0;
-    }
-
-    return 0;
+    return instance->luaIndex(context, property);
 }
 
-void reflection_createInstanceMetatable(lua_State* context) {
-     if (luaL_newmetatable(context, "lua_instance")) {
-        luaL_Reg sRegs[] =
-            {
-                { "__index", &reflection_metaIndex },
-                { nullptr, nullptr }
-            };
+int reflection_metaNewIndex(lua_State* context)
+{
+    Instance* instance = reflection_getInstance(context);
+    std::string property = lua_tostring(context, 2);
+
+    if (lua_isstring(context, 3)) {
+        std::string value = lua_tostring(context, 3);
+
+        return instance->luaNewIndex(context, property, value);
+    } else {
+        lua_throwError(context, "__newindex for this type is not implemented.");
+        return 0;
+    }
+}
+
+int reflection_metaString(lua_State* context)
+{
+    Instance* instance = reflection_getInstance(context);
+
+    lua_pushstring(context, instance->m_name.c_str());
+    return 1;
+}
+
+void reflection_createInstanceMetatable(lua_State* context)
+{
+    if (luaL_newmetatable(context, "lua_instance")) {
+        luaL_Reg sRegs[] = {
+            { "__index", &reflection_metaIndex },
+            { "__newindex", &reflection_metaNewIndex },
+            { "__tostring", &reflection_metaString },
+            { nullptr, nullptr }
+        };
         luaL_register(context, nullptr, sRegs);
     }
 }
-
 
 void reflection_exposeInstanceToLua(lua_State* context, Instance* instance)
 {
@@ -131,28 +137,55 @@ void reflection_exposeInstanceToLua(lua_State* context, Instance* instance)
     lua_setmetatable(context, -2);
 };
 
-static void lua_dumpstack (lua_State *L) {
-  int top=lua_gettop(L);
-  for (int i=1; i <= top; i++) {
-    printf("%d\t%s\t", i, luaL_typename(L,i));
-    switch (lua_type(L, i)) {
-      case LUA_TNUMBER:
-        printf("%g\n",lua_tonumber(L,i));
-        break;
-      case LUA_TSTRING:
-        printf("%s\n",lua_tostring(L,i));
-        break;
-      case LUA_TBOOLEAN:
-        printf("%s\n", (lua_toboolean(L, i) ? "true" : "false"));
-        break;
-      case LUA_TNIL:
-        printf("%s\n", "nil");
-        break;
-      default:
-        printf("%p\n",lua_topointer(L,i));
-        break;
+int reflection_luaMethodWrapper(lua_State* context)
+{
+    auto* method = static_cast<ReflectionMethod*>(lua_touserdata(context, lua_upvalueindex(1)));
+
+    if (method == nullptr) {
+        std::cout << "reflection_luaMethodWrapper: method is nullptr" << std::endl;
+        lua_throwError(context, "Reflection method GC'd while attempting to call");
+        return 0;
+    };
+
+    int result = (*method)(context);
+
+    return result;
+}
+
+int reflection_luaPushMethod(lua_State* context, ReflectionMethod method)
+{
+    // this is cursed, this is horror, but it works... somehow?
+    auto* ud = static_cast<ReflectionMethod*>(lua_newuserdata(context, sizeof(ReflectionMethod*)));
+    new (ud) ReflectionMethod(std::move(method));
+
+    lua_pushcclosure(context, reflection_luaMethodWrapper, "Instance::_reflectionMethod", 1);
+
+    return 1;
+}
+
+static void lua_dumpstack(lua_State* L)
+{
+    int top = lua_gettop(L);
+    for (int i = 1; i <= top; i++) {
+        printf("%d\t%s\t", i, luaL_typename(L, i));
+        switch (lua_type(L, i)) {
+        case LUA_TNUMBER:
+            printf("%g\n", lua_tonumber(L, i));
+            break;
+        case LUA_TSTRING:
+            printf("%s\n", lua_tostring(L, i));
+            break;
+        case LUA_TBOOLEAN:
+            printf("%s\n", (lua_toboolean(L, i) ? "true" : "false"));
+            break;
+        case LUA_TNIL:
+            printf("%s\n", "nil");
+            break;
+        default:
+            printf("%p\n", lua_topointer(L, i));
+            break;
+        }
     }
-  }
 }
 
 int engine_LuaDispatchMessage(lua_State* context)

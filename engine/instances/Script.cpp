@@ -18,8 +18,8 @@ std::string engine_readFile(std::string fileName)
     return result;
 }
 
-
-bool Script::compileSource() {
+bool Script::compileSource()
+{
     // Compile Luau source to bytecode
     size_t bytecodeSize = 0;
     char* bytecode = luau_compile(source.c_str(), strlen(source.c_str()), NULL, &bytecodeSize);
@@ -42,7 +42,8 @@ bool Script::compileSource() {
     }
 }
 
-void Script::initializeLua() {
+void Script::initializeLua()
+{
     context = lua_newstate(engine_allocator, NULL);
     luaL_openlibs(context);
     luabridge_defineBridgeMethod(context, "engine_DispatchNative",
@@ -65,16 +66,18 @@ void Script::initializeLua() {
         Application::instance().panic("OOM: lua_newstate (allocation failure)");
     }
 
-            
     lua_pushstring(context, this->m_name.c_str());
     lua_setglobal(context, "_SUPER_SECRET_SCRIPT_NAME_I_SURE_HOPE_NO_ONE_SEES_THIS_AND_GETS_THE_SCRIPT_NAME_THIS_WAY");
     luabridge_defineBridgeMethod(context, "print", luabridge_receiveMessageFromLua);
 
     reflection_exposeInstanceToLua(context, this);
     lua_setglobal(context, "script");
+    reflection_exposeInstanceToLua(context, Application::instance().dataModel);
+    lua_setglobal(context, "game");
 }
 
-int Script::executeScript() {
+int Script::executeScript()
+{
     if (compileSource()) {
         // on stack now, time to run!
         if (lua_pcall(context, 0, LUA_MULTRET, 0) != LUA_OK) {
@@ -89,25 +92,39 @@ int Script::executeScript() {
     return 0;
 }
 
-int Script::callMethod(std::string method) {
+int Script::luaIndex(lua_State* context, std::string keyName)
+{
+    if (keyName == "Source") {
+        lua_pushstring(context, source.c_str());
+        return 1;
+    } else {
+        return Instance::luaIndex(context, keyName);
+    }
+}
+
+int Script::callMethod(std::string method)
+{
     // lua_State* threadContext = lua_newthread(context);
     lua_getglobal(context, method.c_str());
     int callResult = lua_pcall(context, 0, 0, 0);
 
     // printf("callResult: %d\n", callResult);
     if (callResult != LUA_OK) {
-        std::string error = lua_tostring(context, -1);
-        std::cout << error << std::endl;
+        // std::string error = lua_tostring(context, -1);
+        // std::cout << error << std::endl;
+        return LUA_ERRRUN;
     }
 
     return callResult;
 }
 
-void Script::update() {
+void Script::update()
+{
     this->callMethod("engine_update");
 }
 
-void Script::loadFromFile(std::string filePath) {
+void Script::loadFromFile(std::string filePath)
+{
     std::string file = engine_readFile(filePath.c_str());
 
     source = file;
@@ -128,4 +145,23 @@ void Script::loadFromFile(std::string filePath) {
     }
 
     // this->update();
+}
+
+void Script::loadFromString(std::string code)
+{
+    source = code;
+    m_name = "<eval>";
+
+    lua_pushstring(context, this->m_name.c_str());
+    lua_setglobal(context, SCRIPT_NAME_GLOBAL);
+
+    int result = executeScript();
+    printf("result: %d\n", result);
+
+    if (result == 0) {
+        std::string errorMessage = lua_tostring(context, -1);
+        lua_pushstring(context, (std::string("[ERROR] ") + errorMessage).c_str());
+        luabridge_receiveMessageFromLua(context);
+        // std::cout << std::string("") + this->m_name + std::string("!\n") + errorMessage);
+    }
 }

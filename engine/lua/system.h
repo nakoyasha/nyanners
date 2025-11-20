@@ -1,13 +1,14 @@
 #pragma once
 
+#include "engine.h"
 #include "iostream"
 #include "raylib.h"
-#include "engine.h"
 #include "string"
 
 #include "lua.h"
 #include "luacode.h"
 #include "lualib.h"
+#include <functional>
 
 static const char* SCRIPT_NAME_GLOBAL = "_SUPER_SECRET_SCRIPT_NAME_I_SURE_HOPE_NO_ONE_SEES_THIS_AND_GETS_THE_SCRIPT_NAME_THIS_WAY";
 using namespace Nyanners::Instances;
@@ -16,7 +17,7 @@ void lua_throwError(lua_State* context, std::string error);
 void luabridge_defineBridgeMethod(lua_State* context, std::string name,
     lua_CFunction method);
 int luabridge_receiveMessageFromLua(lua_State* context);
-static void luabridge_dumpstack (lua_State *L);
+static void luabridge_dumpstack(lua_State* L);
 
 int engine_LuaDrawText(lua_State* context);
 
@@ -29,3 +30,8 @@ Instance* reflection_getInstance(lua_State* context);
 int reflection_metaIndex(lua_State* context);
 void reflection_createInstanceMetatable(lua_State* context);
 void reflection_exposeInstanceToLua(lua_State* context, Instance* instance);
+
+using ReflectionMethod = std::function<int(lua_State*)>;
+
+int reflection_luaMethodWrapper(lua_State* context);
+int reflection_luaPushMethod(lua_State* context, std::function<int(lua_State*)> method);
