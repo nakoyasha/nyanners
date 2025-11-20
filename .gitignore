@@ -9,6 +9,7 @@ cmake_install.cmake
 out
 CPackConfig.cmake
 CPackSourceConfig.cmake
+Makefile
 
 # imgui
 imgui.ini
