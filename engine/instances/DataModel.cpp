@@ -47,6 +47,19 @@ int DataModel::luaIndex(lua_State* context, std::string keyName)
             return 0;
         });
         return 1;
+    } else if (keyName == "getService") {
+        reflection_luaPushMethod(context, [this](lua_State* context) {
+            std::string serviceName = luaL_checkstring(context, -1);
+
+            if (serviceName == "HttpService") {
+                Nyanners::Instances::HttpService* http = new Nyanners::Instances::HttpService;
+                reflection_exposeInstanceToLua(context, http);
+                return 1;
+            }
+
+            return 1;
+        });
+        return 1;
     }
 
     return Instance::luaIndex(context, keyName);

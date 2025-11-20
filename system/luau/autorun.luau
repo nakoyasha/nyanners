@@ -6,8 +6,8 @@ function engine_update()
 	-- -- engine_DrawText(script.Name)
 
 	if tick == 100 then
-		print("killing ourselves")
-		script:Destroy()
+		-- print("killing ourselves")
+		-- script:Destroy()
 	end
 
 	-- if tick >= 600 then
@@ -26,7 +26,10 @@ game:setFPS(120)
 print("trying to set our name")
 script.Name = "hi"
 print(script.Name)
-print("trying to set invalid name")
+print("let's make a http request!")
+local http = game:getService("HttpService")
+local response = http:request("https://google.com")
+print(response)
 -- script.Name = nil
 
 -- while true do

@@ -1,4 +1,6 @@
-#include "Service.h"
+#pragma once
+
+#include "instances/Instance.h"
 #include "lua/system.h"
 
 enum HttpMethod {
@@ -12,39 +14,13 @@ struct HttpResponse {
 };
 
 namespace Nyanners::Instances {
-class HttpService : public Service {
+class HttpService : public Instance {
 public:
     HttpService()
-        : Service("HttpService") { };
+        : Instance("HttpService") { };
 
-    int makeLuaRequest(lua_State* context)
-    {
-        HttpResponse response = this->request(HttpMethod::GET, "https://google.com");
-        lua_pushstring(context, response.body.c_str());
-        return 1;
-    };
-
-    int luaIndex(lua_State* context, std::string property)
-    {
-        if (property == "request") {
-            // reflection_luaPushMethod(context, std::mem_fn(&HttpService::makeLuaRequest));
-            reflection_luaPushMethod(context, [this](lua_State* context) {
-                this->makeLuaRequest(context);
-                return 1;
-            });
-        } else {
-            return Instance::luaIndex(context, property);
-        }
-    }
-
-    HttpResponse request(HttpMethod method, std::string url)
-    {
-        // TODO: implement actual http
-        HttpResponse response;
-        response.code = 200;
-        response.body = "{success: true, message: \"yay\"}";
-
-        return response;
-    }
+    int makeLuaRequest(lua_State* context);
+    int luaIndex(lua_State* context, const std::string property);
+    HttpResponse request(HttpMethod method, const std::string url);
 };
 }

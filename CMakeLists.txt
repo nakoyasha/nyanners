@@ -46,6 +46,7 @@ add_executable(
     engine/instances/Instance.cpp
     engine/instances/DataModel.cpp
     engine/instances/Script.cpp
+    engine/services/HttpService.cpp
 )
 message(RAYLIB_LIBRARIES="${raylib_LIBRARIES}")
 message(raylib_LIBRARIES="${raylib_LIBRARIES}")
