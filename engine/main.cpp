@@ -68,19 +68,14 @@ void Application::draw()
     }
 
     ImGui::End();
-    // ImGui::ShowDemoWindow();
-    // ImGui::ShowDebugLogWindow();
-
     rlImGuiEnd();
     EndDrawing();
-    // script->loadFromString("local a = 20");
 }
 
 void Application::update()
 {
-    if (updatesPaused) {
+    if (updatesPaused)
         return;
-    }
 
     dataModel->update();
 }
@@ -100,14 +95,6 @@ void Application::start()
     dataModel->addChild(label);
     dataModel->addChild(script);
     script->loadFromFile("./system/luau/autorun.luau");
-
-    // for (int i = 1; i < 1000; i++) {
-    //     Nyanners::Instances::Rectangle* rectangle = new Nyanners::Instances::Rectangle;
-    //     dataModel->addChild(rectangle);
-    // }
-
-    // // script->loadFromFile("system/luau/autorun.luau");
-    DisableCursor();
     while (!WindowShouldClose()) {
         update();
         draw();
