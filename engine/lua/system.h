@@ -31,7 +31,6 @@ Instance* reflection_getInstance(lua_State* context);
 int reflection_metaIndex(lua_State* context);
 void reflection_createInstanceMetatable(lua_State* context);
 void reflection_exposeInstanceToLua(lua_State* context, Instance* instance);
-void reflection_exposeInstanceToLuaShared(lua_State* context, std::shared_ptr<Instance> instance);
 
 using ReflectionMethod = std::function<int(lua_State*)>;
 using LuaValue = std::variant<std::string, int, double>;
