@@ -18,8 +18,14 @@ local response = http:request("jsonplaceholder.typicode.com", "/todos/1")
 print(response.code, response.body)
 print(typeof(response.body))
 print(http.Name)
+local json2 = http:JSONDecode('{"a": [1, 2, 3]}')
 local json = http:JSONDecode(response.body)
+print(json2)
 
-for i, v in json do
-	print(i, v)
+for i, v in json2 do
+	if type(v) == "table" then
+		for i, v in v do
+			print(i, v)
+		end
+	end
 end

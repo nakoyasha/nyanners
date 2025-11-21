@@ -1,5 +1,37 @@
 #include "./HttpService.h"
 
+void createJSONLuaObject(lua_State* context, nlohmann::json json)
+{
+    lua_newtable(context);
+    int stackTop = lua_gettop(context);
+
+    for (auto [key, value] : json.items()) {
+
+        if (value.is_string()) {
+            std::string val = value.get<std::string>();
+            lua_pushlstring(context, val.c_str(), val.size());
+        }
+
+        if (value.is_number_integer()) {
+            lua_pushnumber(context, value.get<int>());
+        }
+
+        if (value.is_number_float()) {
+            lua_pushnumber(context, value.get<float>());
+        }
+
+        if (value.is_boolean()) {
+            lua_pushboolean(context, value.get<bool>());
+        }
+
+        if (value.is_object() || value.is_array()) {
+            createJSONLuaObject(context, value);
+        }
+
+        lua_setfield(context, stackTop, key.c_str());
+    }
+}
+
 int HttpService::luaIndex(lua_State* context, const std::string property)
 {
     if (property == "request") {
@@ -31,30 +63,7 @@ int HttpService::luaIndex(lua_State* context, const std::string property)
             std::string jsonString = luaL_checkstring(context, -1);
             nlohmann::json parsed = nlohmann::json::parse(jsonString);
 
-            lua_newtable(context);
-            int stackTop = lua_gettop(context);
-
-            for (auto [key, value] : parsed.items()) {
-
-                if (value.is_string()) {
-                    std::string val = value.get<std::string>();
-                    lua_pushlstring(context, val.c_str(), val.size());
-                }
-
-                if (value.is_number_integer()) {
-                    lua_pushnumber(context, value.get<int>());
-                }
-
-                if (value.is_number_float()) {
-                    lua_pushnumber(context, value.get<float>());
-                }
-
-                if (value.is_boolean()) {
-                    lua_pushboolean(context, value.get<bool>());
-                }
-
-                lua_setfield(context, stackTop, key.c_str());
-            }
+            createJSONLuaObject(context, parsed);
 
             return 1;
         });
