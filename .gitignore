@@ -10,6 +10,7 @@ out
 CPackConfig.cmake
 CPackSourceConfig.cmake
 Makefile
+*.png
 
 # imgui
 imgui.ini
