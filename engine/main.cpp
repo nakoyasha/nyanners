@@ -38,7 +38,10 @@ void Application::setModel(DataModel* newModel)
 {
     DataModel* oldModel = this->dataModel;
     this->dataModel = newModel;
-    delete oldModel;
+
+    if (oldModel != nullptr) {
+        delete oldModel;
+    }
 }
 
 void Application::draw(std::optional<RenderTexture2D> texture)
@@ -78,7 +81,7 @@ void Application::drawDebug()
     }
 
     if (ImGui::Button("Switch Scene")) {
-        if (!sceneSwap) {
+        if (sceneSwap == false) {
             this->setModel(loadProjectFile("system/autorun.json"));
             sceneSwap = true;
         } else {
@@ -130,8 +133,9 @@ void Application::start()
     SetConfigFlags(windowFlags);
     InitWindow(1280, 720, "Engine");
     rlImGuiSetup(true);
+    DataModel* project = loadProjectFile("system/autorun.json");
 
-    this->dataModel = new DataModel();
+    this->setModel(project);
     isRunning = true;
 
     if (!headlessScreenshot) {
