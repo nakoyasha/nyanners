@@ -13,7 +13,7 @@
                 }
             ],
             "properties": {
-                "file": "system/scene/autorun.luau"
+                "file": "system/luau/autorun.luau"
             },
             "children": []
         }
