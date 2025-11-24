@@ -2,22 +2,6 @@
 
 using namespace Nyanners::Instances;
 
-std::string engine_readFile(std::string fileName)
-{
-    std::filesystem::path filePath = fileName;
-
-    if (!std::filesystem::is_regular_file(filePath)) {
-        Application::instance().panic("engine_readFile: Invalid path: " + fileName);
-    }
-
-    std::ifstream file(fileName);
-    std::string result { std::istreambuf_iterator<char>(file),
-        std::istreambuf_iterator<char>() };
-
-    // file.close();
-    return result;
-}
-
 bool Script::compileSource()
 {
     // Compile Luau source to bytecode
@@ -35,8 +19,6 @@ bool Script::compileSource()
     if (result == 0) {
         return true;
     } else {
-        // Error occurred; error message is on top of the stack
-        // lua_error(context);
         lua_errorHandler(context);
         return false;
     }
@@ -67,13 +49,20 @@ void Script::initializeLua()
     }
 
     lua_pushstring(context, this->m_name.c_str());
-    lua_setglobal(context, "_SUPER_SECRET_SCRIPT_NAME_I_SURE_HOPE_NO_ONE_SEES_THIS_AND_GETS_THE_SCRIPT_NAME_THIS_WAY");
+    lua_setglobal(context, SCRIPT_NAME_GLOBAL_NAME);
     luabridge_defineBridgeMethod(context, "print", luabridge_receiveMessageFromLua);
 
     reflection_exposeInstanceToLua(context, this);
     lua_setglobal(context, "script");
     reflection_exposeInstanceToLua(context, Application::instance().dataModel);
     lua_setglobal(context, "game");
+
+    lua_newtable(context);
+    int topIndex = lua_gettop(context);
+
+    lua_pushcfunction(context, &libInstance_new, "Instance.new");
+    lua_setfield(context, topIndex, "new");
+    lua_setglobal(context, "Instance");
 }
 
 int Script::executeScript()
@@ -82,7 +71,7 @@ int Script::executeScript()
         // on stack now, time to run!
         if (lua_pcall(context, 0, LUA_MULTRET, 0) != LUA_OK) {
             std::string error = lua_tostring(context, -1);
-            std::cout << error << std::endl;
+            // std::cout << error << std::endl;
             return 0;
         } else {
             return 1;
@@ -120,40 +109,32 @@ int Script::callMethod(std::string method)
 
 void Script::update()
 {
+    if (!isRunning) {
+        isRunning = true;
+        runScript();
+    }
+
     this->callMethod("engine_update");
 }
 
-void Script::loadFromFile(std::string filePath)
+void Script::loadFromFile(const std::string filePath)
 {
     std::string file = engine_readFile(filePath.c_str());
 
     source = file;
     m_name = filePath;
-
-    // update the script name variable
-    lua_pushstring(context, this->m_name.c_str());
-    lua_setglobal(context, SCRIPT_NAME_GLOBAL);
-
-    int result = executeScript();
-    printf("result: %d\n", result);
-
-    if (result == 0) {
-        std::string errorMessage = lua_tostring(context, -1);
-        lua_pushstring(context, (std::string("[ERROR] ") + errorMessage).c_str());
-        luabridge_receiveMessageFromLua(context);
-        // std::cout << std::string("") + this->m_name + std::string("!\n") + errorMessage);
-    }
-
-    // this->update();
 }
 
-void Script::loadFromString(std::string code)
+void Script::loadFromString(const std::string code)
 {
     source = code;
     m_name = "<eval>";
+}
 
+void Script::runScript()
+{
     lua_pushstring(context, this->m_name.c_str());
-    lua_setglobal(context, SCRIPT_NAME_GLOBAL);
+    lua_setglobal(context, SCRIPT_NAME_GLOBAL_NAME);
 
     int result = executeScript();
     printf("result: %d\n", result);
@@ -162,6 +143,5 @@ void Script::loadFromString(std::string code)
         std::string errorMessage = lua_tostring(context, -1);
         lua_pushstring(context, (std::string("[ERROR] ") + errorMessage).c_str());
         luabridge_receiveMessageFromLua(context);
-        // std::cout << std::string("") + this->m_name + std::string("!\n") + errorMessage);
     }
 }

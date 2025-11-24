@@ -77,6 +77,22 @@ int engine_LuaEngineExit(lua_State* context)
     return 0;
 }
 
+std::string engine_readFile(std::string fileName)
+{
+    std::filesystem::path filePath = fileName;
+
+    if (!std::filesystem::is_regular_file(filePath)) {
+        Application::instance().panic("engine_readFile: Invalid path: " + fileName);
+    }
+
+    std::ifstream file(fileName);
+    std::string result { std::istreambuf_iterator<char>(file),
+        std::istreambuf_iterator<char>() };
+
+    // file.close();
+    return result;
+}
+
 Instance* reflection_getInstance(lua_State* context)
 {
     Instance* instance = *(Instance**)(lua_touserdata(context, 1));

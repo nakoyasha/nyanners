@@ -4,6 +4,9 @@
 #include "iostream"
 #include "raylib.h"
 #include "string"
+#include <filesystem>
+#include <fstream>
+#include <iostream>
 
 #include "lua.h"
 #include "luacode.h"
@@ -25,6 +28,7 @@ int engine_LuaDrawText(lua_State* context);
 int engine_LuaEnginePanic(lua_State* context);
 int engine_LuaEngineExit(lua_State* context);
 int engine_LuaDispatchMessage(lua_State* context);
+std::string engine_readFile(std::string fileName);
 
 int reflection_instanceIsA(lua_State* context, Instance* instance);
 Instance* reflection_getInstance(lua_State* context);

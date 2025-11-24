@@ -2,8 +2,6 @@
 
 #include "Instance.h"
 #include "stdlib.h"
-#include <fstream>
-#include <iostream>
 #include <raylib.h>
 #include <stdint.h>
 #include <string.h>
@@ -12,12 +10,13 @@
 #include "luacode.h"
 #include "lualib.h"
 
+#include "lua/builtin/libInstance.h"
 #include "lua/system.h"
 #include "lua/utils.h"
 
 #include "engine.h"
 
-#include <filesystem>
+static const char* SCRIPT_NAME_GLOBAL_NAME = "_SUPER_SECRET_SCRIPT_NAME_I_SURE_HOPE_NO_ONE_SEES_THIS_AND_GETS_THE_SCRIPT_NAME_THIS_WAY";
 
 static void* engine_allocator(void* ud, void* ptr, size_t osize, size_t nsize)
 {
@@ -51,6 +50,7 @@ namespace Instances {
 
         void loadFromFile(std::string filePath);
         void loadFromString(std::string code);
+        void runScript();
         ~Script()
         {
             lua_close(context);
@@ -58,6 +58,7 @@ namespace Instances {
 
     private:
         lua_State* context;
+        bool isRunning = false;
 
         void initializeLua();
         bool compileSource();

@@ -23,6 +23,14 @@ namespace Instances {
             this->addChild(camera);
         };
 
+        ~DataModel()
+        {
+            uiToDraw.clear();
+            objects.clear();
+
+            delete camera;
+        }
+
         int luaIndex(lua_State* context, std::string keyName);
         void draw();
         void update();

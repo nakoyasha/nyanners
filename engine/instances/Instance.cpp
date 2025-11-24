@@ -43,7 +43,6 @@ void Instance::clearChild(Instance* instance)
 
 Instance::Instance(const std::string className)
 {
-    std::cout << className << std::endl;
     m_className = className;
     m_name = className;
 }
@@ -130,4 +129,6 @@ Instance::~Instance()
         m_parent->clearChild(this);
         m_parent = nullptr;
     }
+
+    children.clear();
 }

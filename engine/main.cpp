@@ -1,17 +1,20 @@
 #include "stdlib.h"
 #include <fstream>
 #include <iostream>
-#include <raylib.h>
 #include <stdint.h>
 #include <string.h>
 
 #include "imgui.h"
+#include <raylib.h>
+
 #include "rlImGui.h"
 #include "rlgl.h"
 
+#include "./http/json.hpp"
 #include "./instances/Rectangle.h"
 #include "./instances/Script.h"
 #include "./instances/TextLabel.h"
+#include "./project/ProjectLoader.h"
 #include "tinyfiledialogs.h"
 
 #include "engine.h"
@@ -22,7 +25,7 @@
 void Application::panic(std::string message)
 {
     std::cout << message.c_str() << std::endl;
-    tinyfd_messageBox("Engine Failure", message.c_str(), "OK", "error", 0);
+    tinyfd_messageBox("≡(▔﹏▔)≡", message.c_str(), "OK", "error", 0);
     stop();
 }
 
@@ -31,15 +34,40 @@ void Application::setFPS(double fpsCap)
     SetTargetFPS(fpsCap);
 }
 
-void Application::draw()
+void Application::setModel(DataModel* newModel)
 {
-    currentFPS = GetFPS();
-    BeginDrawing();
+    DataModel* oldModel = this->dataModel;
+    this->dataModel = newModel;
+    delete oldModel;
+}
+
+void Application::draw(std::optional<RenderTexture2D> texture)
+{
+    bool shouldRenderToTexture = texture.has_value();
+
+    if (shouldRenderToTexture) {
+        BeginTextureMode(texture.value());
+    } else {
+        BeginDrawing();
+    }
+
     ClearBackground(BLACK);
     dataModel->draw();
+    drawDebug();
+
+    if (shouldRenderToTexture) {
+        EndTextureMode();
+    } else {
+        EndDrawing();
+    }
+}
+
+void Application::drawDebug()
+{
     rlImGuiBegin();
 
     bool gccWantsThis = false;
+    bool sceneSwap = false;
 
     ImGui::Begin("Nyanners Debug", &gccWantsThis);
     ImGui::Text("FPS: %d", currentFPS);
@@ -47,6 +75,16 @@ void Application::draw()
     ImGui::InputDouble("FPS Lock", &schedulerFpsCap, 1.0, 0.0);
     if (ImGui::Button("Set")) {
         setFPS(schedulerFpsCap);
+    }
+
+    if (ImGui::Button("Switch Scene")) {
+        if (!sceneSwap) {
+            this->setModel(loadProjectFile("system/autorun.json"));
+            sceneSwap = true;
+        } else {
+            this->setModel(loadProjectFile("system/project.json"));
+            sceneSwap = false;
+        }
     }
 
     ImGui::Checkbox("Engine Paused", &updatesPaused);
@@ -69,11 +107,11 @@ void Application::draw()
 
     ImGui::End();
     rlImGuiEnd();
-    EndDrawing();
 }
 
 void Application::update()
 {
+    currentFPS = GetFPS();
     if (updatesPaused)
         return;
 
@@ -82,32 +120,80 @@ void Application::update()
 
 void Application::start()
 {
-    std::cout << std::filesystem::current_path() << std::endl;
-    SetConfigFlags(FLAG_WINDOW_RESIZABLE);
+    SetTraceLogLevel(TraceLogLevel::LOG_ERROR);
+    int windowFlags = FLAG_WINDOW_RESIZABLE;
+
+    if (headlessScreenshot == true) {
+        windowFlags |= FLAG_WINDOW_HIDDEN;
+    }
+
+    SetConfigFlags(windowFlags);
     InitWindow(1280, 720, "Engine");
     rlImGuiSetup(true);
-    Nyanners::Instances::Script* script = new Nyanners::Instances::Script;
-    Nyanners::Instances::TextLabel* label = new Nyanners::Instances::TextLabel;
-    label->text = "hii";
-    label->position.x = 300;
 
-    dataModel->addChild(new Nyanners::Instances::Rectangle);
-    dataModel->addChild(label);
-    dataModel->addChild(script);
-    script->loadFromFile("./system/luau/autorun.luau");
-    while (!WindowShouldClose()) {
-        update();
-        draw();
+    this->dataModel = new DataModel();
+    isRunning = true;
+
+    if (!headlessScreenshot) {
+        while (!WindowShouldClose() && isRunning) {
+            update();
+            draw(std::nullopt);
+        }
+    } else {
+        RenderTexture2D texture = LoadRenderTexture(1280, 720);
+        // render multiple times, just in case
+
+        for (auto i = 1; 16; i++) {
+            if (i == 16) {
+                break;
+            }
+
+            update();
+            draw(texture);
+        }
+
+        Image image = LoadImageFromTexture(texture.texture);
+        ImageFlipVertical(&image);
+        ExportImage(image, "render.png");
+        UnloadImage(image);
+        UnloadRenderTexture(texture);
     }
+}
+
+void Application::stop()
+{
+    this->isRunning = false;
+    delete this->dataModel;
+    this->dataModel = nullptr;
 }
 
 void engine_main()
 {
-    Application::instance().start();
+    Application::instance(false).start();
 }
 
-int main()
+void headless_main()
 {
+    Application::instance(true).start();
+}
+
+int main(int argc, char** argv)
+{
+    // if (argc >= 2) {
+    //     std::string runType = argv[1];
+    //     std::string runOutput = argv[2];
+
+    //     if (runType == "headless") {
+    //         headless_main();
+    //         return 0;
+    //     }
+
+    //     return 0;
+    // } else {
+    //     engine_main();
+    //     return 0;
+    // }
+
     engine_main();
     return 0;
 }

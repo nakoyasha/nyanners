@@ -9,12 +9,13 @@ namespace Instances {
     public:
         std::string text = "TextLabel";
         int textSize = 24;
+        void draw();
+        int luaIndex(lua_State* context, const std::string property);
+        int luaNewIndex(lua_State* context, const std::string keyName, const std::string keyValue);
 
-        void draw() {
-            DrawText(text.c_str(), position.x, position.y, 24, WHITE);
-        }
-
-        TextLabel() : UIDrawable("TextLabel") {
+        TextLabel()
+            : UIDrawable("TextLabel")
+        {
             this->m_name = "TextLabel";
         };
     };

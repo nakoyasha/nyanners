@@ -1,0 +1,29 @@
+{
+    "name": "Test Project",
+    "className": "DataModel",
+    "children": [
+        {
+            "name": "Script",
+            "className": "Script",
+            "attributes": [
+                {
+                    "name": "url",
+                    "type": "string",
+                    "value": "https://google.com"
+                }
+            ],
+            "properties": {
+                "file": "system/scene/scene_main.luau"
+            },
+            "children": []
+        },
+        {
+            "name": "TestLabel",
+            "className": "TextLabel",
+            "properties": {
+                "text": "this was loaded from a file!"
+            },
+            "children": []
+        }
+    ]
+}
