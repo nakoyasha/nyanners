@@ -104,6 +104,11 @@ int reflection_metaIndex(lua_State* context)
     Instance* instance = reflection_getInstance(context);
     std::string property = lua_tostring(context, 2);
 
+    if (instance == nullptr) {
+        lua_throwError(context, "LuaBridge Error: Instance has gone off the stack? What?");
+        return 0;
+    }
+
     return instance->luaIndex(context, property);
 }
 

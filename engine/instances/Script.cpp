@@ -54,8 +54,6 @@ void Script::initializeLua()
 
     reflection_exposeInstanceToLua(context, this);
     lua_setglobal(context, "script");
-    reflection_exposeInstanceToLua(context, Application::instance().dataModel);
-    lua_setglobal(context, "game");
 
     lua_newtable(context);
     int topIndex = lua_gettop(context);
@@ -135,6 +133,10 @@ void Script::runScript()
 {
     lua_pushstring(context, this->m_name.c_str());
     lua_setglobal(context, SCRIPT_NAME_GLOBAL_NAME);
+
+    // push game here, to keep the reference fresh
+    reflection_exposeInstanceToLua(context, Application::instance().dataModel);
+    lua_setglobal(context, "game");
 
     int result = executeScript();
     printf("result: %d\n", result);
