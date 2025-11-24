@@ -71,7 +71,7 @@ SerializedInstanceDescriptor deserializeInstance(nlohmann::json serializedInstan
 DataModel* loadProjectFile(const std::string projectPath)
 {
     DataModel* model = new DataModel();
-    std::string project = engine_readFile("system/project.json");
+    std::string project = engine_readFile(projectPath);
     nlohmann::json projectJson = nlohmann::json::parse(project);
 
     SerializedInstanceDescriptor root = deserializeInstance(projectJson);
@@ -87,6 +87,7 @@ DataModel* loadProjectFile(const std::string projectPath)
             }
 
             std::string value = std::get<std::string>(filePosition->second);
+            std::cout << value << std::endl;
             Script* script = new Script();
             model->addChild(script);
             script->loadFromFile(value);
