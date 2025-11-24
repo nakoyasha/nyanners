@@ -70,8 +70,6 @@ void Application::drawDebug()
     rlImGuiBegin();
 
     bool gccWantsThis = false;
-    bool sceneSwap = false;
-
     ImGui::Begin("Nyanners Debug", &gccWantsThis);
     ImGui::Text("FPS: %d", currentFPS);
     ImGui::Text("Instances: %d", dataModel->children.size());
@@ -133,7 +131,7 @@ void Application::start()
     SetConfigFlags(windowFlags);
     InitWindow(1280, 720, "Engine");
     rlImGuiSetup(true);
-    DataModel* project = loadProjectFile("system/autorun.json");
+    DataModel* project = loadProjectFile("system/project.json");
 
     this->setModel(project);
     isRunning = true;
