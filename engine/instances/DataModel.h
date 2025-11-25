@@ -4,13 +4,15 @@
 #include "Instance.h"
 #include "UIDrawable.h"
 #include "iostream"
+
+#ifndef NO_HTTP_SERVICE
 #include "services/HttpService.h"
+#endif
 
 namespace Nyanners {
 namespace Instances {
     class DataModel : public Instance {
     public:
-        CameraInstance* camera = new CameraInstance;
         std::vector<UIDrawable*> uiToDraw;
         std::vector<Instance*> objects;
 
@@ -19,16 +21,20 @@ namespace Instances {
         {
             this->m_className = "DataModel";
             this->m_name = "Game";
-
-            this->addChild(camera);
         };
 
         ~DataModel()
         {
+            for (UIDrawable* child : uiToDraw) {
+                delete child;
+            }
             uiToDraw.clear();
-            objects.clear();
 
-            delete camera;
+            for (Instance* child : objects) {
+                delete child;
+            }
+
+            objects.clear();
         }
 
         int luaIndex(lua_State* context, std::string keyName);

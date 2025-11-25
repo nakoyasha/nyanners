@@ -52,6 +52,10 @@ int DataModel::luaIndex(lua_State* context, std::string keyName)
             std::string serviceName = luaL_checkstring(context, -1);
 
             if (serviceName == "HttpService") {
+#ifdef NO_HTTP_SERVICE
+                lua_throwError(context, "HttpService is not available.");
+                return 0;
+#else
                 HttpService* existingHttp = (HttpService*)this->getChildByClass("HttpService");
 
                 if (existingHttp != nullptr) {
@@ -63,6 +67,7 @@ int DataModel::luaIndex(lua_State* context, std::string keyName)
                 }
 
                 return 1;
+#endif
             }
 
             return 1;

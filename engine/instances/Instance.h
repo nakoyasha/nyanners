@@ -22,7 +22,7 @@ namespace Instances {
         std::vector<Instance*> children;
 
         Instance(const std::string className);
-        ~Instance();
+        virtual ~Instance();
         bool isA(const std::string className);
 
         virtual void update() { };

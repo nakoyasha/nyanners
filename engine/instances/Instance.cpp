@@ -130,5 +130,9 @@ Instance::~Instance()
         m_parent = nullptr;
     }
 
+    for (Instance* child : children) {
+        delete child;
+    }
+
     children.clear();
 }
