@@ -1,8 +1,38 @@
 #include "../engine.h"
 #include "DataModel.h"
+#include "Script.h"
+#include "lua/reflection/Reflection.h"
 #include "lua/system.h"
+#include "project/ProjectLoader.h"
 
 using namespace Nyanners::Instances;
+
+DataModel::DataModel(const std::string projectPath)
+    : Instance("DataModel")
+{
+    std::string project = engine_readFile(projectPath);
+    nlohmann::json projectJson = nlohmann::json::parse(project);
+
+    SerializedInstanceDescriptor root = deserializeInstance(projectJson);
+    this->m_name = root.name;
+
+    for (auto child : root.children) {
+        if (child.className == "Script") {
+            auto filePosition = child.properties.find("file");
+
+            if (filePosition == child.properties.end()) {
+                std::cout << "Script is missing file property, which is illegal" << std::endl;
+                continue;
+            }
+
+            std::string value = std::get<std::string>(filePosition->second);
+            std::cout << value << std::endl;
+            Script* script = new Script();
+            this->addChild(script);
+            script->loadFromFile(value);
+        }
+    }
+}
 
 void DataModel::draw()
 {

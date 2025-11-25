@@ -14,7 +14,6 @@
 #include "./instances/Rectangle.h"
 #include "./instances/Script.h"
 #include "./instances/TextLabel.h"
-#include "./project/ProjectLoader.h"
 #include "tinyfiledialogs.h"
 
 #include "engine.h"
@@ -80,10 +79,10 @@ void Application::drawDebug()
 
     if (ImGui::Button("Switch Scene")) {
         if (sceneSwap == false) {
-            this->setModel(loadProjectFile("system/autorun.json"));
+            this->setModel(new DataModel("system/autorun.json"));
             sceneSwap = true;
         } else {
-            this->setModel(loadProjectFile("system/project.json"));
+            this->setModel(new DataModel("system/project.json"));
             sceneSwap = false;
         }
     }
@@ -131,7 +130,7 @@ void Application::start()
     SetConfigFlags(windowFlags);
     InitWindow(1280, 720, "Engine");
     rlImGuiSetup(true);
-    DataModel* project = loadProjectFile("system/project.json");
+    DataModel* project = new DataModel("system/project.json");
 
     this->setModel(project);
     isRunning = true;

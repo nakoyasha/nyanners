@@ -23,6 +23,8 @@ namespace Instances {
             this->m_name = "Game";
         };
 
+        DataModel(const std::string projectPath);
+
         ~DataModel()
         {
             for (UIDrawable* child : uiToDraw) {

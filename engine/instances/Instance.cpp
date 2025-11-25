@@ -1,4 +1,5 @@
 #include "Instance.h"
+#include "lua/reflection/Reflection.h"
 #include "lua/system.h"
 
 using namespace Nyanners::Instances;

@@ -1,5 +1,6 @@
 #include "engine.h"
 #include "libInstance.h"
+#include "lua/reflection/Reflection.h"
 
 int libInstance_new(lua_State* context)
 {

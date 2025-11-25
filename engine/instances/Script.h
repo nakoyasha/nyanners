@@ -11,6 +11,7 @@
 #include "lualib.h"
 
 #include "lua/builtin/libInstance.h"
+#include "lua/reflection/Reflection.h"
 #include "lua/system.h"
 #include "lua/utils.h"
 

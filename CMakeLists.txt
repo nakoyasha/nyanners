@@ -51,6 +51,8 @@ set(
     engine/main.cpp
     engine/lua/system.cpp
     engine/lua/utils.cpp
+    engine/lua/reflection/Reflection.cpp
+    engine/project/ProjectLoader.cpp
     engine/lua/builtin/libInstance.cpp
     engine/instances/Instance.cpp
     engine/instances/DataModel.cpp
