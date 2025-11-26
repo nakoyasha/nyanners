@@ -93,6 +93,10 @@ void Application::drawDebug()
     if (ImGui::Button("Execute")) {
         Nyanners::Instances::Script* script = new Nyanners::Instances::Script;
         script->loadFromString(&codeToEvaluate);
+        script->runScript();
+
+        // delete after running
+        delete script;
     }
 
     if (ImGui::Button("Force Crash")) {
