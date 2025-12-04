@@ -1,5 +1,8 @@
 # built binary
 Nyanners
+Nyanners.exe
+libcurl-x64.dll
+libNyanners.ThirdParty.a
 
 # cmake stuff
 cmake_stuff
@@ -13,6 +16,8 @@ CPackSourceConfig.cmake
 Makefile
 *.png
 vendor
+.ninja_*
+build.ninja
 
 # personal
 CMakePresets_old.json
