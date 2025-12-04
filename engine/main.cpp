@@ -10,7 +10,9 @@
 #include "./instances/Script.h"
 // #include "tinyfiledialogs.h"
 
+#include "core/Logger.h"
 #include "engine.h"
+#include "instances/ui/ImageLabel.h"
 
 #define _exit(...) exit
 
@@ -117,10 +119,12 @@ void Application::update()
 
 void Application::start()
 {
+    Nyanners::Logger::log("Starting engine");
     SetTraceLogLevel(TraceLogLevel::LOG_ERROR);
     int windowFlags = FLAG_WINDOW_RESIZABLE;
 
     if (headlessScreenshot == true) {
+        Nyanners::Logger::log("Running in headless mode");
         windowFlags |= FLAG_WINDOW_HIDDEN;
     }
 
@@ -128,6 +132,9 @@ void Application::start()
     InitWindow(1280, 720, "Engine");
     rlImGuiSetup(true);
     DataModel* project = new DataModel("system/project.json");
+    Instance* image = (Instance*)new ImageLabel;
+
+    project->addChild(image);
 
     this->setModel(project);
     isRunning = true;

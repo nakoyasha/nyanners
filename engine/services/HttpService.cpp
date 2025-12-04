@@ -1,5 +1,6 @@
 #include "./HttpService.h"
 
+#include "core/Logger.h"
 #include "engine.h"
 #include "lua/system.h"
 
@@ -77,20 +78,6 @@ int HttpService::luaIndex(lua_State* context, const std::string property)
     return 0;
 }
 
-HttpService::HttpService() : Instance("HttpService")
-{
-    curlInstance = curl_easy_init();
-
-    if (!curlInstance) {
-        Application::instance().panic("libcurl initialization failed");
-    }
-
-    curl_easy_setopt(curlInstance, CURLOPT_CAINFO, "certs/curl-ca-bundle.crt");
-
-    curl_version_info_data* data = curl_version_info(CURLVERSION_NOW);
-    std::cout << "libcurl backend " << data->ssl_version << std::endl;
-}
-
 std::size_t HttpService::curlAllocateResponse(void* ptr, std::size_t size, std::size_t nmemb, std::string* data)
 {
     data->append((char*)ptr, size * nmemb);
@@ -99,6 +86,17 @@ std::size_t HttpService::curlAllocateResponse(void* ptr, std::size_t size, std::
 
 HttpResponse HttpService::request(HttpMethod method, const std::string url)
 {
+    CURL* curlInstance = curl_easy_init();
+
+    if (!curlInstance) {
+        Application::instance().panic("libcurl initialization failed");
+    }
+
+    curl_easy_setopt(curlInstance, CURLOPT_CAINFO, "certs/curl-ca-bundle.crt");
+
+    curl_version_info_data* data = curl_version_info(CURLVERSION_NOW);
+    Nyanners::Logger::log(std::format("SSLBackend: {}", data->ssl_version));
+
     int responseCode = -1;
     // double responseTime = 0.0;
     std::string response_string;
@@ -110,12 +108,14 @@ HttpResponse HttpService::request(HttpMethod method, const std::string url)
 
     curl_easy_setopt(curlInstance, CURLOPT_WRITEFUNCTION, curlAllocateResponse);
     curl_easy_setopt(curlInstance, CURLOPT_WRITEDATA, &response_string);
+    curl_easy_setopt(curlInstance, CURLOPT_FOLLOWLOCATION, 1L);
     CURLcode curlStatus = curl_easy_perform(curlInstance);
 
     if (curlStatus == CURLE_OK) {
         curl_easy_getinfo(curlInstance, CURLINFO_RESPONSE_CODE, &responseCode);
         // curl_easy_getinfo(curlInstance, CURLINFO_TOTAL_TIME, &responseTime);
     }
+
     curl_easy_cleanup(curlInstance);
 
     return {(int)responseCode, curlStatus, response_string};

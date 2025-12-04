@@ -1,4 +1,5 @@
 #include "TextLabel.h"
+#include "raylib.h"
 
 using namespace Nyanners::Instances;
 
@@ -23,6 +24,6 @@ int TextLabel::luaNewIndex(lua_State* context, const std::string keyName, const 
         this->text = keyValue;
         return 1;
     } else {
-        return Instance::luaNewIndex(context, keyName, keyValue);
+        return UIDrawable::luaNewIndex(context, keyName, keyValue);
     }
 }

@@ -31,7 +31,13 @@ int reflection_metaNewIndex(lua_State* context)
         std::string value = lua_tostring(context, 3);
 
         return instance->luaNewIndex(context, property, value);
-    } else {
+    } if (lua_isvector(context, 3)) {
+        auto luaVector = lua_tovector(context , 3);
+        Vector2 vector = {luaVector[0], luaVector[1]};
+
+        return instance->luaNewIndex(context, property, vector);
+    }
+    else {
         lua_throwError(context, "__newindex for this type is not implemented.");
         return 0;
     }

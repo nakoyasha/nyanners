@@ -4,7 +4,7 @@
 #include "luacode.h"
 #include "lualib.h"
 
-#include "instances/TextLabel.h"
+#include "../../instances/ui/TextLabel.h"
 
 using namespace Nyanners::Instances;
 

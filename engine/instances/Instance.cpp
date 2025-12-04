@@ -124,6 +124,13 @@ int Instance::luaNewIndex(lua_State* context, std::string keyName, std::string k
     }
 }
 
+int Instance::luaNewIndex(lua_State* context, std::string keyName, Vector2 keyValue)
+{
+    // a base instance has no positional properties
+    lua_throwError(context, std::string("Attempt to set invalid property " + keyName).c_str());
+    return 0;
+}
+
 Instance::~Instance()
 {
     if (m_parent != nullptr) {

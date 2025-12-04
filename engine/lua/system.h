@@ -1,16 +1,10 @@
 #pragma once
 
 #include "engine.h"
-#include "iostream"
-#include "raylib.h"
 #include "string"
 #include <filesystem>
-#include <fstream>
-#include <iostream>
 
 #include "lua.h"
-#include "luacode.h"
-#include "lualib.h"
 
 static const char* SCRIPT_NAME_GLOBAL = "_SUPER_SECRET_SCRIPT_NAME_I_SURE_HOPE_NO_ONE_SEES_THIS_AND_GETS_THE_SCRIPT_NAME_THIS_WAY";
 using namespace Nyanners::Instances;

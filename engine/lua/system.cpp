@@ -1,4 +1,6 @@
 #include "system.h"
+#include "core/Logger.h"
+#include <fstream>
 
 using Method = void (DataModel::*)(int);
 
@@ -23,7 +25,6 @@ int luabridge_receiveMessageFromLua(lua_State* context)
     std::string output = "";
 
     for (int index = 1; index <= argumentCount; index++) {
-        // if (lua_isstring(context, index)) {
         size_t length = 0;
         auto argument = luaL_tolstring(context, index, &length);
 
@@ -31,28 +32,21 @@ int luabridge_receiveMessageFromLua(lua_State* context)
             argument = "<error during __tostring>";
         }
 
+        if (output.find(argument) != std::string::npos) {
+            continue;
+        }
+
         if (output != "") {
             output = output + " " + argument;
         } else {
             output = output + argument;
         }
-        // } {
-        //     continue;
-        // }
     }
-    std::cout << "[Lua::" + scriptPath + "] " << output << std::endl;
+
+    Nyanners::Logger::log(std::format("[Lua::{}] {}", scriptPath, output));
 
     return 0;
 }
-
-// char *lua_checkstring(lua_State *context, int stackIdx) {
-//   if (lua_isstring(context, stackIdx)) {
-//     lua_throwError(context, "did not receive a string");
-//     return nullptr;
-//   }
-
-//   const char *string = lua_tostring(context, stackIdx);
-// }
 
 int engine_LuaDrawText(lua_State* context)
 {

@@ -1,9 +1,7 @@
 #pragma once
 
-#include "Camera.h"
 #include "Instance.h"
-#include "UIDrawable.h"
-#include "iostream"
+#include "ui/UIDrawable.h"
 
 #ifndef NO_HTTP_SERVICE
 #include "services/HttpService.h"
@@ -16,13 +14,7 @@ namespace Instances {
         std::vector<UIDrawable*> uiToDraw;
         std::vector<Instance*> objects;
 
-        DataModel()
-            : Instance("DataModel")
-        {
-            this->m_className = "DataModel";
-            this->m_name = "Game";
-        };
-
+        DataModel();
         DataModel(const std::string projectPath);
 
         ~DataModel()

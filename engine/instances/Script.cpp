@@ -2,6 +2,11 @@
 
 using namespace Nyanners::Instances;
 
+// TODO: actually implement require
+struct ScriptRequireContext {
+    Script* script;
+};
+
 bool Script::compileSource()
 {
     // Compile Luau source to bytecode
@@ -26,12 +31,14 @@ bool Script::compileSource()
 
 void Script::initializeLua()
 {
+
     context = lua_newstate(engine_allocator, NULL);
+
     luaL_openlibs(context);
-    luabridge_defineBridgeMethod(context, "engine_DispatchNative",
-        engine_LuaDispatchMessage);
-    luabridge_defineBridgeMethod(context, "engine_DrawText", engine_LuaDrawText);
-    luabridge_defineBridgeMethod(context, "engine_panic", engine_LuaEnginePanic);
+    //luabridge_defineBridgeMethod(context, "engine_DispatchNative",
+      //  engine_LuaDispatchMessage);
+    // luabridge_defineBridgeMethod(context, "engine_DrawText", engine_LuaDrawText);
+    //luabridge_defineBridgeMethod(context, "engine_panic", engine_LuaEnginePanic);
     luabridge_defineBridgeMethod(context, "print", luabridge_receiveMessageFromLua);
 
     lua_createtable(context, 0, 0);
@@ -91,14 +98,10 @@ int Script::luaIndex(lua_State* context, std::string keyName)
 
 int Script::callMethod(std::string method)
 {
-    // lua_State* threadContext = lua_newthread(context);
     lua_getglobal(context, method.c_str());
     int callResult = lua_pcall(context, 0, 0, 0);
 
-    // printf("callResult: %d\n", callResult);
     if (callResult != LUA_OK) {
-        // std::string error = lua_tostring(context, -1);
-        // std::cout << error << std::endl;
         return LUA_ERRRUN;
     }
 
@@ -143,7 +146,8 @@ void Script::runScript()
 
     if (result == 0) {
         std::string errorMessage = lua_tostring(context, -1);
-        lua_pushstring(context, (std::string("[ERROR] ") + errorMessage).c_str());
+        lua_pushstring(context, errorMessage.c_str());
+
         luabridge_receiveMessageFromLua(context);
     }
 }

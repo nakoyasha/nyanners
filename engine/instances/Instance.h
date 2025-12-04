@@ -1,24 +1,20 @@
 #pragma once
 
 #include "lua.h"
-#include "lualib.h"
-#include <algorithm>
-#include <functional>
 #include <iostream>
-#include <map>
 #include <string>
-#include <variant>
 #include <vector>
+#include "raylib.h"
 
 namespace Nyanners {
 namespace Instances {
     class Instance {
 
     public:
+        Instance* m_parent = nullptr;
+
         std::string m_name;
         std::string m_className;
-
-        Instance* m_parent = nullptr;
         std::vector<Instance*> children;
 
         Instance(const std::string className);
@@ -31,6 +27,8 @@ namespace Instances {
         virtual int luaIndex(lua_State* context, std::string keyName);
         // string implementation
         virtual int luaNewIndex(lua_State* context, std::string keyName, std::string keyValue);
+        // vector implementation
+        virtual int luaNewIndex(lua_State* context, std::string keyName, Vector2 keyValue);
         virtual int luaDestroy(lua_State* context);
 
         virtual bool isUI()

@@ -5,10 +5,22 @@
 #include "lua/system.h"
 #include "project/ProjectLoader.h"
 
+// AssetService is included here as it must exist.
+#include "services/AssetService.h"
+
 using namespace Nyanners::Instances;
 
+DataModel::DataModel() : Instance("DataModel")
+{
+    this->m_className = "DataModel";
+    this->m_name = "Game";
+
+    auto* assetService = (Instance*)new Nyanners::Services::AssetService;
+    this->addChild(assetService);
+}
+
 DataModel::DataModel(const std::string projectPath)
-    : Instance("DataModel")
+    : DataModel()
 {
     std::string project = engine_readFile(projectPath);
     nlohmann::json projectJson = nlohmann::json::parse(project);
@@ -57,15 +69,9 @@ void DataModel::draw()
         ui->draw();
     }
 
-    // render 3d
-    // BeginMode3D(camera->rCamera);
-    // render the rest
-
     for (auto instance : objects) {
         instance->draw();
     }
-
-    // EndMode3D();
 }
 
 int DataModel::luaIndex(lua_State* context, std::string keyName)

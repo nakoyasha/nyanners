@@ -3,16 +3,16 @@ project(Nyanners)
 
 add_subdirectory(vendor/luau vendor/libs/luau EXCLUDE_FROM_ALL)
 add_subdirectory(vendor/raylib vendor/libs/raylib EXCLUDE_FROM_ALL)
-set(CMAKE_BUILD_TYPE Release)
+set(CMAKE_BUILD_TYPE Debug)
 
 set(CMAKE_C_STANDARD 17)
 set(CMAKE_GENERATOR_PLATFORM x64)
 set(WORKING_DIRECTORY .)
 message(RAYLIB_INCLUDE_DIR="${raylib_INCLUDE_DIR}")
 
-set( CURL_LIBRARY vendor/libcurl/lib )
-set( CURL_INCLUDE_DIR vendor/libcurl/include )
-set(COMMON_INCLUDE engine/ vendor/libcurl/include/ vendor/raylib/src/ vendor/luau/VM/include/ vendor/luau/Compiler/include/ vendor/tinyfiledialogs/ vendor/rlimgui vendor/imgui ${raylib_INCLUDE_DIR})
+set(CURL_LIBRARY vendor/libcurl/lib )
+set(CURL_INCLUDE_DIR vendor/libcurl/include )
+set(COMMON_INCLUDE engine/ vendor/libcurl/include/ vendor/raylib/src/ vendor/luau/VM/include/ vendor/luau/Compiler/include/ vendor/luau/Require/Runtime/include vendor/luau/Require/Navigator/include vendor/tinyfiledialogs/ vendor/rlimgui vendor/imgui ${raylib_INCLUDE_DIR})
 set(NO_HTTP_SERVICE false)
 
 file(COPY vendor/binary/ DESTINATION ${CMAKE_BINARY_DIR})
@@ -46,6 +46,7 @@ set(
     NYANNERS_SOURCE
     # engine core
     engine/main.cpp
+        engine/core/Logger.cpp
     engine/lua/system.cpp
     engine/lua/utils.cpp
     engine/lua/reflection/Reflection.cpp
@@ -54,7 +55,9 @@ set(
     engine/instances/Instance.cpp
     engine/instances/DataModel.cpp
     engine/instances/Script.cpp
-    engine/instances/TextLabel.cpp
+        engine/services/AssetService.cpp
+        engine/instances/ui/TextLabel.cpp
+        engine/instances/ui/ImageLabel.cpp
 )
 
 if (NOT NO_HTTP_SERVICE)
@@ -77,4 +80,4 @@ message("Linking Libraries")
 
 add_definitions( -DCURL_STATICLIB )
 target_link_options(Nyanners PRIVATE -static-libgcc -static-libstdc++)
-target_link_libraries(Nyanners Nyanners.ThirdParty Luau.VM Luau.Compiler raylib libcurl)
+target_link_libraries(Nyanners Nyanners.ThirdParty Luau.VM Luau.Require Luau.Compiler raylib libcurl stdc++exp)

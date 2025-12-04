@@ -1,17 +1,12 @@
 #pragma once
 
 #include "Instance.h"
-#include "stdlib.h"
 #include <raylib.h>
-#include <stdint.h>
 #include <string.h>
 
 #include "lua.h"
-#include "luacode.h"
-#include "lualib.h"
 
 #include "lua/builtin/libInstance.h"
-#include "lua/reflection/Reflection.h"
 #include "lua/system.h"
 #include "lua/utils.h"
 
