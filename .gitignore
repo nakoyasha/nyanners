@@ -1,5 +1,6 @@
 # built binary
 Nyanners
+
 # cmake stuff
 cmake_stuff
 CMakeFiles
@@ -11,6 +12,13 @@ CPackConfig.cmake
 CPackSourceConfig.cmake
 Makefile
 *.png
+vendor
+
+# personal
+CMakePresets_old.json
+certs
+Testing
+.cmake
 
 # imgui
 imgui.ini

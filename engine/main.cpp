@@ -1,30 +1,23 @@
-#include "stdlib.h"
 #include <fstream>
 #include <iostream>
-#include <stdint.h>
-#include <string.h>
 
 #include "imgui.h"
 #include <raylib.h>
 
 #include "rlImGui.h"
-#include "rlgl.h"
 
 #include "./http/json.hpp"
-#include "./instances/Rectangle.h"
 #include "./instances/Script.h"
-#include "./instances/TextLabel.h"
-#include "tinyfiledialogs.h"
+// #include "tinyfiledialogs.h"
 
 #include "engine.h"
-#include <thread>
 
 #define _exit(...) exit
 
 void Application::panic(std::string message)
 {
     std::cout << message.c_str() << std::endl;
-    tinyfd_messageBox("≡(▔﹏▔)≡", message.c_str(), "OK", "error", 0);
+    // tinyfd_messageBox("≡(▔﹏▔)≡", message.c_str(), "OK", "error", 0);
     stop();
 }
 

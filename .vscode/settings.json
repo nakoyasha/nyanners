@@ -104,5 +104,5 @@
     "luau-lsp.sourcemap.enabled": false,
     "luau-lsp.types.definitionFiles": [
         "engine/edit/globals.d.luau"
-    ]
+    ],
 }

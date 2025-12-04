@@ -14,7 +14,7 @@ print("let's make a http request!")
 
 -- create http
 local http = game:getService("HttpService")
-local response = http:request("jsonplaceholder.typicode.com", "/todos/1")
+local response = http:request("https://jsonplaceholder.typicode.com/todos/1")
 print(response.code, response.body)
 print(typeof(response.body))
 print(http.Name)
