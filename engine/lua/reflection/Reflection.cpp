@@ -3,9 +3,9 @@
 
 using namespace Nyanners::Instances;
 
-Instance* reflection_getInstance(lua_State* context)
+Instance* reflection_getInstance(lua_State* context, const int id)
 {
-    Instance* instance = *(Instance**)(lua_touserdata(context, 1));
+    Instance* instance = *(Instance**)(lua_touserdata(context, id));
     return instance;
 }
 
@@ -36,6 +36,9 @@ int reflection_metaNewIndex(lua_State* context)
         Vector2 vector = {luaVector[0], luaVector[1]};
 
         return instance->luaNewIndex(context, property, vector);
+    } if (lua_isuserdata(context, 3)) {
+        Instance* newInstance = reflection_getInstance(context, 3);
+        return instance->luaNewIndex(context, property, newInstance);
     }
     else {
         lua_throwError(context, "__newindex for this type is not implemented.");

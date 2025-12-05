@@ -1,4 +1,6 @@
 #include "Instance.h"
+
+#include "core/Logger.h"
 #include "lua/reflection/Reflection.h"
 #include "lua/system.h"
 
@@ -50,6 +52,25 @@ Instance::Instance(const std::string className)
 
 void Instance::addChild(Instance* instance)
 {
+    // what
+    if (instance == this) {
+        Logger::log("Attempted to add this to this");
+        return;
+    }
+
+    // if (auto child = this->getChildByName(instance->m_name)) {
+    //     if (child->m_className == instance->m_className) {
+    //         Logger::log("Attempted to set a child as parent");
+    //         return;
+    //     }
+    // }
+
+    std::cout << instance->m_name << this->m_name << std::endl;
+
+    if (instance->m_parent != nullptr) {
+        instance->m_parent->clearChild(instance);
+    }
+
     instance->m_parent = this;
     children.push_back(instance);
 }
@@ -79,23 +100,18 @@ int Instance::luaIndex(lua_State* context, const std::string keyName)
         lua_pushstring(context, m_className.c_str());
         return 1;
     } else if (keyName == "Parent") {
-        bool isNotNull = m_parent != nullptr;
-        if (isNotNull) {
+        if (m_parent != nullptr) {
             reflection_exposeInstanceToLua(context, m_parent);
         } else {
             lua_pushnil(context);
         }
-        // lua_pushstring(context, "Instance.Parent is unimplemented");
-        // lua_error(context);
+
         return 1;
     } else if (keyName == "IsA") {
         lua_pushcfunction(context, Instance_luaIsA, "Instance::IsA");
         return 1;
     } else if (keyName == "Destroy") {
-        // lua_pushcfunction(context, Instance_luaDestroy, "Instance::Destroy");
-        // reflection_luaPushMethod(context, std::bind(&Instance::luaDestroy, std::placeholders::_1, std::placeholders::_2));
         reflection_luaPushMethod(context, [this](lua_State* context) {
-            // std::cout << "hi im haruka and i luvv emilyyy" << std::endl;
             this->luaDestroy(context);
             return 1;
         });
@@ -131,8 +147,20 @@ int Instance::luaNewIndex(lua_State* context, std::string keyName, Vector2 keyVa
     return 0;
 }
 
+int Instance::luaNewIndex(lua_State* context, std::string keyName, Instance* keyValue)
+{
+    if (keyName == "Parent") {
+        keyValue->addChild(this);
+    } else {
+        lua_throwError(context, std::string("Attempt to set invalid property " + keyName).c_str());
+    }
+
+    return 0;
+}
+
 Instance::~Instance()
 {
+    printf("clearing\n");
     if (m_parent != nullptr) {
         m_parent->clearChild(this);
         m_parent = nullptr;

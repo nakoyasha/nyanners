@@ -20,12 +20,12 @@ namespace Instances {
         ~DataModel()
         {
             for (UIDrawable* child : uiToDraw) {
-                delete child;
+                // delete child;
             }
             uiToDraw.clear();
 
             for (Instance* child : objects) {
-                delete child;
+                // delete child;
             }
 
             objects.clear();

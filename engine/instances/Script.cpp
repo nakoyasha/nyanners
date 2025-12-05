@@ -34,6 +34,10 @@ void Script::initializeLua()
 
     context = lua_newstate(engine_allocator, NULL);
 
+    if (context == nullptr) {
+        Application::instance().panic("Failure initializing lua_State*");
+    }
+
     luaL_openlibs(context);
     //luabridge_defineBridgeMethod(context, "engine_DispatchNative",
       //  engine_LuaDispatchMessage);
@@ -68,6 +72,9 @@ void Script::initializeLua()
     lua_pushcfunction(context, &libInstance_new, "Instance.new");
     lua_setfield(context, topIndex, "new");
     lua_setglobal(context, "Instance");
+
+
+
 }
 
 int Script::executeScript()

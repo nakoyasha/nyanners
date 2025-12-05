@@ -8,18 +8,19 @@
 
 #include "./http/json.hpp"
 #include "./instances/Script.h"
-// #include "tinyfiledialogs.h"
+#include "tinyfiledialogs.h"
 
 #include "core/Logger.h"
 #include "engine.h"
 #include "instances/ui/ImageLabel.h"
+#include "instances/ui/Button.h"
 
 #define _exit(...) exit
 
 void Application::panic(std::string message)
 {
     std::cout << message.c_str() << std::endl;
-    // tinyfd_messageBox("≡(▔﹏▔)≡", message.c_str(), "OK", "error", 0);
+    tinyfd_messageBox("≡(▔﹏▔)≡", message.c_str(), "OK", "error", 0);
     stop();
 }
 
@@ -129,12 +130,19 @@ void Application::start()
     }
 
     SetConfigFlags(windowFlags);
-    InitWindow(1280, 720, "Engine");
+    InitWindow(screenSize.width, screenSize.height, "Engine");
     rlImGuiSetup(true);
     DataModel* project = new DataModel("system/project.json");
     Instance* image = (Instance*)new ImageLabel;
+    Button* button = new Button();
 
+    printf("%p\n", (void *)button);
+    project->addChild(button);
     project->addChild(image);
+
+    // button->clicked->connect([](Vector2 mousePosition) {
+        // Nyanners::Logger::log(std::format("Clicked at {},{}", mousePosition.x, mousePosition.y));
+    // });
 
     this->setModel(project);
     isRunning = true;
@@ -145,7 +153,7 @@ void Application::start()
             draw(std::nullopt);
         }
     } else {
-        RenderTexture2D texture = LoadRenderTexture(1280, 720);
+        RenderTexture2D texture = LoadRenderTexture(screenSize.width, screenSize.height);
         // render multiple times, just in case
 
         for (auto i = 1; 16; i++) {

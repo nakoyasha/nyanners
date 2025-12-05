@@ -11,6 +11,11 @@ void engine_exit();
 
 using namespace Nyanners::Instances;
 
+struct Vector2Int {
+    int width;
+    int height;
+};
+
 class Application {
 public:
     DataModel* dataModel;
@@ -22,6 +27,8 @@ public:
     bool isRunning = false;
     bool sceneSwap = false;
     int currentFPS = 0;
+
+    Vector2Int screenSize = {1280, 720};
 
     char codeToEvaluate;
 

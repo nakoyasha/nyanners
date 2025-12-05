@@ -116,6 +116,10 @@ int DataModel::luaIndex(lua_State* context, std::string keyName)
 
 void DataModel::update()
 {
+    for (auto* instance : children) {
+        std::cout << "ptr: " << instance << "\n";
+    }
+
     for (auto instance : this->children) {
         if (instance != nullptr) {
             instance->update();

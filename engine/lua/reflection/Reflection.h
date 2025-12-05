@@ -3,7 +3,7 @@
 #include "instances/Instance.h"
 
 int reflection_instanceIsA(lua_State* context, Nyanners::Instances::Instance* instance);
-Nyanners::Instances::Instance* reflection_getInstance(lua_State* context);
+Nyanners::Instances::Instance* reflection_getInstance(lua_State* context, int id = 1);
 int reflection_metaIndex(lua_State* context);
 void reflection_createInstanceMetatable(lua_State* context);
 void reflection_exposeInstanceToLua(lua_State* context, Nyanners::Instances::Instance* instance);

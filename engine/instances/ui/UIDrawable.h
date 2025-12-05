@@ -1,8 +1,6 @@
 #pragma once
 
-#include "../Instance.h"
-#include "lualib.h"
-#include "raylib.h"
+#include "instances/Instance.h"
 
 namespace Nyanners {
 namespace Instances {
@@ -10,10 +8,13 @@ namespace Instances {
     public:
         int zIndex = 0;
         Vector2 position {0,0};
+        Vector2 size {64, 64};
 
         virtual bool isUI() {
             return true;
         }
+
+        virtual ~UIDrawable() override = default;
 
         int luaNewIndex(lua_State* context, const std::string keyName, const std::string keyValue)
         {
@@ -25,6 +26,8 @@ namespace Instances {
             if (keyName == "Position") {
                 this->position = keyValue;
                 return 1;
+            } else if (keyName == "Size") {
+                this->size = keyValue;
             } else {
                 return Instance::luaNewIndex(context, keyName, keyValue);
             }

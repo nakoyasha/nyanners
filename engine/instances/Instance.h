@@ -29,6 +29,8 @@ namespace Instances {
         virtual int luaNewIndex(lua_State* context, std::string keyName, std::string keyValue);
         // vector implementation
         virtual int luaNewIndex(lua_State* context, std::string keyName, Vector2 keyValue);
+        // instance implementation
+        virtual int luaNewIndex(lua_State* context, std::string keyName, Instance* keyValue);
         virtual int luaDestroy(lua_State* context);
 
         virtual bool isUI()

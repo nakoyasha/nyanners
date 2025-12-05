@@ -8,9 +8,10 @@ int libInstance_new(lua_State* context)
 
     if (type == "TextLabel") {
         TextLabel* label = new TextLabel;
-        reflection_exposeInstanceToLua(context, label);
         // parent it to the datamodel
-        Application::instance().dataModel->addChild(label);
+        // Application::instance().dataModel->addChild(label);
+        reflection_exposeInstanceToLua(context, label);
+        lua_gc(context, LUA_GCCOLLECT, 0);   // force collection
         return 1;
     } else {
         lua_throwError(context, "Attempt to create invalid Instance");

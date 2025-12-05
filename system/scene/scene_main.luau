@@ -1,5 +1,8 @@
+local imageLabel = game.ImageLabel
+
 local label = Instance.new("TextLabel")
 label.Text = "hi"
+label.Parent = game
 
 print("Scene initializing")
 
