@@ -33,7 +33,7 @@ endif (UNIX)
 
 add_library(
     Nyanners.ThirdParty
-    # vendor/tinyfiledialogs/tinyfiledialogs.c
+    vendor/tinyfiledialogs/tinyfiledialogs.c
     vendor/imgui/imgui.cpp 
     vendor/imgui/imgui_demo.cpp
     vendor/imgui/imgui_draw.cpp 
@@ -58,6 +58,7 @@ set(
         engine/services/AssetService.cpp
         engine/instances/ui/TextLabel.cpp
         engine/instances/ui/ImageLabel.cpp
+        engine/instances/ui/Button.cpp
 )
 
 if (NOT NO_HTTP_SERVICE)
