@@ -86,6 +86,7 @@ void Application::drawDebug()
     ImGui::InputText("Lua Eval", &codeToEvaluate, 1024);
     if (ImGui::Button("Execute")) {
         Nyanners::Instances::Script* script = new Nyanners::Instances::Script;
+        script->m_name = "<eval>";
         script->loadFromString(&codeToEvaluate);
         script->runScript();
 

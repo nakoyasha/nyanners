@@ -5,6 +5,7 @@
 #include "instances/ui/TextLabel.h"
 #include "instances/ui/ImageLabel.h"
 #include "instances/ui/Button.h"
+#include "instances/Script.h"
 
 int libInstance_new(lua_State* context)
 {
@@ -17,6 +18,8 @@ int libInstance_new(lua_State* context)
         instanceCreated = new ImageLabel;
     } else if (type == "Button") {
         instanceCreated = new Button;
+    } else if (type == "Script") {
+        instanceCreated = new Script;
     }
     else {
         lua_throwError(context, "Attempt to create invalid Instance");

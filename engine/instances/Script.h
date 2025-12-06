@@ -5,9 +5,6 @@
 #include <string.h>
 
 #include "lua.h"
-
-#include "lua/builtin/libInstance.h"
-#include "lua/system.h"
 #include "lua/utils.h"
 
 #include "engine.h"
@@ -41,13 +38,14 @@ namespace Instances {
         };
 
         int callMethod(std::string method);
-        int luaIndex(lua_State* context, std::string keyName);
-        void update();
+        int luaIndex(lua_State* context, std::string keyName) override;
+        int luaNewIndex(lua_State* context, std::string keyName, std::string keyValue) override;
+        void update() override;
 
         void loadFromFile(std::string filePath);
         void loadFromString(std::string code);
         void runScript();
-        ~Script()
+        ~Script() override
         {
             lua_close(context);
         }

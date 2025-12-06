@@ -166,6 +166,11 @@ Instance::~Instance()
     }
 
     for (Instance* child : children) {
+        // why is this even here the hell
+        if (child == nullptr) {
+            continue;
+        }
+
         delete child;
     }
 

@@ -1,4 +1,6 @@
 #include "Script.h"
+#include "lua/builtin/libInstance.h"
+#include "lua/system.h"
 
 using namespace Nyanners::Instances;
 
@@ -73,8 +75,6 @@ void Script::initializeLua()
     lua_setfield(context, topIndex, "new");
     lua_setglobal(context, "Instance");
 
-
-
 }
 
 int Script::executeScript()
@@ -103,6 +103,16 @@ int Script::luaIndex(lua_State* context, std::string keyName)
     }
 }
 
+int Script::luaNewIndex(lua_State* context, std::string keyName, std::string keyValue)
+{
+    if (keyName == "Source") {
+        this->loadFromString(keyValue);
+        return 0;
+    } else {
+        return Instance::luaNewIndex(context, keyName, keyValue);
+    }
+}
+
 int Script::callMethod(std::string method)
 {
     lua_getglobal(context, method.c_str());
@@ -121,8 +131,6 @@ void Script::update()
         isRunning = true;
         runScript();
     }
-
-    this->callMethod("engine_update");
 }
 
 void Script::loadFromFile(const std::string filePath)
@@ -136,7 +144,7 @@ void Script::loadFromFile(const std::string filePath)
 void Script::loadFromString(const std::string code)
 {
     source = code;
-    m_name = "<eval>";
+    // m_name = "<eval>";
 }
 
 void Script::runScript()
