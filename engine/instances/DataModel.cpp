@@ -112,6 +112,15 @@ int DataModel::luaIndex(lua_State* context, std::string keyName)
     } else if (keyName == "Tick") {
         reflection_exposeInstanceToLua(context, this->engineUpdate);
         return 1;
+    } else if (keyName == "SetWindowTitle") {
+        reflection_luaPushMethod(context, [this](lua_State* context) {
+            luaL_checktype(context, -1, LUA_TSTRING);
+            std::string newTitle = luaL_checkstring(context, -1);
+
+            SetWindowTitle(newTitle.c_str());
+            return 0;
+        });
+        return 1;
     }
 
     return Instance::luaIndex(context, keyName);
