@@ -1,7 +1,7 @@
 #include "AssetService.h"
 
 #include "core/Logger.h"
-#include "lua/system.h"
+#include "core/Application.h"
 #include "assets/missing.h"
 
 using namespace Nyanners::Services;

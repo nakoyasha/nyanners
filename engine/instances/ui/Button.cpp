@@ -16,6 +16,17 @@ Button::~Button()
     delete clicked;
 }
 
+int Button::luaIndex(lua_State* context, std::string keyName)
+{
+    if (keyName == "Clicked") {
+        reflection_exposeInstanceToLua(context, clicked);
+        return 1;
+    } else {
+        return Instance::luaIndex(context, keyName);
+    }
+}
+
+
 void Button::update()
 {
     Vector2Int screenSize = Application::instance().screenSize;

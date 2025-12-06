@@ -1,10 +1,5 @@
 #pragma once
 #include "lua.h"
-#include "lua/system.h"
-#include "luacode.h"
-#include "lualib.h"
-
-#include "../../instances/ui/TextLabel.h"
 
 using namespace Nyanners::Instances;
 

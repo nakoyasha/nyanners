@@ -1,14 +1,13 @@
-local imageLabel = game.ImageLabel
-
 local label = Instance.new("TextLabel")
 label.Text = "hi"
 label.Parent = game
 
+local ichika = Instance.new("ImageLabel")
+ichika.Parent = game
+
 print("Scene initializing")
 
-function engine_update()
+game.Tick:Connect(function()
     -- move the ichika hoshino
-    local ichika = game.ImageLabel
-
     ichika.Position = vector.create(math.random(1, 200), math.random(1, 200))
-end
+end)

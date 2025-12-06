@@ -15,6 +15,7 @@ namespace Nyanners::Instances {
         };
 
         ~Button() override;
+        int luaIndex(lua_State* context, std::string keyName) override;
 
         void draw() override;
         void update() override;

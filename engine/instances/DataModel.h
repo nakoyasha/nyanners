@@ -2,6 +2,7 @@
 
 #include "Instance.h"
 #include "ui/UIDrawable.h"
+#include "instances/signal/Signal.h"
 
 #ifndef NO_HTTP_SERVICE
 #include "services/HttpService.h"
@@ -13,6 +14,7 @@ namespace Instances {
     public:
         std::vector<UIDrawable*> uiToDraw;
         std::vector<Instance*> objects;
+        Signal<int>* engineUpdate = new Signal<int>;
 
         DataModel();
         DataModel(const std::string projectPath);

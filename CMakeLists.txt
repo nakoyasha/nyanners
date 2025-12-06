@@ -45,6 +45,7 @@ add_library(
 set(
     NYANNERS_SOURCE
     # engine core
+        engine/core/Application.cpp
     engine/main.cpp
         engine/core/Logger.cpp
     engine/lua/system.cpp

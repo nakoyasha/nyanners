@@ -109,6 +109,9 @@ int DataModel::luaIndex(lua_State* context, std::string keyName)
             return 1;
         });
         return 1;
+    } else if (keyName == "Tick") {
+        reflection_exposeInstanceToLua(context, this->engineUpdate);
+        return 1;
     }
 
     return Instance::luaIndex(context, keyName);
@@ -116,13 +119,16 @@ int DataModel::luaIndex(lua_State* context, std::string keyName)
 
 void DataModel::update()
 {
-    for (auto* instance : children) {
-        std::cout << "ptr: " << instance << "\n";
-    }
+    // for (auto* instance : children) {
+    //     std::cout << "ptr: " << instance << "\n";
+    // }
 
     for (auto instance : this->children) {
         if (instance != nullptr) {
             instance->update();
         }
     }
+
+    // TODO: add an actual value
+    this->engineUpdate->fire(1);
 }

@@ -160,7 +160,6 @@ int Instance::luaNewIndex(lua_State* context, std::string keyName, Instance* key
 
 Instance::~Instance()
 {
-    printf("clearing\n");
     if (m_parent != nullptr) {
         m_parent->clearChild(this);
         m_parent = nullptr;
