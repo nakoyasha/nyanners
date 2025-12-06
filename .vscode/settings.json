@@ -102,7 +102,8 @@
         "stack": "cpp"
     },
     "luau-lsp.sourcemap.enabled": false,
-    "luau-lsp.types.definitionFiles": [
-        "engine/edit/globals.d.luau"
-    ],
+    "luau-lsp.types.definitionFiles": {
+        "nyanners": "engine/edit/globals.d.luau"
+    },
+    "luau-lsp.platform.type": "standard"
 }
