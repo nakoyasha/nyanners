@@ -58,6 +58,22 @@ void Application::draw(std::optional<RenderTexture2D> texture)
     }
 }
 
+void debug_renderInstanceChildren(Instance* instance, int padding = 0) {
+    std::string repeat = std::string("");
+
+    for (auto i = 0; i < padding;i++) {
+        repeat += std::string("  ");
+    }
+
+    for (auto child : instance->children) {
+        ImGui::Text((repeat + child->m_name + std::string("(") + child->m_className + std::string(")")).c_str());
+
+        if (child->children.size() != 0) {
+            debug_renderInstanceChildren(child, padding + 1);
+        }
+    }
+}
+
 void Application::drawDebug()
 {
     rlImGuiBegin();
@@ -99,9 +115,7 @@ void Application::drawDebug()
     };
 
     if (ImGui::CollapsingHeader("DataModel Children")) {
-        for (auto instance : dataModel->children) {
-            ImGui::Text((instance->m_name + std::string("(") + instance->m_className + std::string(")")).c_str());
-        }
+        debug_renderInstanceChildren(dataModel);
     }
 
     ImGui::End();
@@ -167,4 +181,5 @@ void Application::stop()
     this->isRunning = false;
     delete this->dataModel;
     this->dataModel = nullptr;
+    CloseAudioDevice();
 }
