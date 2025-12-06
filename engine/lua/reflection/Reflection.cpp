@@ -27,16 +27,24 @@ int reflection_metaNewIndex(lua_State* context)
     Instance* instance = reflection_getInstance(context);
     std::string property = lua_tostring(context, 2);
 
-    if (lua_isstring(context, 3)) {
+    // numbers must be checked first, as numbers can be __tostring'd
+    // therefore, putting strings first would mean that is_string returns true,
+    // it calls for the std::string implementation, and proceeds to die and confuse
+    // the user.
+    if (lua_isnumber(context, 3)) {
+        const double value = lua_tonumber(context, 3);
+
+        return instance->luaNewIndex(context, property, value);
+    } else if (lua_isstring(context, 3)) {
         std::string value = lua_tostring(context, 3);
 
         return instance->luaNewIndex(context, property, value);
-    } if (lua_isvector(context, 3)) {
+    } else if (lua_isvector(context, 3)) {
         auto luaVector = lua_tovector(context , 3);
         Vector2 vector = {luaVector[0], luaVector[1]};
 
         return instance->luaNewIndex(context, property, vector);
-    } if (lua_isuserdata(context, 3)) {
+    } else if (lua_isuserdata(context, 3)) {
         Instance* newInstance = reflection_getInstance(context, 3);
         return instance->luaNewIndex(context, property, newInstance);
     }

@@ -18,7 +18,7 @@ enum AssetType {
 struct LoadedAsset {
     std::string path;
     AssetType type;
-    std::variant<Texture2D, std::string> asset;
+    std::variant<Texture2D, Sound, std::string> asset;
 };
 
 namespace Nyanners::Services {

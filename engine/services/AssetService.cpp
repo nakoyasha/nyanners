@@ -62,6 +62,16 @@ LoadedAsset AssetService::loadAsset(const std::string& path, const AssetType typ
 
         assets.push_back(asset);
         return asset;
+    } else if (type == AssetType::Audio) {
+        auto audio = LoadSound(path.c_str());
+
+        if (!IsSoundValid(audio)) {
+            Logger::log(std::format("{} could not be loaded", path));
+        }
+
+        auto asset = LoadedAsset(path, AssetType::Audio, audio);
+        assets.push_back(asset);
+        return asset;
     }
     else {
         throw "Other asset types are currently not implemented";

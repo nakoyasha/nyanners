@@ -119,6 +119,7 @@ void Application::update()
 
 void Application::start()
 {
+    InitAudioDevice();
     Nyanners::Logger::log("Starting engine");
     SetTraceLogLevel(TraceLogLevel::LOG_ERROR);
     int windowFlags = FLAG_WINDOW_RESIZABLE;

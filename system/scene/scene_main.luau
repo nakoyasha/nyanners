@@ -12,6 +12,12 @@ script.Name = "testScript"
 script.Source = `print("oh hey, this is created here :3")`
 script.Parent = game
 
+local sound = Instance.new("Sound")
+sound.Name = "crazy.mp3"
+sound.Sound = "assets/crazy.mp3"
+
+sound:Play()
+sound.Parent = game
 
 game.Tick:Connect(function()
     -- move the ichika hoshino

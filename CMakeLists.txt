@@ -60,6 +60,7 @@ set(
         engine/instances/ui/TextLabel.cpp
         engine/instances/ui/ImageLabel.cpp
         engine/instances/ui/Button.cpp
+        engine/instances/Sound.cpp
 )
 
 if (NOT NO_HTTP_SERVICE)

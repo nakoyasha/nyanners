@@ -135,7 +135,7 @@ int Instance::luaNewIndex(lua_State* context, std::string keyName, std::string k
         m_name = keyValue;
         return 0;
     } else {
-        lua_throwError(context, std::string("Attempt to set invalid property " + keyName).c_str());
+        lua_throwError(context, std::string("Attempt to set invalid propertes " + keyName).c_str());
         return 0;
     }
 }
@@ -155,6 +155,13 @@ int Instance::luaNewIndex(lua_State* context, std::string keyName, Instance* key
         lua_throwError(context, std::string("Attempt to set invalid property " + keyName).c_str());
     }
 
+    return 0;
+}
+
+int Instance::luaNewIndex(lua_State* context, std::string keyName, double keyValue)
+{
+    // a base instance has no number properties
+    lua_throwError(context, std::string("Attempt to set invalid property " + keyName).c_str());
     return 0;
 }
 

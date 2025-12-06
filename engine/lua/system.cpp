@@ -1,5 +1,5 @@
 #include "system.h"
-#include "core/Application.h">
+#include "core/Application.h"
 #include "core/Logger.h"
 #include <fstream>
 
