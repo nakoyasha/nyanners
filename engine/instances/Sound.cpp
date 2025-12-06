@@ -7,10 +7,22 @@ using namespace Nyanners::Instances;
 void SoundInstance::setAudio(const std::string path)
 {
     auto asset = Services::AssetService::loadAsset(path, AssetType::Audio);
+    bool wasPlayingBeforeLoad = isPlaying;
+
+    if (wasPlayingBeforeLoad) {
+        this->stop();
+        // TODO: let AssetService handle this, at some point..?
+        // UnloadSound(this->audio);
+    }
+
     audio = std::get<Sound>(asset.asset);
+
+    if (wasPlayingBeforeLoad) {
+        this->play();
+    }
 }
 
-void SoundInstance::setVolume(double newVolume)
+void SoundInstance::setVolume(float newVolume)
 {
     this->m_volume = newVolume;
     SetSoundVolume(this->audio, m_volume);
@@ -52,6 +64,16 @@ void SoundInstance::stop()
     StopSound(this->audio);
 }
 
+void SoundInstance::pause() {
+    isPlaying = false;
+    PauseSound(this->audio);
+}
+
+void SoundInstance::resume() {
+    isPlaying = true;
+    ResumeSound(this->audio);
+}
+
 int SoundInstance::luaIndex(lua_State* context, std::string keyName)
 {
     if (keyName == "Play") {
@@ -61,10 +83,22 @@ int SoundInstance::luaIndex(lua_State* context, std::string keyName)
         });
         return 1;
     } else if (keyName == "Stop") {
-    reflection_luaPushMethod(context, [this](lua_State* context) {
-      this->stop();
-          return 0;
-      });
+        reflection_luaPushMethod(context, [this](lua_State* context) {
+            this->stop();
+            return 0;
+        });
+        return 1;
+    } else if (keyName == "Pause") {
+        reflection_luaPushMethod(context, [this](lua_State* context) {
+            this->pause();
+            return 0;
+        });
+        return 1;
+    } else if (keyName == "Resume") {
+        reflection_luaPushMethod(context, [this](lua_State* context) {
+            this->resume();
+            return 0;
+        });
         return 1;
     }
 
@@ -81,10 +115,10 @@ int SoundInstance::luaNewIndex(lua_State* context, std::string keyName, std::str
     return Instance::luaNewIndex(context, keyName, keyValue);
 }
 
-int SoundInstance::luaNewIndex(lua_State* context, std::string keyName, double keyValue)
+int SoundInstance::luaNewIndex(lua_State* context, std::string keyName, float keyValue)
 {
     if (keyName == "Volume") {
-        this->setVolume(static_cast<int>(keyValue));
+        this->setVolume(keyValue);
         return 0;
     }
 
@@ -92,8 +126,12 @@ int SoundInstance::luaNewIndex(lua_State* context, std::string keyName, double k
 }
 
 SoundInstance::~SoundInstance() {
-    this->stop();
-    // TODO: unload audio through AssetService
-    UnloadSound(this->audio);
+    if (IsSoundValid(this->audio)) {
+        if (IsSoundPlaying(this->audio)) {
+            this->stop();
+        }
+        // TODO: unload audio through AssetService
+        UnloadSound(this->audio);
+    }
 }
 

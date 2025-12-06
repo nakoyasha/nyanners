@@ -32,7 +32,7 @@ namespace Instances {
         // instance implementation
         virtual int luaNewIndex(lua_State* context, std::string keyName, Instance* keyValue);
         // number implementation
-        virtual int luaNewIndex(lua_State* context, std::string keyName, double keyValue);
+        virtual int luaNewIndex(lua_State* context, std::string keyName, float keyValue);
         virtual int luaDestroy(lua_State* context);
 
         virtual bool isUI()

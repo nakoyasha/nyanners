@@ -32,7 +32,7 @@ int reflection_metaNewIndex(lua_State* context)
     // it calls for the std::string implementation, and proceeds to die and confuse
     // the user.
     if (lua_isnumber(context, 3)) {
-        const double value = lua_tonumber(context, 3);
+        const float value = lua_tonumber(context, 3);
 
         return instance->luaNewIndex(context, property, value);
     } else if (lua_isstring(context, 3)) {
