@@ -16,18 +16,30 @@ namespace Instances {
 
         virtual ~UIDrawable() override = default;
 
-        int luaNewIndex(lua_State* context, const std::string keyName, const std::string keyValue)
+        void setPosition(const Vector2 newPosition) {
+            position = newPosition;
+            renderingRectangle.x = position.x;
+            renderingRectangle.y = position.y;
+        }
+
+        void setSize(const Vector2 newSize) {
+            size = newSize;
+            renderingRectangle.width = size.x;
+            renderingRectangle.height = size.y;
+        }
+
+        int luaNewIndex(lua_State* context, const std::string keyName, const std::string keyValue) override
         {
             return Instance::luaNewIndex(context, keyName, keyValue);
         }
 
-        int luaNewIndex(lua_State* context, const std::string keyName, Vector2 keyValue)
+        int luaNewIndex(lua_State* context, const std::string keyName, Vector2 keyValue) override
         {
             if (keyName == "Position") {
-                this->position = keyValue;
+                this->setPosition(keyValue);
                 return 0;
             } else if (keyName == "Size") {
-                this->size = keyValue;
+                this->setSize(keyValue);
                 return 0;
             } else {
                 return Instance::luaNewIndex(context, keyName, keyValue);
@@ -39,6 +51,8 @@ namespace Instances {
             this->m_className = className;
             this->m_name = "Instance";
         }
+    protected:
+        Rectangle renderingRectangle = {position.x, position.y, size.x, size.y};
     };
 }
 }

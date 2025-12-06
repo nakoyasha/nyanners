@@ -32,5 +32,6 @@ int ImageLabel::luaNewIndex(lua_State* context, std::string keyName, std::string
 
 void ImageLabel::draw()
 {
-    DrawTexture(texture, position.x, position.y, WHITE);
+    Rectangle source = {0.0f, 0.0f, (float)texture.width, (float)texture.height};
+    DrawTexturePro(texture, source, renderingRectangle, Vector2(), 0.0f, WHITE);
 }
