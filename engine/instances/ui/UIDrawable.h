@@ -25,9 +25,10 @@ namespace Instances {
         {
             if (keyName == "Position") {
                 this->position = keyValue;
-                return 1;
+                return 0;
             } else if (keyName == "Size") {
                 this->size = keyValue;
+                return 0;
             } else {
                 return Instance::luaNewIndex(context, keyName, keyValue);
             }
