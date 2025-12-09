@@ -15,6 +15,8 @@
 
 #define _exit(...) exit
 
+std::unordered_set<Instance*> Application::allInstances;
+
 void Application::panic(std::string message)
 {
     std::cout << message.c_str() << std::endl;
@@ -29,16 +31,32 @@ void Application::setFPS(double fpsCap)
 
 void Application::setModel(DataModel* newModel)
 {
+    // there is a bug with raylib wheere we will
+    // sometimes draw texture index 1
+    // instead of our own. this looks really broken thus we pause rendering here up until the new datamodel is up and created
+    renderingPaused = true;
+    updatesPaused = true;
+
     DataModel* oldModel = this->dataModel;
     this->dataModel = newModel;
 
     if (oldModel != nullptr) {
         delete oldModel;
     }
+
+    renderingPaused = false;
+    updatesPaused = false;
 }
 
 void Application::draw(std::optional<RenderTexture2D> texture)
 {
+    if (renderingPaused) {
+        BeginDrawing();
+        drawDebug();
+        EndDrawing();
+        return;
+    }
+
     bool shouldRenderToTexture = texture.has_value();
 
     if (shouldRenderToTexture) {
@@ -49,6 +67,7 @@ void Application::draw(std::optional<RenderTexture2D> texture)
 
     ClearBackground(BLACK);
     dataModel->draw();
+
     drawDebug();
 
     if (shouldRenderToTexture) {
@@ -98,6 +117,7 @@ void Application::drawDebug()
     }
 
     ImGui::Checkbox("Engine Paused", &updatesPaused);
+    ImGui::Checkbox("Rendering Paused", &renderingPaused);
 
     ImGui::InputText("Lua Eval", &codeToEvaluate, 1024);
     if (ImGui::Button("Execute")) {
@@ -125,7 +145,7 @@ void Application::drawDebug()
 void Application::update()
 {
     currentFPS = GetFPS();
-    if (updatesPaused)
+    if (updatesPaused || renderingPaused)
         return;
 
     dataModel->update();
@@ -183,3 +203,16 @@ void Application::stop()
     this->dataModel = nullptr;
     CloseAudioDevice();
 }
+
+void Application::addInstance(Instance* instance) {
+    allInstances.insert(instance);
+}
+
+void Application::removeInstance(Instance *instance) {
+    allInstances.erase(instance);
+}
+
+bool Application::isInstanceValid(Instance *instance) {
+    return allInstances.contains(instance);
+}
+

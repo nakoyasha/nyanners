@@ -4,7 +4,11 @@
 #include <iostream>
 #include <string>
 #include <vector>
+
+#include "lualib.h"
 #include "raylib.h"
+
+#include "lua/reflection/ReflectionTypes.h"
 
 namespace Nyanners {
 namespace Instances {
@@ -17,12 +21,40 @@ namespace Instances {
         std::string m_className;
         std::vector<Instance*> children;
 
+        Reflection::ReflectionProperties properties = {
+            {"Name", {
+                Reflection::ReflectionPropertyType::String,
+                &m_name
+            }},
+            {"Parent", {
+                Reflection::ReflectionPropertyType::Instance,
+                &m_parent
+            }}
+        };
+
+        Reflection::ReflectionMethods methods = {
+            {"IsA", [this](lua_State* context) {
+                const std::string className = luaL_checkstring(context, -1);
+                lua_pushboolean(context, this->isA(className));
+                return 1;
+            }}
+        };
+
         Instance(const std::string className);
         virtual ~Instance();
         bool isA(const std::string className);
 
-        virtual void update() { };
-        virtual void draw() { };
+        virtual void update() {
+            for (auto instance : children) {
+                instance->draw();
+            }
+        };
+
+        virtual void draw() {
+            for (auto instance : children) {
+                instance->draw();
+            }
+        };
 
         virtual int luaIndex(lua_State* context, std::string keyName);
         // string implementation
@@ -33,7 +65,9 @@ namespace Instances {
         virtual int luaNewIndex(lua_State* context, std::string keyName, Instance* keyValue);
         // number implementation
         virtual int luaNewIndex(lua_State* context, std::string keyName, float keyValue);
-        virtual int luaDestroy(lua_State* context);
+        // bool implementation
+        virtual int luaNewIndex(lua_State* context, std::string keyName, bool keyValue);
+        virtual void luaDestroy();
 
         virtual bool isUI()
         {

@@ -1,8 +1,10 @@
 #pragma once
 
+#include "instances/Instance.h"
 #include "instances/DataModel.h"
 #include <optional>
 #include <string>
+#include <unordered_set>
 
 void engine_panic(std::string message);
 void engine_exit();
@@ -19,7 +21,11 @@ struct Vector2Int {
 class Application {
 public:
     DataModel* dataModel;
+    // This set serves to check at runtime whether an instance is truly a valid or not
+    // I have no idea how else to do this.
+    static std::unordered_set<Instance*> allInstances;
     bool updatesPaused;
+    bool renderingPaused;
 
     double schedulerFpsCap = 60;
     double lastSchedulerCap = 0;
@@ -36,6 +42,10 @@ public:
     {
         headlessScreenshot = headlessMode;
     }
+
+    static void addInstance(Instance* instance);
+    static void removeInstance(Instance* instance);
+    static bool isInstanceValid(Instance* instance);
 
     static Application& instance(bool headlessMode = false)
     {

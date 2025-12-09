@@ -5,9 +5,25 @@
 #include <variant>
 
 #include "lua.h"
-#include "luacode.h"
-#include "lualib.h"
 
 using ReflectionMethod = std::function<int(lua_State*)>;
-using LuaValue = std::variant<std::string, int, double>;
+using LuaValue = std::variant<std::string, int, double, void*>;
 using LuaStructMap = std::map<std::string, LuaValue>;
+
+namespace Nyanners::Reflection {
+	enum ReflectionPropertyType {
+		Bool,
+		String,
+		Number,
+		Vector,
+		Instance,
+	};
+
+	struct ReflectionProperty {
+		const ReflectionPropertyType type;
+		void* value;
+	};
+
+	using ReflectionProperties = std::map<std::string, ReflectionProperty>;
+	using ReflectionMethods = std::map<std::string, ReflectionMethod>;
+}

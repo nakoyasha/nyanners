@@ -4,6 +4,9 @@
 #include "lua/reflection/Reflection.h"
 #include "lua/system.h"
 
+#include "lualib.h"
+#include "core/Application.h"
+
 using namespace Nyanners::Instances;
 
 bool Instance::isA(std::string className)
@@ -48,6 +51,8 @@ Instance::Instance(const std::string className)
 {
     m_className = className;
     m_name = className;
+
+    Application::addInstance(this);
 }
 
 void Instance::addChild(Instance* instance)
@@ -65,7 +70,7 @@ void Instance::addChild(Instance* instance)
     //     }
     // }
 
-    std::cout << instance->m_name << this->m_name << std::endl;
+    // std::cout << instance->m_name << this->m_name << std::endl;
 
     if (instance->m_parent != nullptr) {
         instance->m_parent->clearChild(instance);
@@ -84,11 +89,12 @@ int Instance_luaIsA(lua_State* context)
     return 1;
 }
 
-int Instance::luaDestroy(lua_State* context)
+void Instance::luaDestroy()
 {
     this->m_parent->clearChild(this);
-    delete this;
-    return 0;
+    // TODO: figure out how to properly clear memory. currently we have to do this
+    // setting to nil works.. i guess.
+    // delete this;
 }
 
 int Instance::luaIndex(lua_State* context, const std::string keyName)
@@ -112,8 +118,8 @@ int Instance::luaIndex(lua_State* context, const std::string keyName)
         return 1;
     } else if (keyName == "Destroy") {
         reflection_luaPushMethod(context, [this](lua_State* context) {
-            this->luaDestroy(context);
-            return 1;
+            this->luaDestroy();
+            return 0;
         });
         return 1;
     } else {
@@ -165,12 +171,21 @@ int Instance::luaNewIndex(lua_State* context, std::string keyName, float keyValu
     return 0;
 }
 
+int Instance::luaNewIndex(lua_State* context, std::string keyName, bool keyValue)
+{
+    // a base instance has no number properties
+    lua_throwError(context, std::string("Attempt to set invalid property " + keyName).c_str());
+    return 0;
+}
+
 Instance::~Instance()
 {
     if (m_parent != nullptr) {
         m_parent->clearChild(this);
         m_parent = nullptr;
     }
+
+    children.clear();
 
     for (Instance* child : children) {
         // why is this even here the hell
@@ -181,5 +196,6 @@ Instance::~Instance()
         delete child;
     }
 
-    children.clear();
+
+    Application::removeInstance(this);
 }

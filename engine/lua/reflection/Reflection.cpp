@@ -1,6 +1,12 @@
 #include "Reflection.h"
 #include "lua/system.h"
 
+#include "lua.h"
+#include "luacode.h"
+#include "lualib.h"
+#include "core/Logger.h"
+#include "core/Application.h"
+
 using namespace Nyanners::Instances;
 
 Instance* reflection_getInstance(lua_State* context, const int id)
@@ -19,7 +25,54 @@ int reflection_metaIndex(lua_State* context)
         return 0;
     }
 
-    return instance->luaIndex(context, property);
+    auto index = instance->properties.find(property);
+    auto methodIndex = instance->methods.find(property);
+
+    if (index != instance->properties.end()) {
+        const Nyanners::Reflection::ReflectionProperty& prop = index->second;
+
+        switch (prop.type) {
+            case (Nyanners::Reflection::String): {
+                auto* value = static_cast<std::string*>(prop.value);;
+                lua_pushstring(context, value->c_str());
+                break;
+            };
+            case (Nyanners::Reflection::Number): {
+                auto value = static_cast<double*>(prop.value);
+                lua_pushnumber(context, *value);
+                break;
+            };
+            case (Nyanners::Reflection::ReflectionPropertyType::Instance): {
+                Instance* indexedInstance = *static_cast<Instance**>(prop.value);
+
+                if (!indexedInstance || Application::isInstanceValid(indexedInstance) == false) {
+                    lua_pushnil(context);
+                    break;
+                }
+
+                Nyanners::Logger::log("Indexing Instance");
+
+                reflection_exposeInstanceToLua(context, indexedInstance);
+                break;
+            }
+            default: {
+                lua_throwError(context, std::format("Attempt to index invalid property {}", property));
+                return 0;
+            }
+        }
+    } else if (methodIndex != instance->methods.end()) {
+        ReflectionMethod method = methodIndex->second;
+        reflection_luaPushMethod(context, method);
+
+        return 1;
+    }
+    else {
+        // fallback
+        Nyanners::Logger::log(std::format("{} could not be found in reflection falling back to manual indexing", property));
+        return instance->luaIndex(context, property);
+    }
+
+    return 1;
 }
 
 int reflection_metaNewIndex(lua_State* context)
@@ -27,22 +80,30 @@ int reflection_metaNewIndex(lua_State* context)
     Instance* instance = reflection_getInstance(context);
     std::string property = lua_tostring(context, 2);
 
+    // throw nothing at lua to prevent a crash
+    // todo: proper reference counting or something
+    if (instance == NULL) {
+        lua_pushnil(context);
+        return 1;
+    }
+
     // numbers must be checked first, as numbers can be __tostring'd
     // therefore, putting strings first would mean that is_string returns true,
     // it calls for the std::string implementation, and proceeds to die and confuse
     // the user.
     if (lua_isnumber(context, 3)) {
         const float value = lua_tonumber(context, 3);
-
         return instance->luaNewIndex(context, property, value);
-    } else if (lua_isstring(context, 3)) {
+    } else if (lua_isboolean(context, 3)) {
+        const bool value = lua_toboolean(context, 3);
+        return instance->luaNewIndex(context, property, value);
+    }
+    else if (lua_isstring(context, 3)) {
         std::string value = lua_tostring(context, 3);
-
         return instance->luaNewIndex(context, property, value);
     } else if (lua_isvector(context, 3)) {
         auto luaVector = lua_tovector(context , 3);
         Vector2 vector = {luaVector[0], luaVector[1]};
-
         return instance->luaNewIndex(context, property, vector);
     } else if (lua_isuserdata(context, 3)) {
         Instance* newInstance = reflection_getInstance(context, 3);
