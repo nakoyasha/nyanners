@@ -32,6 +32,13 @@ DataModel::DataModel() : Instance("DataModel")
 
         return 1;
     }});
+
+    this->methods.insert({"SetDebug", [this](lua_State* context) {
+        bool debugOn = luaL_checkboolean(context, -1);
+        Application::instance().renderDebug = debugOn;
+
+        return 0;
+    }});
 }
 
 DataModel::DataModel(const std::string projectPath)

@@ -30,6 +30,7 @@ public:
     double schedulerFpsCap = 60;
     double lastSchedulerCap = 0;
     bool headlessScreenshot = false;
+    bool renderDebug = true;
     bool isRunning = false;
     bool sceneSwap = false;
     int currentFPS = 0;
