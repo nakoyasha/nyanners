@@ -2,6 +2,7 @@
 #include <iostream>
 
 #include "imgui.h"
+#include "imgui_stdlib.h"
 #include <raylib.h>
 
 #include "rlImGui.h"
@@ -52,7 +53,15 @@ void Application::draw(std::optional<RenderTexture2D> texture)
 {
     if (renderingPaused) {
         BeginDrawing();
-        drawDebug();
+        // drawDebug();
+        EndDrawing();
+        return;
+    }
+
+    // we can't draw anything while the datamodel is null, so let's render
+    // literally nothing
+    if (dataModel == nullptr) {
+        BeginDrawing();
         EndDrawing();
         return;
     }
@@ -91,6 +100,51 @@ void debug_renderInstanceChildren(Instance* instance, int padding = 0) {
             debug_renderInstanceChildren(child, padding + 1);
         }
     }
+}
+
+void debug_renderProperties(Instance* instance) {
+
+    if (ImGui::BeginTable("Properties", 2, ImGuiTableFlags_SizingStretchProp)) {
+        for (auto const& prop : instance->properties) {
+            ImGui::TableNextRow();
+            ImGui::TableSetColumnIndex(0);
+            const std::string keyName = prop.first;
+            const auto property = prop.second;
+
+            ImGui::Text(keyName.c_str());
+
+            ImGui::TableSetColumnIndex(1);
+            switch (property.type) {
+                case (Nyanners::Reflection::String): {
+                    std::string* value = static_cast<std::string*>(property.value);
+                    ImGui::InputText(keyName.c_str(), value, 1000);
+                    break;
+                }
+                case (Nyanners::Reflection::ReflectionPropertyType::Number): {
+                    float* value = static_cast<float*>(property.value);
+                    ImGui::InputFloat(keyName.c_str(), value, 1);
+                    break;
+                }
+                case (Nyanners::Reflection::Instance): {
+                    Instance* instance = Nyanners::Reflection::getInstanceFromProperty(property);
+
+                    if (instance != nullptr) {
+                        ImGui::Text(instance->m_name.c_str());
+                    } else {
+                        ImGui::Text("None");
+                    }
+                }
+                default: {
+                    // ImGui::Text("meow");
+                    break;
+                }
+            }
+
+            ImGui::TableNextRow();
+        }
+        ImGui::EndTable();
+    }
+
 }
 
 void Application::drawDebug()
@@ -139,23 +193,52 @@ void Application::drawDebug()
     }
 
     ImGui::End();
+
+    ImGui::Begin("Properties");
+    debug_renderProperties(this->dataModel);
+    ImGui::End();
+
+
+
     rlImGuiEnd();
 }
 
 void Application::update()
 {
     currentFPS = GetFPS();
-    if (updatesPaused || renderingPaused)
+    if (updatesPaused || renderingPaused || isRunning != true)
         return;
 
     dataModel->update();
+
+    // int oldX  = screenSize.width;
+    // int oldY = screenSize.height;
+
+    screenSize.width = GetScreenWidth();
+    screenSize.height = GetScreenHeight();
+
+    // if (auto screenWidth = GetScreenWidth() != screenSize.width) {
+    //     screenSize.width = screenWidth;
+    //     onResize.fire(screenSize);
+    // }
+    //
+    // if (auto screenHeight = GetScreenHeight() != screenSize.height) {
+    //     screenSize.height = screenHeight;
+    //     onResize.fire(screenSize);
+    // }
 }
 
 void Application::start()
 {
     InitAudioDevice();
+
+    if (!IsAudioDeviceReady()) {
+        panic("Audio device initialization failed");
+        return;
+    }
+
     Nyanners::Logger::log("Starting engine");
-    SetTraceLogLevel(TraceLogLevel::LOG_ERROR);
+    SetTraceLogLevel(TraceLogLevel::LOG_ALL);
     int windowFlags = FLAG_WINDOW_RESIZABLE;
 
     if (headlessScreenshot == true) {
@@ -171,7 +254,7 @@ void Application::start()
     isRunning = true;
 
     if (!headlessScreenshot) {
-        while (!WindowShouldClose() && isRunning) {
+        while (WindowShouldClose() == false && isRunning == true) {
             update();
             draw(std::nullopt);
         }
@@ -198,10 +281,10 @@ void Application::start()
 
 void Application::stop()
 {
-    this->isRunning = false;
-    delete this->dataModel;
-    this->dataModel = nullptr;
     CloseAudioDevice();
+    this->isRunning = false;
+    this->dataModel = nullptr;
+    delete this->dataModel;
 }
 
 void Application::addInstance(Instance* instance) {

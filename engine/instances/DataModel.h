@@ -33,6 +33,9 @@ namespace Instances {
             objects.clear();
         }
 
+        template <typename Service>
+        Service* getOrCreateService(Service service);
+
         int luaIndex(lua_State* context, std::string keyName);
         void draw();
         void update();

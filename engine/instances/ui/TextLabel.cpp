@@ -5,6 +5,7 @@ using namespace Nyanners::Instances;
 
 void TextLabel::draw()
 {
+    if (!m_visible) return;
     DrawText(text.c_str(), position.x, position.y, 24, WHITE);
 }
 
@@ -24,6 +25,6 @@ int TextLabel::luaNewIndex(lua_State* context, const std::string keyName, const 
         this->text = keyValue;
         return 1;
     } else {
-        return UIDrawable::luaNewIndex(context, keyName, keyValue);
+        return Instance::luaNewIndex(context, keyName, keyValue);
     }
 }

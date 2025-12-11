@@ -42,9 +42,10 @@ namespace Instances {
         int luaNewIndex(lua_State* context, std::string keyName, std::string keyValue) override;
         void update() override;
 
-        void loadFromFile(std::string filePath);
+        void loadFromFile(std::string filePathToLoad);
         void loadFromString(std::string code);
         void runScript();
+        static bool compileSource(lua_State* context, const std::string source, const std::string name);
         ~Script() override
         {
             lua_close(context);
@@ -53,9 +54,9 @@ namespace Instances {
     private:
         lua_State* context;
         bool isRunning = false;
+        std::string filePath = "";
 
         void initializeLua();
-        bool compileSource();
 
         int executeScript();
     };

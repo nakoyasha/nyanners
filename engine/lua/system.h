@@ -11,7 +11,7 @@ void lua_throwError(lua_State* context, std::string error);
 void luabridge_defineBridgeMethod(lua_State* context, std::string name,
     lua_CFunction method);
 int luabridge_receiveMessageFromLua(lua_State* context);
-static void luabridge_dumpstack(lua_State* L);
+void luabridge_dumpstack(lua_State* L);
 
 int engine_LuaDrawText(lua_State* context);
 

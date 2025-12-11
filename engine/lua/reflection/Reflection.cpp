@@ -8,6 +8,7 @@
 #include "core/Application.h"
 
 using namespace Nyanners::Instances;
+using namespace Nyanners;
 
 Instance* reflection_getInstance(lua_State* context, const int id)
 {
@@ -201,4 +202,14 @@ void reflection_luaPushStruct(lua_State* context, const std::map<std::string, Lu
         reflection_luaPushValue(context, value);
         lua_settable(context, stackTop);
     }
+}
+
+Instances::Instance* Reflection::getInstanceFromProperty(ReflectionProperty property) {
+    auto* indexedInstance = *static_cast<Instances::Instance**>(property.value);
+
+    if (!indexedInstance || Application::isInstanceValid(indexedInstance) == false) {
+        return nullptr;
+    }
+
+    return indexedInstance;
 }

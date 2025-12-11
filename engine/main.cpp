@@ -2,13 +2,13 @@
 
 void engine_main()
 {
-    Application::instance(false).start();
+    Application::instance().start();
 }
 
-void headless_main()
-{
-    Application::instance(true).start();
-}
+// void headless_main()
+// {
+    // Application::instance(true).start();
+// }
 
 int main(int argc, char** argv)
 {

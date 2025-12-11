@@ -88,7 +88,7 @@ std::string engine_readFile(std::string fileName)
     return result;
 }
 
-static void lua_dumpstack(lua_State* L)
+void luabridge_dumpstack(lua_State* L)
 {
     int top = lua_gettop(L);
     for (int i = 1; i <= top; i++) {

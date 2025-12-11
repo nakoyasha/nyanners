@@ -46,7 +46,7 @@ namespace Instances {
 
         virtual void update() {
             for (auto instance : children) {
-                instance->draw();
+                instance->update();
             }
         };
 

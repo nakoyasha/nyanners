@@ -8,6 +8,9 @@
 #include "instances/Script.h"
 #include "instances/Sound.h"
 
+#include "instances/containers/Model.h"
+#include "instances/containers/Folder.h"
+
 int libInstance_new(lua_State* context)
 {
     std::string type = luaL_checkstring(context, -1);
@@ -23,6 +26,10 @@ int libInstance_new(lua_State* context)
         instanceCreated = new Script;
     } else if (type == "Sound") {
         instanceCreated = new SoundInstance;
+    } else if (type == "Model") {
+        instanceCreated = new Nyanners::Instances::Model;
+    } else if (type == "Folder") {
+        instanceCreated = new Folder;
     }
     else {
         lua_throwError(context, "Attempt to create invalid Instance");

@@ -65,8 +65,17 @@ LoadedAsset AssetService::loadAsset(const std::string& path, const AssetType typ
     } else if (type == AssetType::Audio) {
         auto audio = LoadSound(path.c_str());
 
+        // this is to see if the buffer itself is null, if it is
+        // we can't throw it into IsSoundValid as it causes a segmentation fault
+        // and thus results in a further crash.
+        if (audio.stream.processor == NULL) {
+            Application::instance().panic(std::format("Fatal audio error attempting to load audio {}, possibly audio driver bug?", path));
+            return {};
+        }
+
         if (!IsSoundValid(audio)) {
             Logger::log(std::format("{} could not be loaded", path));
+            return {path, AssetType::Audio, {}};
         }
 
         auto asset = LoadedAsset(path, AssetType::Audio, audio);
@@ -75,5 +84,36 @@ LoadedAsset AssetService::loadAsset(const std::string& path, const AssetType typ
     }
     else {
         throw "Other asset types are currently not implemented";
+    }
+}
+
+void AssetService::unloadAsset(LoadedAsset assetToUnload) {
+    std::size_t currentIndex = 0;
+    for (auto asset : assets) {
+        if (asset.path == assetToUnload.path && asset.type == assetToUnload.type) {
+
+            switch (asset.type) {
+                case AssetType::NImage: {
+                    Texture2D image = std::get<Texture2D>(asset.asset);
+                    UnloadTexture(image);
+                    break;
+                }
+                case AssetType::Audio: {
+                    Sound sound = std::get<Sound>(asset.asset);
+                    UnloadSound(sound);
+                    break;
+                }
+                case AssetType::Text: {
+                    std::string text = std::get<std::string>(asset.asset);
+                    text.clear();
+                }
+                default: {
+                    Logger::log("Cannot unload type");
+                };
+            }
+            assets.erase(assets.begin() + currentIndex);
+        } else {
+            currentIndex++;
+        }
     }
 }

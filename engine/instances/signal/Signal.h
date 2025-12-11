@@ -70,6 +70,9 @@ namespace Nyanners::Instances {
         void fire(Args... args)
         {
             for (auto connection : connections) {
+                if (connection == nullptr) {
+                    continue;
+                }
                 connection(args...);
             }
 

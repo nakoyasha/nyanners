@@ -9,6 +9,7 @@ namespace Nyanners::Instances {
         Sound audio;
         double m_volume = 1;
         bool isPlaying = false;
+        LoadedAsset loadedSoundAsset;
     public:
         std::string m_audioPath;
         bool m_looped = false;
@@ -23,6 +24,8 @@ namespace Nyanners::Instances {
         int luaIndex(lua_State* context, std::string keyName) override;
         int luaNewIndex(lua_State* context, std::string keyName, std::string keyValue) override;
         int luaNewIndex(lua_State* context, std::string keyName, float keyValue) override;
+
+        int luaNewIndex(lua_State *context, std::string keyName, bool keyValue) override;
 
         void update() override;
         SoundInstance() : Instance("Sound") {};

@@ -10,3 +10,7 @@ void reflection_exposeInstanceToLua(lua_State* context, Nyanners::Instances::Ins
 
 int reflection_luaPushMethod(lua_State* context, std::function<int(lua_State*)> method);
 void reflection_luaPushStruct(lua_State* context, const std::map<std::string, LuaValue>& map);
+
+namespace Nyanners::Reflection {
+	Instances::Instance* getInstanceFromProperty(ReflectionProperty property);
+}

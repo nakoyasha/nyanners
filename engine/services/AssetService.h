@@ -22,12 +22,13 @@ struct LoadedAsset {
 };
 
 namespace Nyanners::Services {
-    class AssetService : Instances::Instance {
+    class AssetService : public Instances::Instance {
     public:
         static std::vector<LoadedAsset> assets;
         static Texture2D tryLoadMissingTexture();
         static Texture2D missingTexture;
         AssetService() : Instances::Instance("AssetService") {};
         static LoadedAsset loadAsset(const std::string& path, const AssetType type);
+        static void unloadAsset(LoadedAsset assetToUnload);
     };
 }

@@ -7,6 +7,8 @@
 
 // AssetService is included here as it must exist.
 #include "services/AssetService.h"
+#include "services/ScriptService.h"
+#include "services/Workspace.h"
 
 using namespace Nyanners::Instances;
 
@@ -15,8 +17,21 @@ DataModel::DataModel() : Instance("DataModel")
     this->m_className = "DataModel";
     this->m_name = "Game";
 
-    auto* assetService = (Instance*)new Nyanners::Services::AssetService;
-    this->addChild(assetService);
+    this->addChild(new Workspace);
+    this->addChild(new Services::AssetService);
+    this->addChild(new ScriptService);
+
+    this->properties.insert({"Tick", {
+        Reflection::ReflectionPropertyType::Instance,
+        &engineUpdate
+    }});
+
+    this->methods.insert({"GetFPS", [this](lua_State* context) {
+        auto fps = GetFPS();
+        lua_pushnumber(context, fps);
+
+        return 1;
+    }});
 }
 
 DataModel::DataModel(const std::string projectPath)
@@ -56,7 +71,7 @@ void DataModel::draw()
     for (auto instance : this->children) {
         if (instance != nullptr) {
             if (instance->isUI()) {
-                uiToDraw.push_back((UIDrawable*)instance);
+                uiToDraw.push_back(static_cast<UIDrawable *>(instance));
             } else {
                 objects.push_back(instance);
             }
@@ -77,7 +92,7 @@ void DataModel::draw()
 int DataModel::luaIndex(lua_State* context, std::string keyName)
 {
     if (keyName == "setFPS") {
-        reflection_luaPushMethod(context, [this](lua_State* context) {
+        reflection_luaPushMethod(context, [](lua_State* context) {
             int fpsCap = luaL_checknumber(context, -1);
             Application::instance().setFPS(fpsCap);
             return 0;
@@ -92,7 +107,7 @@ int DataModel::luaIndex(lua_State* context, std::string keyName)
                 lua_throwError(context, "HttpService is not available.");
                 return 0;
 #else
-                HttpService* existingHttp = (HttpService*)this->getChildByClass("HttpService");
+                auto* existingHttp = static_cast<HttpService *>(this->getChildByClass("HttpService"));
 
                 if (existingHttp != nullptr) {
                     reflection_exposeInstanceToLua(context, existingHttp);
@@ -105,6 +120,14 @@ int DataModel::luaIndex(lua_State* context, std::string keyName)
                 return 1;
 #endif
             }
+            // these are guaranteed to exist
+            else if (serviceName == "Workspace") {
+                reflection_exposeInstanceToLua(context, this->getChildByClass("Workspace"));
+                return 1;
+            } else if (serviceName == "ScriptService") {
+                reflection_exposeInstanceToLua(context, this->getChildByClass("ScriptService"));
+                return 1;
+            }
 
             return 1;
         });
@@ -113,7 +136,7 @@ int DataModel::luaIndex(lua_State* context, std::string keyName)
         reflection_exposeInstanceToLua(context, this->engineUpdate);
         return 1;
     } else if (keyName == "SetWindowTitle") {
-        reflection_luaPushMethod(context, [this](lua_State* context) {
+        reflection_luaPushMethod(context, [](lua_State* context) {
             luaL_checktype(context, -1, LUA_TSTRING);
             std::string newTitle = luaL_checkstring(context, -1);
 
@@ -131,13 +154,7 @@ void DataModel::update()
     // for (auto* instance : children) {
     //     std::cout << "ptr: " << instance << "\n";
     // }
-
-    for (auto instance : this->children) {
-        if (instance != nullptr) {
-            instance->update();
-        }
-    }
-
+    Instance::update();
     // TODO: add an actual value
     this->engineUpdate->fire(1);
 }

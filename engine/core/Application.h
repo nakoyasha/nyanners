@@ -33,23 +33,18 @@ public:
     bool isRunning = false;
     bool sceneSwap = false;
     int currentFPS = 0;
-
+    
     Vector2Int screenSize = {1280, 720};
 
     char codeToEvaluate;
-
-    Application(bool headlessMode = false)
-    {
-        headlessScreenshot = headlessMode;
-    }
 
     static void addInstance(Instance* instance);
     static void removeInstance(Instance* instance);
     static bool isInstanceValid(Instance* instance);
 
-    static Application& instance(bool headlessMode = false)
+    static Application& instance()
     {
-        static Application app(headlessMode);
+        static Application app;
         return app;
     }
 

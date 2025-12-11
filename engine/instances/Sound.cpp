@@ -9,13 +9,22 @@ void SoundInstance::setAudio(const std::string path)
     auto asset = Services::AssetService::loadAsset(path, AssetType::Audio);
     bool wasPlayingBeforeLoad = isPlaying;
 
-    if (wasPlayingBeforeLoad) {
-        this->stop();
-        // TODO: let AssetService handle this, at some point..?
-        // UnloadSound(this->audio);
-    }
+    auto newloadedSoundAsset = asset;
+    auto newAudio = std::get<Sound>(newloadedSoundAsset.asset);
 
-    audio = std::get<Sound>(asset.asset);
+    if (IsSoundValid(newAudio)) {
+
+        if (wasPlayingBeforeLoad) {
+            this->stop();
+            // TODO: figure out a reference system or something?
+            // unloading on sound change is not preferable as this results in
+            // stutters between swaps
+            // Services::AssetService::unloadAsset(this->loadedSoundAsset);
+        }
+
+        loadedSoundAsset = newloadedSoundAsset;
+        audio = newAudio;
+    }
 
     if (wasPlayingBeforeLoad) {
         this->play();
@@ -125,12 +134,23 @@ int SoundInstance::luaNewIndex(lua_State* context, std::string keyName, float ke
     return Instance::luaNewIndex(context, keyName, keyValue);
 }
 
+int SoundInstance::luaNewIndex(lua_State* context, std::string keyName, bool keyValue)
+{
+    if (keyName == "Looped") {
+        this->m_looped = keyValue;
+        return 0;
+    }
+
+    return Instance::luaNewIndex(context, keyName, keyValue);
+}
+
 SoundInstance::~SoundInstance() {
     if (IsSoundValid(this->audio)) {
         if (IsSoundPlaying(this->audio)) {
             this->stop();
         }
         // TODO: unload audio through AssetService
+        Services::AssetService::unloadAsset(this->loadedSoundAsset);
         // UnloadSound(this->audio);
     }
 }
