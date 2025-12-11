@@ -15,6 +15,7 @@ namespace Nyanners::Reflection {
 		Bool,
 		String,
 		Number,
+		Float,
 		Vector,
 		Instance,
 	};

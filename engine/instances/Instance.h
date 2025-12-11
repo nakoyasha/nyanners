@@ -69,16 +69,12 @@ namespace Instances {
         virtual int luaNewIndex(lua_State* context, std::string keyName, bool keyValue);
         virtual void luaDestroy();
 
-        virtual bool isUI()
-        {
-            return false;
-        }
+        virtual bool isUI();
 
-        void addChild(Instance* instance);
+        virtual void addChild(Instance* instance);
+        virtual void clearChild(Instance* instance);
         Instance* getChildByClass(const std::string className);
         Instance* getChildByName(const std::string className);
-        // TODO: implement like actual children lmao
-        void clearChild(Instance* instance);
     };
 }
 }

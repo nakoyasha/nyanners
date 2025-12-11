@@ -55,6 +55,11 @@ Instance::Instance(const std::string className)
     Application::addInstance(this);
 }
 
+bool Instance::isUI() {
+    Logger::log("Calling Instance::isUI");
+    return false;
+}
+
 void Instance::addChild(Instance* instance)
 {
     // what

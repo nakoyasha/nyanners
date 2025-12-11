@@ -44,7 +44,10 @@ int luabridge_receiveMessageFromLua(lua_State* context)
         }
     }
 
-    Nyanners::Logger::log(std::format("[Lua::{}] {}", scriptPath, output));
+    lua_Debug debugInfo;
+    lua_getinfo(context, 1, "nsl", &debugInfo);
+    int line = debugInfo.currentline;
+    Nyanners::Logger::log(std::format("[Lua::{}:{}] {}", scriptPath, line, output));
 
     return 0;
 }

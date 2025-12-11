@@ -10,6 +10,10 @@
 #include "services/ScriptService.h"
 #include "services/Workspace.h"
 
+#include <algorithm>
+
+#include "ui/LayerCollector.h"
+
 using namespace Nyanners::Instances;
 
 DataModel::DataModel() : Instance("DataModel")
@@ -17,9 +21,10 @@ DataModel::DataModel() : Instance("DataModel")
     this->m_className = "DataModel";
     this->m_name = "Game";
 
-    this->addChild(new Workspace);
-    this->addChild(new Services::AssetService);
-    this->addChild(new ScriptService);
+    this->Instance::addChild(new Workspace);
+    this->Instance::addChild(new Services::AssetService);
+    this->Instance::addChild(new ScriptService);
+    this->Instance::addChild(new UI::LayerCollector);
 
     this->properties.insert({"Tick", {
         Reflection::ReflectionPropertyType::Instance,
@@ -65,34 +70,6 @@ DataModel::DataModel(const std::string projectPath)
             this->addChild(script);
             script->loadFromFile(value);
         }
-    }
-}
-
-void DataModel::draw()
-{
-    uiToDraw.clear();
-    objects.clear();
-
-    // filter ui
-    // todo: add a layer collector for it
-    for (auto instance : this->children) {
-        if (instance != nullptr) {
-            if (instance->isUI()) {
-                uiToDraw.push_back(static_cast<UIDrawable *>(instance));
-            } else {
-                objects.push_back(instance);
-            }
-        }
-    }
-
-    // render 2d ui
-
-    for (UIDrawable* ui : uiToDraw) {
-        ui->draw();
-    }
-
-    for (auto instance : objects) {
-        instance->draw();
     }
 }
 
@@ -158,10 +135,8 @@ int DataModel::luaIndex(lua_State* context, std::string keyName)
 
 void DataModel::update()
 {
-    // for (auto* instance : children) {
-    //     std::cout << "ptr: " << instance << "\n";
-    // }
     Instance::update();
+
     // TODO: add an actual value
     this->engineUpdate->fire(1);
 }

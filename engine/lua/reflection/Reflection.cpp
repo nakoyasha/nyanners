@@ -39,7 +39,12 @@ int reflection_metaIndex(lua_State* context)
                 break;
             };
             case (Nyanners::Reflection::Number): {
-                auto value = static_cast<double*>(prop.value);
+                auto value = static_cast<int*>(prop.value);
+                lua_pushnumber(context, *value);
+                break;
+            };
+            case (Nyanners::Reflection::Float): {
+                auto value = static_cast<float*>(prop.value);
                 lua_pushnumber(context, *value);
                 break;
             };
