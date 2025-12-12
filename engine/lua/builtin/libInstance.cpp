@@ -11,6 +11,13 @@
 #include "instances/containers/Model.h"
 #include "instances/containers/Folder.h"
 
+void libInstance_open(lua_State *context) {
+    reflection_luaPushStruct(context, {
+        {"new", &libInstance_new},
+    });
+    lua_setglobal(context, "Instance");
+}
+
 int libInstance_new(lua_State* context)
 {
     std::string type = luaL_checkstring(context, -1);

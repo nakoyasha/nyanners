@@ -45,7 +45,7 @@ namespace Instances {
         void loadFromFile(std::string filePathToLoad);
         void loadFromString(std::string code);
         void runScript();
-        static bool compileSource(lua_State* context, const std::string source, const std::string name);
+        static bool compileSource(lua_State* context, const std::string& source, const std::string& name);
         ~Script() override
         {
             lua_close(context);
@@ -58,7 +58,7 @@ namespace Instances {
 
         void initializeLua();
 
-        int executeScript();
+        static int executeScript(lua_State* context);
     };
 }
 }

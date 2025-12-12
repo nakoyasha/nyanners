@@ -2,7 +2,7 @@ local characters = require("./characters.luau")
 local workspace = game:getService("Workspace")
 local scriptService = game:getService("ScriptService")
 
-game:SetWindowTitle("hi")
+game:SetWindowTitle(characters.rin)
 
 local ichika = Instance.new("ImageLabel")
 ichika.Name = "evil"

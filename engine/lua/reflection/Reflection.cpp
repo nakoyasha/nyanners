@@ -191,6 +191,9 @@ void reflection_luaPushValue(lua_State* context, const LuaValue& value)
     } else if (std::holds_alternative<double>(value)) {
         lua_pushnumber(context, std::get<double>(value));
         return;
+    } else if (std::holds_alternative<lua_CFunction>(value)) {
+        lua_pushcfunction(context, std::get<lua_CFunction>(value), "<unknown method>");
+        return;
     }
 }
 
