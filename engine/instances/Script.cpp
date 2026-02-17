@@ -94,7 +94,7 @@ static void requireConfigInit(luarequire_Configuration *config) {
 
 		std::string contents = engine_readFile(currentPath->string());
 
-		if (Script::compileSource(moduleThread, contents, chname) == 0) {
+		if (Script::compileSource(moduleThread, contents, chname)) {
 			lua_pushstring(moduleThread, ldname);
 			lua_setglobal(moduleThread, "_LOADNAME");
 
