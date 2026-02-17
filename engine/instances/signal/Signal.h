@@ -82,12 +82,23 @@ namespace Nyanners::Instances {
                 // Logger::log(std::format("{} function id", refId));
 
                 // get the lua function
+                if (refId == LUA_REFNIL || refId == LUA_NOREF) {
+                    continue;
+                }
+
+                if (!lua_checkstack(luaConnection.context, 1)) {
+                    lua_throwError(luaConnection.context, "c stack overflow");
+                    continue;
+                }
+
                 lua_getref(luaConnection.context, refId);
 
                 if (auto result = lua_pcall(luaConnection.context, 0, 0, 0)) {
                     if (result != LUA_OK) {
                         Logger::log(std::format("got result {} while calling signal", result));
                     }
+
+                    lua_pop(luaConnection.context, -1);
                 }
             }
         }
