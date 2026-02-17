@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 4.0)
+cmake_minimum_required(VERSION 3.0)
 project(Nyanners)
 
 add_subdirectory(vendor/luau vendor/libs/luau EXCLUDE_FROM_ALL)
@@ -106,3 +106,4 @@ message("Linking Libraries")
 add_definitions(-DCURL_STATICLIB)
 target_link_options(Nyanners PRIVATE -static-libgcc -static-libstdc++)
 target_link_libraries(Nyanners Nyanners.ThirdParty Luau.VM Luau.Require Luau.Compiler raylib libcurl stdc++exp)
+
