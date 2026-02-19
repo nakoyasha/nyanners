@@ -1,10 +1,12 @@
-cmake_minimum_required(VERSION 3.0)
+cmake_minimum_required(VERSION 3.5)
 project(Nyanners)
 
 add_subdirectory(vendor/luau vendor/libs/luau EXCLUDE_FROM_ALL)
 add_subdirectory(vendor/raylib vendor/libs/raylib EXCLUDE_FROM_ALL)
 
 set(CMAKE_C_STANDARD 17)
+set(CMAKE_CXX_STANDARD 23)
+set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_GENERATOR_PLATFORM x64)
 set(WORKING_DIRECTORY build)
 
@@ -45,7 +47,7 @@ if (UNIX)
 	include_directories(/usr/local/include ${COMMON_INCLUDE})
 endif (UNIX)
 
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS}")
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++23")
 set(CMAKE_C_FLAGS "${CMAKE_CXX_FLAGS}")
 
 add_library(
@@ -75,6 +77,7 @@ set(
 	engine/instances/DataModel.cpp
 	engine/instances/Script.cpp
 	engine/services/AssetService.cpp
+	engine/services/FileService.cpp
 	engine/instances/ui/UIDrawable.cpp
 	engine/instances/ui/TextLabel.cpp
 	engine/instances/ui/ImageLabel.cpp
@@ -101,6 +104,7 @@ if (NO_HTTP_SERVICE)
 endif (NO_HTTP_SERVICE)
 
 set_property(TARGET Nyanners PROPERTY CXX_STANDARD 23)
+set(CMAKE_EXE_LINKER_FLAGS "-mwindows")
 message("Linking Libraries")
 
 add_definitions(-DCURL_STATICLIB)
