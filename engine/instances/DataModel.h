@@ -13,14 +13,17 @@ namespace Instances {
     class DataModel : public Instance {
     public:
         Signal<int>* engineUpdate = new Signal<int>;
+        Signal<int>* engineDraw = new Signal<int>;
+        Signal<int>* engineDrawImmediate = new Signal<int>;
 
         DataModel();
         DataModel(const std::string projectPath);
         template <typename Service>
         Service* getOrCreateService(Service service);
 
-        int luaIndex(lua_State* context, std::string keyName);
-        void update();
+        int luaIndex(lua_State* context, std::string keyName) override;
+        void update() override;
+        void draw() override;
     };
 }
 }
