@@ -95,7 +95,14 @@ namespace Nyanners::Instances {
 
                 if (auto result = lua_pcall(luaConnection.context, 0, 0, 0)) {
                     if (result != LUA_OK) {
-                        Logger::log(std::format("got result {} while calling signal", result));
+                        const char* errorMessage = lua_tostring(luaConnection.context, -1);
+
+                        if (errorMessage != nullptr) {
+                            Logger::log(std::format("got result {} while calling signal", errorMessage));
+                        } else {
+                            Logger::log(std::format("unknown lua exception while processing signal {}", this->m_name));
+                        }
+
                     }
 
                     lua_pop(luaConnection.context, -1);

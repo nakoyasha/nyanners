@@ -136,7 +136,8 @@ void Application::draw(std::optional<RenderTexture2D> texture)
     dataModel->draw();
 
     if (renderDebug) {
-        drawDebug();
+        // TODO: make this in lua instead
+        // drawDebug();
     }
 
     if (shouldRenderToTexture) {
@@ -280,8 +281,6 @@ void Application::drawDebug()
     ImGui::Begin("Properties");
     debug_renderProperties(this->dataModel);
     ImGui::End();
-
-
 
     rlImGuiEnd();
 }

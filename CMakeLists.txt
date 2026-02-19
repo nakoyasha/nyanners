@@ -72,6 +72,7 @@ set(
 	engine/lua/reflection/Reflection.cpp
 	engine/project/ProjectLoader.cpp
 	engine/lua/builtin/libInstance.cpp
+	engine/lua/builtin/libImmediate.cpp
 	engine/datatypes/UDim2.cpp
 	engine/instances/Instance.cpp
 	engine/instances/DataModel.cpp

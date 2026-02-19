@@ -87,7 +87,6 @@ std::string engine_readFile(std::string fileName)
     std::string result { std::istreambuf_iterator<char>(file),
         std::istreambuf_iterator<char>() };
 
-    // file.close();
     return result;
 }
 

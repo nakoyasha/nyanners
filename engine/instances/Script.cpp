@@ -1,9 +1,11 @@
 #include "Script.h"
 #include "lua/builtin/libInstance.h"
+#include "lua/builtin/libImmediate.h"
 #include "lua/system.h"
 #include "Luau/Require.h"
 #include "Luau/Compiler.h"
 #include "cassert"
+
 
 using namespace Nyanners::Instances;
 
@@ -203,6 +205,7 @@ void Script::initializeLua() {
 
 	luaL_openlibs(context);
 	libInstance_open(context);
+	libImmediate_open(context);
 
 	luabridge_defineBridgeMethod(context, "print", luabridge_receiveMessageFromLua);
 
