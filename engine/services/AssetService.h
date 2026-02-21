@@ -7,18 +7,20 @@
 #include <variant>
 
 #include "raylib.h"
+#include "project/ProjectLoader.h"
 
 enum AssetType {
     // has to be prefixed because otherwise it conflicts with Raylib
     NImage,
     Audio,
     Text,
+    ProjectFile,
 };
 
 struct LoadedAsset {
     std::string path;
     AssetType type;
-    std::variant<Texture2D, Sound, std::string> asset;
+    std::variant<Texture2D, Sound, std::string, SerializedInstanceDescriptor> asset;
 };
 
 namespace Nyanners::Services {
@@ -28,7 +30,7 @@ namespace Nyanners::Services {
         static Texture2D tryLoadMissingTexture();
         static Texture2D missingTexture;
         AssetService() : Instances::Instance("AssetService") {};
-        static LoadedAsset loadAsset(const std::string& path, const AssetType type);
+        static LoadedAsset loadAsset(const std::string& path, const AssetType& type);
         static void unloadAsset(LoadedAsset assetToUnload);
     };
 }

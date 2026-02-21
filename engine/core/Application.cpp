@@ -35,23 +35,24 @@ void Application::start()
     }
 
     Nyanners::Logger::log("Starting engine");
-    SetTraceLogLevel(TraceLogLevel::LOG_ALL);
-    int windowFlags = FLAG_WINDOW_RESIZABLE;
+    SetTraceLogLevel(TraceLogLevel::LOG_ERROR);
+    int windowFlags = 0;
 
     if (headlessScreenshot == true) {
         Nyanners::Logger::log("Running in headless mode");
         windowFlags |= FLAG_WINDOW_HIDDEN;
     }
-
     SetConfigFlags(windowFlags);
-    InitWindow(screenSize.width, screenSize.height, "Engine");
-    rlImGuiSetup(true);
-    DataModel* project = new DataModel("system/project.json");
+
+    auto* project = new DataModel("system/project.json");
     this->setModel(project);
     isRunning = true;
 
+    InitWindow(screenSize.width, screenSize.height, "Engine");
+    rlImGuiSetup(true);
+
     if (!headlessScreenshot) {
-        while (WindowShouldClose() == false && isRunning == true) {
+        while (WindowShouldClose() == false || isRunning == true) {
             update();
             draw(std::nullopt);
         }

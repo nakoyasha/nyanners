@@ -30,12 +30,8 @@ Texture2D AssetService::tryLoadMissingTexture()
     return texture;
 }
 
-LoadedAsset AssetService::loadAsset(const std::string& path, const AssetType type)
+LoadedAsset AssetService::loadAsset(const std::string& path, const AssetType& type)
 {
-    if (!IsTextureValid(missingTexture)) {
-        missingTexture = tryLoadMissingTexture();
-    }
-
     // find and return if the asset is already loaded into memory
     for (auto asset : assets) {
         if (asset.path == path) {
@@ -45,6 +41,10 @@ LoadedAsset AssetService::loadAsset(const std::string& path, const AssetType typ
     };
 
     if (type == AssetType::NImage) {
+        if (!IsTextureValid(missingTexture)) {
+            missingTexture = tryLoadMissingTexture();
+        }
+
         auto image = LoadTexture(path.c_str());
         // give them a placeholder instead, to avoid crashing on textures at least.
         if (!IsTextureValid(image)) {
