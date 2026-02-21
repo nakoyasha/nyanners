@@ -147,6 +147,7 @@ int DataModel::luaIndex(lua_State* context, std::string keyName)
             const float* luaVector = luaL_checkvector(context, -1);
 
             SetWindowSize(static_cast<int>(luaVector[0]), static_cast<int>(luaVector[1]));
+            Application::instance().screenSize = {static_cast<int>(luaVector[0]), static_cast<int>(luaVector[1])};
 
             // https://github.com/Omegapy/MyRaylibFunctions/blob/75328a1a52101c5cac5afe2968989fd717b8a346/my_raylib_functions.hpp#L90
             int monitor = GetCurrentMonitor();// Get current connected monitor
@@ -156,6 +157,24 @@ int DataModel::luaIndex(lua_State* context, std::string keyName)
 
             return 0;
        });
+        return 1;
+    } else if (keyName == "SetWindowIcon") {
+        reflection_luaPushMethod(context, [](lua_State* context) {
+            const std::string path = luaL_checkstring(context, -1);
+            const auto asset = Services::AssetService::loadAsset(path, AssetType::NImage);
+            const auto image = LoadImageFromTexture(std::get<Texture2D>(asset.asset));
+
+            SetWindowIcon(image);
+            return 0;
+        });
+
+        return 1;
+    } else if (keyName == "SetWindowFlags") {
+        reflection_luaPushMethod(context, [](lua_State* context) {
+            const int flags = luaL_checkinteger(context, -1);
+            SetWindowState(flags);
+            return 0;
+        });
         return 1;
     }
 

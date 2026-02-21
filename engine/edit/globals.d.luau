@@ -112,6 +112,8 @@ declare class DataModel extends Instance
     function GetFPS(self) : number
     function SetWindowTitle(self, title : string) : nil
     function SetWindowSize(self, size : vector) : nil
+    function SetWindowIcon(self, image : string) : nil
+    function SetWindowFlags(self, flags : number) : nil
 end
 
 declare class Script extends Instance
