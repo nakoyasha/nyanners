@@ -1,0 +1,28 @@
+#ifndef WIN32_LEAN_AND_MEAN
+#define WIN32_LEAN_AND_MEAN
+#endif
+#include <windows.h>
+
+IDI_ICON1               ICON    DISCARDABLE     "icon.ico"
+
+VS_VERSION_INFO VERSIONINFO
+FILEVERSION     0,0,1,0
+FILEOS          VOS_NT_WINDOWS32
+FILETYPE        VFT_APP
+BEGIN
+        BLOCK "StringFileInfo"
+        BEGIN
+                BLOCK "000004b0"
+                BEGIN
+                        VALUE "CompanyName", "Haruka"
+                        VALUE "FileDescription", "Palantir Top Secret"
+                        VALUE "FileVersion", "0.0.1"
+                        VALUE "ProductName", "Palantir Analysis Tool"
+                        VALUE "ProductVersion", "0.0.1"
+                END
+        END
+        BLOCK "VarFileInfo"
+        BEGIN
+                VALUE "Translation", 0x0000, 0x04b0 // Unicode
+        END
+END

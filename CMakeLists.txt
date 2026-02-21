@@ -32,39 +32,10 @@ set(LUAU_BUILD_TESTS false)
 set(LUAU_STATIC_CRT true)
 set(OPENGL_VERSION 4.3)
 
-
 file(COPY vendor/binary/ DESTINATION ${CMAKE_BINARY_DIR})
-
-if (WIN32)
-	add_compile_definitions(WIN32)
-	add_compile_definitions(WIN32 WIN32_LEAN_AND_MEAN)
-	include_directories(${COMMON_INCLUDE})
-endif (WIN32)
-
-set(LOUD_FLAGS "-Wall -Wextra -Weffc++")
-
-if (UNIX)
-	include_directories(/usr/local/include ${COMMON_INCLUDE})
-endif (UNIX)
-
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++23")
-set(CMAKE_C_FLAGS "${CMAKE_CXX_FLAGS}")
-
-add_library(
-	Nyanners.ThirdParty
-	vendor/tinyfiledialogs/tinyfiledialogs.c
-	vendor/imgui/imgui.cpp
-	vendor/imgui/imgui_demo.cpp
-	vendor/imgui/imgui_draw.cpp
-	vendor/imgui/imgui_tables.cpp
-	vendor/imgui/imgui_widgets.cpp
-	vendor/imgui/misc/cpp/imgui_stdlib.cpp
-	vendor/rlimgui/rlImGui.cpp
-)
 
 set(
 	NYANNERS_SOURCE
-	engine/main.cpp
 	engine/core/Application.cpp
 	engine/core/Logger.cpp
 	engine/lua/system.cpp
@@ -91,12 +62,43 @@ if (NOT NO_HTTP_SERVICE)
 	set(NYANNERS_SOURCE ${NYANNERS_SOURCE} engine/services/HttpService.cpp)
 endif (NOT NO_HTTP_SERVICE)
 
-link_directories(${CMAKE_ARCHIVE_OUTPUT_DIRECTORY}/Debug)
-link_directories(${CURL_LIBRARY})
-add_executable(
+add_library(
 	Nyanners
+	STATIC
 	${NYANNERS_SOURCE}
 )
+
+add_library(
+	Nyanners.ThirdParty
+	vendor/tinyfiledialogs/tinyfiledialogs.c
+	vendor/imgui/imgui.cpp
+	vendor/imgui/imgui_demo.cpp
+	vendor/imgui/imgui_draw.cpp
+	vendor/imgui/imgui_tables.cpp
+	vendor/imgui/imgui_widgets.cpp
+	vendor/imgui/misc/cpp/imgui_stdlib.cpp
+	vendor/rlimgui/rlImGui.cpp
+)
+
+if (WIN32)
+	add_compile_definitions(WIN32)
+	add_compile_definitions(WIN32 WIN32_LEAN_AND_MEAN)
+	target_include_directories(Nyanners PUBLIC ${COMMON_INCLUDE})
+	target_include_directories(Nyanners.ThirdParty PUBLIC ${COMMON_INCLUDE})
+endif (WIN32)
+
+if (UNIX)
+	target_include_directories(Nyanners PUBLIC /usr/local/include ${COMMON_INCLUDE})
+	target_include_directories(Nyanners.ThirdParty PUBLIC /usr/local/include ${COMMON_INCLUDE})
+endif (UNIX)
+
+set(LOUD_FLAGS "-Wall -Wextra -Weffc++")
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++23")
+set(CMAKE_C_FLAGS "${CMAKE_CXX_FLAGS}")
+
+link_directories(${CMAKE_ARCHIVE_OUTPUT_DIRECTORY}/Debug)
+link_directories(${CURL_LIBRARY})
+
 
 set_property(TARGET Nyanners PROPERTY INTERPROCEDURAL_GENERATION TRUE)
 
@@ -105,10 +107,19 @@ if (NO_HTTP_SERVICE)
 endif (NO_HTTP_SERVICE)
 
 set_property(TARGET Nyanners PROPERTY CXX_STANDARD 23)
-set(CMAKE_EXE_LINKER_FLAGS "-mwindows")
+#set(CMAKE_EXE_LINKER_FLAGS "-mwindows")
 message("Linking Libraries")
 
 add_definitions(-DCURL_STATICLIB)
 target_link_options(Nyanners PRIVATE -static-libgcc -static-libstdc++)
 target_link_libraries(Nyanners Nyanners.ThirdParty Luau.VM Luau.Require Luau.Compiler raylib libcurl stdc++exp)
 
+add_library(app_resource OBJECT app/meta/app.rc)
+
+add_executable(
+	App
+	app/main.cpp
+)
+
+target_link_options(App PRIVATE -static-libgcc -static-libstdc++)
+target_link_libraries(App PRIVATE Nyanners app_resource)
