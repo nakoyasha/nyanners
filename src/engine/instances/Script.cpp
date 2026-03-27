@@ -1,11 +1,15 @@
 #include "Script.h"
+
+#include "Application.h"
 #include "Luau/Compiler.h"
 #include "core/Logger.h"
 #include "lua.h"
+#include "services/ReflectionService.h"
 
 #include <format>
 
 using namespace Nyanners::Instances;
+
 
 void Script::run_script() const {
   const char *mutableGlobals[] = {"game", "DataModel", "script", nullptr};
@@ -25,6 +29,23 @@ void Script::run_script() const {
   // push game here, to keep the reference fresh
   // reflection_exposeInstanceToLua(context, Application::instance().dataModel);
   // lua_setglobal(context, "game");
+
+  auto model = Application::instance()->currentModel;
+
+  auto reflection = Services::ReflectionService::create_reflection(model,         {
+            {
+                .name = "Name",
+                .readOnly = false,
+                .value = model->name,
+            },
+          {
+            .name = "ClassName",
+            .readOnly = true,
+            .value = model->baseName,
+            }
+        });
+  Services::ReflectionService::reflect_class(context, reflection);
+  lua_setglobal(context, "DataModel");
 
   if (result != LUA_OK) {
     Core::Logger::log(std::format("Failed to compile script {}, luau_load returned {}", name, result));

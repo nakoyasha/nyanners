@@ -7,11 +7,15 @@
 namespace Nyanners::Instances {
   class Instance : public std::enable_shared_from_this<Instance> {
     public:
-    Instance(std::string  name) : name(std::move(name)) {};
+    Instance(std::string  name) : baseName(std::move(name)) {
+      this->name = this->baseName;
+    };
+
     virtual ~Instance() = default;
     std::shared_ptr<Instance> parent;
 
-    const std::string name;
+    std::string name;
+    const std::string baseName;
     std::vector<std::shared_ptr<Instance>> children;
 
     void add_child(const std::shared_ptr<Instance> &child);

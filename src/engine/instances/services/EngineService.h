@@ -4,7 +4,7 @@
 namespace Nyanners::Services {
   class EngineService : public Instances::Instance {
   public:
-    EngineService() : Instance("EngineService") {};
+    explicit EngineService() : Instance("EngineService") {};
 
     [[noreturn]]
     static void panic(const std::string_view& panicMessage);
