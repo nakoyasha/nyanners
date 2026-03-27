@@ -14,8 +14,13 @@
 using namespace Nyanners::Instances;
 
 
-void Script::run_script() const
+void Script::run_script()
 {
+    if (isRunning == true)
+    {
+        return;
+    }
+
     const char* mutableGlobals[] = {"game", "DataModel", "script", nullptr};
 
     // Compile Luau source to bytecode
@@ -30,17 +35,18 @@ void Script::run_script() const
     int result = luau_load(context, name.c_str(), bytecode.data(),
                            bytecode.size(), 0);
 
-    auto model = Application::instance()->currentModel;
+    this->isRunning = true;
 
+    auto model = Application::instance()->currentModel;
     Services::ReflectionService::reflect_class(context, model);
     lua_setglobal(context, "DataModel");
 
     if (result != LUA_OK)
     {
         Core::Logger::log(std::format("Failed to compile script {}, luau_load returned {}", name, result));
-    }
-
-    if (result == LUA_OK)
+        this->isRunning = false;
+        return;
+    } else
     {
         const int runResult = lua_pcall(context, 0, LUA_MULTRET, 0);
 
@@ -52,6 +58,7 @@ void Script::run_script() const
         }
         else
         {
+            this->isRunning = false;
             printf("result: %d\n", result);
         }
     }

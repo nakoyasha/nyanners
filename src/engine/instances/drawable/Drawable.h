@@ -1,8 +1,10 @@
 #pragma once
+#include "SFML/Graphics/RenderTarget.hpp"
 
 namespace Nyanners::Instances {
   class Drawable {
-    virtual void update();
-    virtual void draw();
+  public:
+    virtual void update() {};
+    virtual void draw(sf::RenderTarget& target) {};
   };
 }

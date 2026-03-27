@@ -2,10 +2,13 @@
 
 #include <ranges>
 
+#include "Application.h"
 #include "EngineService.h"
 #include "IOService.h"
 #include "lualib.h"
 #include "core/Logger.h"
+#include "instances/DataModel.h"
+#include "instances/drawable/TextLabel.h"
 
 using namespace Nyanners::Services;
 std::map<std::string, ReflectionClass> ReflectionService::classes;
@@ -134,6 +137,12 @@ int ReflectionService::instance_index(lua_State* context, ReflectionInstance* in
                 const std::string childName = luaL_checkstring(context, -1);
                 const auto child = instance->pointer->find_first_child<Instance>(childName);
 
+                if (child == nullptr)
+                {
+                    lua_pushnil(context);
+                    return 1;
+                }
+
                 reflect_class(context, child);
                 return 1;
             }, "find_first_child");
@@ -241,20 +250,16 @@ void ReflectionService::register_reflections()
                     lua_pushcfunction(context, [](lua_State* context)
                     {
                         const std::string service = luaL_checkstring(context, -1);
+                        const auto foundService = Application::instance()->currentModel->get_service<Instance>(service);
 
-                        for (const auto& descriptor : Services::ReflectionService::classes | std::views::values)
+                        if (foundService == nullptr)
                         {
-                            if (descriptor.className == service)
-                            {
-                                const auto newInstance = descriptor.constructor();
-                                Services::ReflectionService::reflect_class(context, newInstance);
-
-                                return 1;
-                            }
+                            luaL_error(context, "Cannot create non-existent service");
+                            return 0;
                         }
 
-                        luaL_error(context, "Invalid service name");
-                        return 0;
+                        Services::ReflectionService::reflect_class(context, foundService);
+                        return 1;
                     }, "get_service");
                     return 1;
                 },
@@ -298,28 +303,53 @@ void ReflectionService::register_reflections()
             }
         }
     });
+
     create_reflection({
-    .className = "EngineService",
-    .isService = true,
-    .constructor = []()
-    {
-        return std::make_shared<EngineService>();
-    },
+        .className = "EngineService",
+        .isService = true,
+        .constructor = []()
+        {
+            return std::make_shared<EngineService>();
+        },
+        .properties = {
+            {
+                .name = "panic",
+                .type = ReflectionPropertyType::Method,
+                .get = [](const Instance* instance, lua_State* context)
+                {
+                    lua_pushcfunction(context, [](lua_State* context)
+                    {
+                        const std::string message = luaL_checkstring(context, -1);
+                        EngineService::panic(message);
+                        return 0;
+                    }, "panic");
+                    return 1;
+                },
+            }
+    }
+});
+    create_reflection({
+    .className = "TextLabel",
+    .isService = false,
     .properties = {
         {
-            .name = "panic",
-            .type = ReflectionPropertyType::Method,
+            .name = "Text",
+            .type = ReflectionPropertyType::String,
             .get = [](const Instance* instance, lua_State* context)
             {
-                lua_pushcfunction(context, [](lua_State* context)
-                {
-                    const std::string message = luaL_checkstring(context, -1);
-                    EngineService::panic(message);
-                    return 0;
-                }, "panic");
+                const auto* label = static_cast<const Instances::TextLabel*>(instance);
+                lua_pushstring(context, label->getText().c_str());
+
                 return 1;
             },
+            .set = [](Instance* instance, lua_State* context)
+            {
+                auto* label = static_cast<Instances::TextLabel*>(instance);
+                const std::string text = luaL_checkstring(context, -1);
+
+                label->setText(text);
+            }
         }
-    }
+}
 });
 }

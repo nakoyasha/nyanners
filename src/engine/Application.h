@@ -7,6 +7,7 @@
 #include <utility>
 
 #include "instances/services/ReflectionService.h"
+#include "instances/services/RenderingService.h"
 
 namespace Nyanners {
   class Application {
@@ -27,6 +28,7 @@ namespace Nyanners {
       auto model = std::make_shared<Instances::DataModel>();
       model->add_child(std::make_shared<Services::EngineService>());
       model->add_child(std::make_shared<Services::IOService>());
+      model->add_child(std::make_shared<Services::RenderingService>());
       model->add_child(std::make_shared<Services::ReflectionService>());
 
       Services::ReflectionService::register_reflections();

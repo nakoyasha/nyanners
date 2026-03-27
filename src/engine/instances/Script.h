@@ -12,9 +12,10 @@ namespace Nyanners::Instances {
       context = Services::ScriptService::make_context();
       lua_pushlightuserdatatagged(context, this, LUA_SCRIPT_USERDATA_TAG);
       lua_setfield(context, LUA_REGISTRYINDEX, LUA_SCRIPT_REGISTRY_INDEX);
-
     };
 
-    void run_script() const;
+    void run_script();
+  private:
+    bool isRunning = false;
   };
 }
