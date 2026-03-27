@@ -36,12 +36,24 @@ void Script::run_script() const {
             {
                 .name = "Name",
                 .readOnly = false,
+                .type = ReflectionPropertyType::String,
                 .value = model->name,
             },
           {
             .name = "ClassName",
             .readOnly = true,
+            .type = ReflectionPropertyType::String,
             .value = model->baseName,
+            },
+            {
+              .name = "get_service",
+              .readOnly = true,
+              .type = ReflectionPropertyType::Method,
+              .value = [model](lua_State* context)
+              {
+                lua_pushstring(context, "This is from a method, hi!");
+                return 1;
+              }
             }
         });
   Services::ReflectionService::reflect_class(context, reflection);
