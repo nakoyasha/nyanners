@@ -1,0 +1,9 @@
+[submodule "third_party/luau"]
+	path = third_party/luau
+	url = https://github.com/luau-lang/luau
+[submodule "engine/third_party/luau"]
+	path = engine/third_party/luau
+	url = https://github.com/luau-lang/luau
+[submodule "src/engine/third_party/luau"]
+	path = src/engine/third_party/luau
+	url = https://github.com/luau-lang/luau
