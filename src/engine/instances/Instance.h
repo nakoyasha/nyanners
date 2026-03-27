@@ -22,7 +22,7 @@ namespace Nyanners::Instances {
     void remove_child(const std::shared_ptr<Instance> &child);
 
     template <typename T>
-    std::shared_ptr<T> find_first_child(const std::string& childName) {
+    std::shared_ptr<T> find_first_child(const std::string& childName) const {
       for (auto& child : children) {
         if (child->name == childName) {
           return std::dynamic_pointer_cast<T>(child);
@@ -31,5 +31,6 @@ namespace Nyanners::Instances {
 
       return nullptr;
     }
+
   };
 } // namespace Instances

@@ -5,31 +5,38 @@
 using namespace Nyanners::Services;
 std::map<std::string, ReflectionClass> ReflectionService::classes;
 
-Nyanners::Instances::Instance* ReflectionService::get_instance_from_context(lua_State* context, const int id)
+ReflectionInstance* ReflectionService::get_instance_from_context(lua_State* context, const int id)
 {
-    Instance* instance = *static_cast<Instance**>(lua_touserdatatagged(context, id, LUA_SCRIPT_INSTANCE_TAG));
+    auto* instance = static_cast<ReflectionInstance*>(lua_touserdatatagged(context, id, LUA_SCRIPT_INSTANCE_TAG));
+
+    if (instance == nullptr)
+    {
+        throw std::runtime_error("Instance userdata is null or invalid userdata passed");
+    }
 
     return instance;
 }
 
-
-void ReflectionService::reflect_class(lua_State* context, const ReflectionClass& instance)
+void ReflectionService::reflect_class(lua_State* context, const std::shared_ptr<Instance>& instance)
 {
-    auto** self = static_cast<Instance**>(lua_newuserdatatagged(context, sizeof(Instance*), LUA_SCRIPT_INSTANCE_TAG));
-    *self = instance.pointer;
+    const auto descriptor = classes.find(instance->baseName);
+
+    if (descriptor == classes.end())
+        throw std::runtime_error(std::format("Class {} is missing a Reflection descriptor", instance->baseName));
+
+    auto* selfUser = static_cast<ReflectionInstance*>(lua_newuserdatatagged(context, sizeof(ReflectionInstance), LUA_SCRIPT_INSTANCE_TAG));
+    new (selfUser) ReflectionInstance {
+        .pointer = instance.get(),
+        .descriptor = &descriptor->second,
+    };
 
     if (luaL_newmetatable(context, "instance"))
     {
         luaL_Reg sRegs[] = {
             {"__index", [](lua_State* context)
             {
-                try
-                {
-                    return ReflectionService::instance_index(context);
-                } catch (std::runtime_error& e) {
-                    luaL_error(context, e.what());
-                    return 0;
-                }
+                auto* instance = get_instance_from_context(context, 1);
+                return instance_index(context, instance);
             }},
             {
                 "__tostring", [](lua_State* context)
@@ -43,40 +50,27 @@ void ReflectionService::reflect_class(lua_State* context, const ReflectionClass&
 
         luaL_register(context, nullptr, sRegs);
     }
-    lua_pushstring(context, "This metatable is locked");
-    lua_setfield(context, -1, "__metatable");
 
-    lua_setreadonly(context, -2, true);
+    lua_setreadonly(context, -1, true);
     lua_setmetatable(context, -2);
 }
 
-ReflectionClass ReflectionService::create_reflection(const std::shared_ptr<Instance>& instance,
-                                                     std::vector<ReflectionProperty> properties)
+ReflectionClass ReflectionService::create_reflection(const ReflectionClass& descriptor)
 {
-    auto existingClass = classes.find(instance->baseName);
+    auto existingClass = classes.find(descriptor.className);
 
     if (existingClass != classes.end())
     {
         return existingClass->second;
     }
 
-    auto reflection = ReflectionClass{
-        .className = instance->baseName,
-        .base = "Instance",
-        .isService = instance->baseName.find("Service") != std::string::npos,
-        .pointer = instance.get(),
-        .properties = std::move(properties)
-    };
+    classes.insert(std::make_pair(descriptor.className, descriptor));
 
-    classes.insert(std::pair{instance->baseName, reflection});
-
-    return reflection;
+    return descriptor;
 }
 
-
-int ReflectionService::instance_index(lua_State* context)
+int ReflectionService::instance_index(lua_State* context, ReflectionInstance* instance)
 {
-    auto* instance = get_instance_from_context(context, 1);
     const std::string propertyName =
         luaL_checkstring(context, -1);
 
@@ -85,68 +79,41 @@ int ReflectionService::instance_index(lua_State* context)
         throw std::runtime_error("Instance userdata is null");
     }
 
-    auto reflectionMetadata = classes.find(instance->baseName);
-
-    if (reflectionMetadata == classes.end())
+    if (instance->pointer == nullptr)
     {
-        throw std::runtime_error("Cannot index class with no reflection assigned");
+        throw std::runtime_error("Instance pointer is null");
     }
 
-    for (const auto& property : reflectionMetadata->second.properties)
+    for (const auto& property : instance->descriptor->properties)
     {
+        if (propertyName == "Name")
+        {
+            lua_pushstring(context, instance->pointer->name.c_str());;
+            return 1;
+        } if (propertyName == "ClassName")
+        {
+            lua_pushstring(context, instance->pointer->baseName.c_str());;
+            return 1;
+        } if (propertyName == "find_first_child")
+        {
+            lua_pushcfunction(context, [](lua_State* context)
+            {
+                const auto* instance = get_instance_from_context(context, 1);
+                const std::string childName = luaL_checkstring(context, -1);
+                const auto child = instance->pointer->find_first_child<Instance>(childName);
+
+                reflect_class(context, child);
+                return 1;
+            }, "find_first_child");
+
+            return 1;
+        }
         if (property.name == propertyName)
         {
-            switch (property.type)
-            {
-            case (ReflectionPropertyType::Number):
-                {
-                    const float value = std::get<float>(property.value);
-                    lua_pushnumber(context, value);
-                    return 1;
-                    break;
-                }
-            case (ReflectionPropertyType::String):
-                {
-                    const std::string value = std::get<std::string>(property.value);
-                    lua_pushstring(context, value.c_str());
-                    return 1;
-                }
-            case (ReflectionPropertyType::Method):
-                {
-                    const auto value = std::get<ReflectionMethod>(property.value);
-                    auto* ud = static_cast<ReflectionMethod*>(lua_newuserdata(context, sizeof(ReflectionMethod)));
-                    new (ud) ReflectionMethod(value);
-
-                    lua_pushcclosure(context, [](lua_State* context)
-                    {
-                        const auto* method = static_cast<ReflectionMethod*>(lua_touserdata(context, lua_upvalueindex(1)));
-
-                        if (method == nullptr) {
-                            Core::Logger::log("reflection_luaMethodWrapper: method is nullptr");
-                            luaL_error(context, "Reflection method GC'd while attempting to call");
-
-                            return 0;
-                        };
-
-                        const int result = (*method)(context);
-
-                        return result;
-                    }, property.name.c_str(), 1);
-                    return 1;
-                }
-            case (ReflectionPropertyType::UserData):
-                {
-                    const auto* value = std::get<void*>(property.value);
-
-                    return 0;
-                }
-            default:
-                throw std::runtime_error(std::format("Cannot retrieve property {}, as it's type is unknown",
-                                                     propertyName));
-                return 0;
-            }
+            return property.get(instance->pointer, context);
         }
-    }
 
-    return 0;
+        luaL_error(context, std::format("{}::{} is an invalid property", instance->pointer->baseName, propertyName).c_str());
+        return 0;
+    }
 }

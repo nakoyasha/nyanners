@@ -11,6 +11,7 @@
 
 enum ReflectionPropertyType
 {
+  Unknown,
   String,
   Number,
   Instance,
@@ -20,21 +21,31 @@ enum ReflectionPropertyType
 };
 
 using ReflectionMethod = std::function<int(lua_State*)>;
+using ReflectionSetterGetter = std::function<int(const Nyanners::Instances::Instance*, lua_State*)>;
+using ReflectionConstructor = std::function<std::shared_ptr<Nyanners::Instances::Instance>()>;
 
 struct ReflectionProperty {
   const std::string name;
   const bool readOnly = false;
-  const ReflectionPropertyType type;
-  std::variant<std::string, float, bool, Nyanners::Instances::Instance *, ReflectionMethod, void*> value;
+  const ReflectionPropertyType type = ReflectionPropertyType::Unknown;
+
+  const ReflectionSetterGetter get;
+  const ReflectionSetterGetter set;
 };
 
 struct ReflectionClass {
   const std::string className = "Instance";
   const std::string base = "Instance";
   const bool isService = false;
-  Nyanners::Instances::Instance * pointer = nullptr;
 
+  const ReflectionConstructor constructor;
   const std::vector<ReflectionProperty> properties;
+};
+
+struct ReflectionInstance
+{
+  const Nyanners::Instances::Instance* pointer;
+  const ReflectionClass* descriptor;
 };
 
 namespace Nyanners::Services {
@@ -43,12 +54,12 @@ namespace Nyanners::Services {
     static std::map<std::string, ReflectionClass> classes;
     ReflectionService() : Instance("ReflectionService") {};
 
-    static void reflect_class(lua_State* context, const ReflectionClass & instance);
-    static ReflectionClass create_reflection(const std::shared_ptr<Instance>& instance, std::vector<ReflectionProperty> properties);
+    static void reflect_class(lua_State* context, const std::shared_ptr<Instance>& instance);
+    static ReflectionClass create_reflection(const ReflectionClass& descriptor);
+    static ReflectionInstance* get_instance_from_context(lua_State* context, const int id);
 
   private:
-    static Instance* get_instance_from_context(lua_State* context, const int id);
-    static int instance_index(lua_State* context);
+    static int instance_index(lua_State* context, ReflectionInstance* instance);
   };
 
 }
