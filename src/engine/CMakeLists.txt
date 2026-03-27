@@ -1,0 +1,32 @@
+cmake_minimum_required(VERSION 4.1)
+project(Nyanners)
+
+set(CMAKE_CXX_STANDARD 23)
+add_subdirectory(third_party/luau EXCLUDE_FROM_ALL)
+set(LUAU_BUILD_CLI false)
+set(LUAU_BUILD_TESTS false)
+
+add_library(Nyanners Application.cpp Application.h
+        instances/Instance.cpp
+        instances/Instance.h
+        instances/DataModel.cpp
+        instances/DataModel.h
+        instances/services/EngineService.cpp
+        instances/services/EngineService.h
+        instances/Script.cpp
+        instances/Script.h
+        instances/services/ScriptService.cpp
+        instances/services/ScriptService.h
+        core/Logger.cpp
+        core/Logger.h
+        instances/services/IOService.cpp
+        instances/services/IOService.h
+        instances/drawable/Drawable.h
+        instances/drawable/TextLabel.h
+        instances/services/ReflectionService.cpp
+        instances/services/ReflectionService.cpp
+        instances/services/ReflectionService.h
+)
+#target_link_options(Nyanners PRIVATE -static-libgcc -static-libstdc++)
+target_link_libraries(Nyanners Luau.VM Luau.Require Luau.Compiler stdc++exp)
+target_include_directories(Nyanners PUBLIC .)
