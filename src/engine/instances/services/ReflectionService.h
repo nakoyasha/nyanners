@@ -21,7 +21,8 @@ enum ReflectionPropertyType
 };
 
 using ReflectionMethod = std::function<int(lua_State*)>;
-using ReflectionSetterGetter = std::function<int(const Nyanners::Instances::Instance*, lua_State*)>;
+using ReflectionGetter = std::function<int(const Nyanners::Instances::Instance*, lua_State*)>;
+using ReflectionSetter = std::function<void(Nyanners::Instances::Instance*, lua_State*)>;
 using ReflectionConstructor = std::function<std::shared_ptr<Nyanners::Instances::Instance>()>;
 
 struct ReflectionProperty {
@@ -29,8 +30,8 @@ struct ReflectionProperty {
   const bool readOnly = false;
   const ReflectionPropertyType type = ReflectionPropertyType::Unknown;
 
-  const ReflectionSetterGetter get;
-  const ReflectionSetterGetter set;
+  const ReflectionGetter get;
+  const ReflectionSetter set;
 };
 
 struct ReflectionClass {
@@ -44,7 +45,7 @@ struct ReflectionClass {
 
 struct ReflectionInstance
 {
-  const Nyanners::Instances::Instance* pointer;
+  std::shared_ptr<Nyanners::Instances::Instance> pointer;
   const ReflectionClass* descriptor;
 };
 
@@ -57,9 +58,10 @@ namespace Nyanners::Services {
     static void reflect_class(lua_State* context, const std::shared_ptr<Instance>& instance);
     static ReflectionClass create_reflection(const ReflectionClass& descriptor);
     static ReflectionInstance* get_instance_from_context(lua_State* context, const int id);
-
+    static void register_reflections();
   private:
     static int instance_index(lua_State* context, ReflectionInstance* instance);
+    static int instance_new_index(lua_State* context, const ReflectionInstance* instance);
   };
 
 }

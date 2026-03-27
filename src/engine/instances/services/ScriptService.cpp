@@ -19,11 +19,11 @@ lua_State *ScriptService::make_context() {
       context,
       [](lua_State *context) {
         const std::string message = luaL_checkstring(context, -1);
+        const int argumentCount = lua_gettop(context);
 
-        int argumentCount = lua_gettop(context);
         lua_getfield(context, LUA_REGISTRYINDEX, LUA_SCRIPT_REGISTRY_INDEX);
 
-        auto* script =
+        const auto* script =
             static_cast<Nyanners::Instances::Script*>(lua_tolightuserdatatagged(context, lua_gettop(context), LUA_SCRIPT_USERDATA_TAG));
 
         if (script == nullptr) {
