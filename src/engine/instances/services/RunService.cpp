@@ -22,7 +22,7 @@ void RunService::run()
     while (this->isRunning == true && renderService->is_window_open())
     {
         this->tick();
-        this->preRender.fire(deltaTime);
+        this->preRender->fire(deltaTime);
         renderService->render(uiService);
     }
     // });

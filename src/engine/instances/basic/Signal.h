@@ -1,10 +1,10 @@
 #pragma once
 
-#include "core/Logger.h"
-#include "instances/Instance.h"
+#include "SignalBase.h"
 #include "luaconf.h"
 #include "lualib.h"
-
+#include "core/Logger.h"
+#include "instances/Instance.h"
 #include <functional>
 
 struct LuaScriptConnection {
@@ -14,14 +14,14 @@ struct LuaScriptConnection {
 
 namespace Nyanners::Instances {
     template<typename... Args>
-    class Signal : public Instance {
+    class Signal : public SignalBase {
         public:
         using ConnectionCallback = std::function<void(Args...)>;
 
         std::vector<ConnectionCallback> connections;
         std::vector<LuaScriptConnection> luaConnections;
 
-        Signal() : Instance("Signal") {};
+        Signal() = default;
         ~Signal() override
         {
             connections.clear();
@@ -32,7 +32,7 @@ namespace Nyanners::Instances {
             connections.push_back(callback);
         }
 
-        int connectLua(lua_State* context)
+        int connectLua(lua_State* context) override
         {
             luaL_checktype(context, -1, LUA_TFUNCTION);
             lua_Debug debugInfo;

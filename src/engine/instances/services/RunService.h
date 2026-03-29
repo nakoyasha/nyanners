@@ -16,11 +16,13 @@ namespace Nyanners::Services
         float deltaTime = 1.0f;
         bool isRunning = false;
 
-        Nyanners::Instances::Signal<float> preRender;
-        Nyanners::Instances::Signal<float> onTick;
+        std::shared_ptr<Nyanners::Instances::Signal<float>> preRender;
+        std::shared_ptr<Nyanners::Instances::Signal<float>> onTick;
 
         RunService() : Instance("RunService")
         {
+          preRender = std::make_shared<Instances::Signal<float>>();
+          onTick = std::make_shared<Instances::Signal<float>>();
         };
 
         void bind_model(std::shared_ptr<Instances::DataModel> model);
