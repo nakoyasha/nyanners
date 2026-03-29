@@ -16,6 +16,7 @@ namespace Nyanners::Services
 
         void initialize(const sf::VideoMode size, const std::optional<std::string> windowTitle);
         void set_window_title(const std::string& newWindowTitle);
+        void set_fps_limit(const unsigned int limit);
         bool is_window_open() const;
         void render(std::shared_ptr<Instances::Drawable> instanceToRender);
         void shutdown();

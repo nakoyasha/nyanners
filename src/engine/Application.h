@@ -1,19 +1,13 @@
 #pragma once
 
 #include "instances/DataModel.h"
-#include "instances/services/EngineService.h"
 #include "instances/services/IOService.h"
 #include <memory>
-#include <utility>
-
-#include "instances/services/ReflectionService.h"
-#include "instances/services/RenderingService.h"
 
 namespace Nyanners {
   class Application {
   public:
     std::shared_ptr<Instances::DataModel> currentModel;
-
     virtual ~Application();
 
     static Application* instance() {
@@ -24,17 +18,7 @@ namespace Nyanners {
       return m_Instance;
     }
 
-    Application() {
-      auto model = std::make_shared<Instances::DataModel>();
-      model->add_child(std::make_shared<Services::EngineService>());
-      model->add_child(std::make_shared<Services::IOService>());
-      model->add_child(std::make_shared<Services::RenderingService>());
-      model->add_child(std::make_shared<Services::ReflectionService>());
-
-      Services::ReflectionService::register_reflections();
-
-      this->currentModel = std::move(model);
-    };
+    Application();;
 
     virtual void start() const;
     virtual void shutdown();

@@ -31,6 +31,11 @@ add_library(Nyanners Application.cpp Application.h
         instances/services/ReflectionService.h
         instances/services/RenderingService.cpp
         instances/services/RenderingService.h
+        instances/services/RunService.cpp
+        instances/services/RunService.h
+        instances/basic/Signal.h
+        instances/services/UIService.cpp
+        instances/services/UIService.h
 )
 #target_link_options(Nyanners PRIVATE -static-libgcc -static-libstdc++)
 target_link_libraries(Nyanners Luau.VM Luau.Require Luau.Compiler SFML::Window SFML::Graphics SFML::Audio stdc++exp)

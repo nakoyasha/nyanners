@@ -60,7 +60,7 @@ namespace Nyanners::Services {
     static ReflectionInstance* get_instance_from_context(lua_State* context, const int id);
     static void register_reflections();
   private:
-    static int instance_index(lua_State* context, ReflectionInstance* instance);
+    static int instance_index(lua_State* context, const ReflectionInstance* instance);
     static int instance_new_index(lua_State* context, const ReflectionInstance* instance);
   };
 

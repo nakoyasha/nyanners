@@ -37,6 +37,11 @@ void RenderingService::set_window_title(const std::string& newWindowTitle)
     window.setTitle(newWindowTitle);
 }
 
+void RenderingService::set_fps_limit(const unsigned int limit)
+{
+    this->window.setFramerateLimit(limit);
+}
+
 bool RenderingService::is_window_open() const
 {
     return window.isOpen();
@@ -44,6 +49,6 @@ bool RenderingService::is_window_open() const
 
 void RenderingService::shutdown()
 {
-
+    this->window.close();
 }
 

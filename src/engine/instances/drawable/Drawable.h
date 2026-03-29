@@ -4,7 +4,6 @@
 namespace Nyanners::Instances {
   class Drawable {
   public:
-    virtual void update() {};
     virtual void draw(sf::RenderTarget& target) {};
   };
 }

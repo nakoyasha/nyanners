@@ -20,6 +20,11 @@ namespace Nyanners::Instances {
       target.draw(this->label);
     }
 
+    void update(const float deltaTime) override
+    {
+      // Core::Logger::log(std::format("Last frame took {}", deltaTime));
+    }
+
     void setText(const std::string& newText)
     {
       this->text = newText;

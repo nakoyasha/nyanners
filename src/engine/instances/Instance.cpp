@@ -28,3 +28,12 @@ void Instance::remove_child(const std::shared_ptr<Instance> &child) {
   std::erase(this->children, child);
   child->parent = nullptr;
 }
+
+void Instance::update(const float deltaTime)
+{
+  // force update of all children as well
+  for (const auto& child: this->children)
+  {
+    child->update(deltaTime);
+  }
+}
