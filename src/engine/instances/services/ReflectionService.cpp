@@ -110,52 +110,14 @@ int ReflectionService::instance_index(
     throw std::runtime_error("Instance pointer is null");
   }
 
-  if (propertyName == "Name") {
-    lua_pushstring(context, instance->pointer->name.c_str());
-    return 1;
-  }
-  if (propertyName == "ClassName") {
-    lua_pushstring(context, instance->pointer->baseName.c_str());
-    return 1;
-  }
+  const auto defaultDescriptor = classes.find(instance->descriptor->base);
 
-  if (propertyName == "Parent") {
-    if (instance->pointer->parent == nullptr) {
-      lua_pushnil(context);
-      return 1;
+  if (defaultDescriptor != classes.end()) {
+    for (const auto &property : defaultDescriptor->second.properties) {
+      if (property.name == propertyName) {
+        return property.get(instance->pointer.get(), context);
+      }
     }
-
-    reflect_class(context, instance->pointer->parent);
-    return 1;
-  }
-
-  if (propertyName == "find_first_child") {
-    lua_pushcfunction(
-      context,
-      [](lua_State *context) {
-        const auto *instance = get_instance_from_context(context, 1);
-        if (instance == nullptr) {
-          throw std::runtime_error(
-            "Instance userdata is null or invalid userdata passed"
-          );
-        }
-
-        const std::string childName = luaL_checkstring(context, -1);
-        const auto child =
-          instance->pointer->find_first_child<Instance>(childName);
-
-        if (child == nullptr) {
-          lua_pushnil(context);
-          return 1;
-        }
-
-        reflect_class(context, child);
-        return 1;
-      },
-      "find_first_child"
-    );
-
-    return 1;
   }
 
   for (const auto &property : instance->descriptor->properties) {
@@ -194,31 +156,17 @@ int ReflectionService::instance_new_index(
     throw std::runtime_error("Instance pointer is null");
   }
 
-  for (const auto &property : instance->descriptor->properties) {
-    if (propertyName == "Name") {
-      std::string newValue = luaL_checkstring(context, -1);
-      instance->pointer->name = newValue;
-      return 0;
-    }
-    if (propertyName == "ClassName") {
-      luaL_error(context, "Cannot modify a read-only property");
-      return 0;
-    }
-    if (propertyName == "Parent") {
-      auto *newParent = get_instance_from_context(context, -1);
+  const auto defaultDescriptor = classes.find(instance->descriptor->base);
 
-      if (newParent == nullptr) {
-        if (instance->pointer->parent != nullptr) {
-          instance->pointer->parent->remove_child(
-            instance->pointer->shared_from_this()
-          );
-        }
-      } else {
-        newParent->pointer->add_child(instance->pointer->shared_from_this());
+  if (defaultDescriptor != classes.end()) {
+    for (const auto &property : defaultDescriptor->second.properties) {
+      if (property.name == propertyName) {
+        return property.get(instance->pointer.get(), context);
       }
-
-      return 0;
     }
+  }
+
+  for (const auto &property : instance->descriptor->properties) {
     if (property.name == propertyName) {
       if (property.readOnly == true) {
         luaL_error(context, "Cannot modify a read-only property");
@@ -245,6 +193,98 @@ int ReflectionService::instance_new_index(
 }
 
 void ReflectionService::register_reflections() {
+  create_reflection(
+    {.className = "Instance",
+     .base = "<<root>>",
+     .isService = false,
+     .constructor =
+       []() {
+         throw std::runtime_error("Instance is not a creatable object");
+         return nullptr;
+       },
+     .properties = {
+       {.name = "Name",
+        .type = ReflectionPropertyType::String,
+        .get =
+          [](const Instance *instance, lua_State *context) {
+            lua_pushstring(context, instance->name.c_str());
+            return 1;
+          },
+        .set =
+          [](Instance *instance, lua_State *context) {
+            std::string newValue = luaL_checkstring(context, -1);
+            instance->name = newValue;
+            return 0;
+          }},
+       {.name = "ClassName",
+        .type = ReflectionPropertyType::String,
+        .get =
+          [](const Instance *instance, lua_State *context) {
+            lua_pushstring(context, instance->baseName.c_str());
+            return 1;
+          },
+        .set =
+          [](Instance *instance, lua_State *context) {
+            luaL_error(context, "Cannot modify a read-only property");
+            return 0;
+          }},
+       {.name = "Parent",
+        .type = ReflectionPropertyType::String,
+        .get =
+          [](const Instance *instance, lua_State *context) {
+            if (instance->parent == nullptr) {
+              lua_pushnil(context);
+              return 1;
+            }
+
+            reflect_class(context, instance->parent);
+            return 1;
+          },
+        .set =
+          [](Instance *instance, lua_State *context) {
+            auto *newParent = get_instance_from_context(context, -1);
+
+            if (newParent == nullptr) {
+              if (instance->parent != nullptr) {
+                instance->parent->remove_child(instance->shared_from_this());
+              }
+            } else {
+              newParent->pointer->add_child(instance->shared_from_this());
+            }
+
+            return 0;
+          }},
+       {.name = "find_first_child",
+        .type = ReflectionPropertyType::Method,
+        .get = [](const Instance *instance, lua_State *context) {
+          lua_pushcfunction(
+            context,
+            [](lua_State *context) {
+              const auto *instance = get_instance_from_context(context, 1);
+              if (instance == nullptr) {
+                throw std::runtime_error(
+                  "Instance userdata is null or invalid userdata passed"
+                );
+              }
+
+              const std::string childName = luaL_checkstring(context, -1);
+              const auto child =
+                instance->pointer->find_first_child<Instance>(childName);
+
+              if (child == nullptr) {
+                lua_pushnil(context);
+                return 1;
+              }
+
+              reflect_class(context, child);
+              return 1;
+            },
+            "find_first_child"
+          );
+          return 1;
+        }},
+     }}
+  );
   create_reflection(
     {.className = "DataModel",
      .base = "Instance",
@@ -296,18 +336,20 @@ void ReflectionService::register_reflections() {
     {.className = "RunService",
      .base = "Instance",
      .isService = true,
-     .constructor = []() { throw std::runtime_error("Cannot create an instance of RunService"); return nullptr; },
+     .constructor =
+       []() {
+         throw std::runtime_error("Cannot create an instance of RunService");
+         return nullptr;
+       },
      .properties = {
-       {
-         .name = "PreRender",
-         .type = ReflectionPropertyType::Instance,
-         .get = [](const Instance *instance, lua_State *context) {
-           const auto* runService = dynamic_cast<const RunService*>(instance);
-           reflect_class(context, runService->preRender);
+       {.name = "PreRender",
+        .type = ReflectionPropertyType::Instance,
+        .get = [](const Instance *instance, lua_State *context) {
+          const auto *runService = dynamic_cast<const RunService *>(instance);
+          reflect_class(context, runService->preRender);
 
-           return 1;
-         }
-       }
+          return 1;
+        }}
      }}
   );
 
@@ -405,7 +447,9 @@ void ReflectionService::register_reflections() {
                 );
 
               if (signal == nullptr) {
-                throw std::runtime_error("Signal is nullptr upon access from Lua");
+                throw std::runtime_error(
+                  "Signal is nullptr upon access from Lua"
+                );
               }
 
               return signal->connectLua(context);
