@@ -4,6 +4,7 @@
 namespace Nyanners::Instances {
   class Drawable {
   public:
+    virtual bool isLegacy() {return false;};
     virtual void draw(sf::RenderTarget& target) {};
   };
 }

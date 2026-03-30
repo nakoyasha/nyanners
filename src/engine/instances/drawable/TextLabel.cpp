@@ -1,0 +1,18 @@
+#pragma once
+#include "TextLabel.h"
+#include "third_party/sfml/extlibs/headers/glad/include/glad/gl.h"
+
+using namespace Nyanners::Instances;
+void TextLabel::draw(sf::RenderTarget &target) {
+  target.draw(this->label);
+}
+void TextLabel::setText(const std::string &newText) {
+  this->text = newText;
+  label.setString(newText);
+}
+std::string TextLabel::getText() const {
+  return this->text;
+}
+void TextLabel::setFont(const sf::Font &newFont) {
+  label.setFont(newFont);
+}

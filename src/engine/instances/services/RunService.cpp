@@ -8,10 +8,16 @@ void RunService::bind_model(const std::shared_ptr<Instances::DataModel> newModel
 {
     this->model = newModel;
 }
+float RunService::get_time_since_start() {
+  const auto time = this->startClock.getElapsedTime();
+  return time.asSeconds();
+}
 
 void RunService::run()
 {
-    clock.start();
+    frameClock.start();
+    startClock.reset();
+    startClock.start();
     this->isRunning = true;
 
     // tickThread = std::thread([this]()
@@ -30,14 +36,17 @@ void RunService::run()
 
 void RunService::stop()
 {
-    clock.stop();
+    frameClock.stop();
+    startClock.reset();
+    startClock.stop();
     this->isRunning = false;
+    this->onStop->fire();
     // this->tickThread.join();
 }
 
 void RunService::tick()
 {
-    const auto time = clock.restart();
+    const auto time = frameClock.restart();
     deltaTime = time.asSeconds();
 
     model->update(deltaTime);

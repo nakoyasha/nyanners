@@ -16,32 +16,17 @@ namespace Nyanners::Instances {
       this->label.setString("hi!");
     };
 
-    void draw(sf::RenderTarget& target) override {
-      target.draw(this->label);
+    bool isLegacy() override {
+      return true;
     }
+    void draw(sf::RenderTarget& target) override;
+    void setText(const std::string& newText);
 
-    void update(const float deltaTime) override
-    {
-      // Core::Logger::log(std::format("Last frame took {}", deltaTime));
-    }
+    std::string getText() const;
 
-    void setText(const std::string& newText)
-    {
-      this->text = newText;
-      label.setString(newText);
-    }
+    void setFont(const sf::Font& newFont);
 
-    std::string getText() const
-    {
-      return this->text;
-    }
-
-    void setFont(const sf::Font& newFont)
-    {
-      label.setFont(newFont);
-    }
-
-    private:
+  private:
     sf::Text label;
     sf::Font font;
   };

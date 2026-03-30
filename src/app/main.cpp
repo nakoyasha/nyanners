@@ -1,6 +1,8 @@
 #include "Application.h"
 #include "core/Logger.h"
 #include "instances/Script.h"
+#include "instances/drawable/ExampleTriangle.h"
+#include "instances/drawable/MeshPart.h"
 #include "instances/drawable/TextLabel.h"
 #include "instances/services/EngineService.h"
 #include "instances/services/IOService.h"
@@ -35,13 +37,19 @@ int main() {
   const auto renderingService = app->currentModel->get_service<Services::RenderingService>("RenderingService");
   const auto runService = app->currentModel->get_service<Services::RunService>("RunService");
   const auto uiService = app->currentModel->get_service<Services::UIService>("UIService");
+  renderingService->initialize(sf::VideoMode({1280, 720}), "Test App");
+
   auto label = std::make_shared<Instances::TextLabel>();
+  auto mesh = std::make_shared<Instances::MeshPart>();
+
   uiService->add_child(label);
+  // uiService->add_child(triangle);
+  mesh->load_from_obj_file("assets/models/teapot.obj");
+  uiService->add_child(mesh);
 
   const sf::Font font("C:/Windows/Fonts/arial.ttf");
   sf::Text text(font, "Hello SFML", 50);
 
-  renderingService->initialize(sf::VideoMode({1280, 720}), "Test App");
   script->run_script();
 
   app->start();

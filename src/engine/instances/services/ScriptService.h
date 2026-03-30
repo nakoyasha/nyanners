@@ -2,7 +2,6 @@
 #include "instances/Instance.h"
 #include "lua.h"
 
-#define LUA_SCRIPT_USERDATA_TAG 0x01
 #define LUA_SCRIPT_REGISTRY_INDEX "current_script"
 
 namespace Nyanners::Services {

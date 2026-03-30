@@ -2,10 +2,12 @@
 #include "Application.h"
 #include "EngineService.h"
 #include "IOService.h"
+#include "RenderingService.h"
 #include "RunService.h"
 #include "UIService.h"
 #include "lualib.h"
 #include "core/Logger.h"
+#include "data/UserdataTags.h"
 #include "instances/DataModel.h"
 #include "instances/basic/Signal.h"
 #include "instances/drawable/TextLabel.h"
@@ -118,6 +120,34 @@ int ReflectionService::instance_index(
         return property.get(instance->pointer.get(), context);
       }
     }
+
+    for (auto &method : instance->descriptor->methods) {
+      if (method.name == propertyName) {
+        // oh lord, this is evil.
+        auto **methodData =
+          static_cast<const ReflectionMethodCallback **>(lua_newuserdatatagged(
+            context, sizeof(ReflectionMethod *), LUA_PROPERTY_METHOD_TAG
+          ));
+        *methodData = &method.method;
+
+        lua_pushcclosure(
+          context,
+          [](lua_State *context) {
+            auto **method =
+              static_cast<ReflectionMethodCallback **>(lua_touserdatatagged(
+                context, lua_upvalueindex(1), LUA_PROPERTY_METHOD_TAG
+              ));
+            auto instance = get_instance_from_context(context, 1);
+            ;
+
+            return (**method)(instance->pointer, context);
+          },
+          method.name.c_str(),
+          1
+        );
+        return 1;
+      }
+    }
   }
 
   for (const auto &property : instance->descriptor->properties) {
@@ -125,6 +155,7 @@ int ReflectionService::instance_index(
       return property.get(instance->pointer.get(), context);
     }
   }
+
   if (auto child =
         instance->pointer->find_first_child<Instance>(propertyName)) {
     reflect_class(context, child);
@@ -296,31 +327,24 @@ void ReflectionService::register_reflections() {
          );
          return nullptr;
        },
-     .properties = {{
+     .methods = {{
        .name = "get_service",
-       .type = ReflectionPropertyType::Method,
-       .get = [](const Instance *instance, lua_State *context) {
-         lua_pushcfunction(
-           context,
-           [](lua_State *context) {
-             const std::string service = luaL_checkstring(context, -1);
-             const auto foundService =
-               Application::instance()->currentModel->get_service<Instance>(
-                 service
-               );
+       .method =
+         [](const std::shared_ptr<Instance> instance, lua_State *context) {
+           const std::string service = luaL_checkstring(context, -1);
+           const auto foundService =
+             Application::instance()->currentModel->get_service<Instance>(
+               service
+             );
 
-             if (foundService == nullptr) {
-               luaL_error(context, "Cannot create non-existent service");
-               return 0;
-             }
+           if (foundService == nullptr) {
+             luaL_error(context, "Cannot create non-existent service");
+             return 0;
+           }
 
-             Services::ReflectionService::reflect_class(context, foundService);
-             return 1;
-           },
-           "get_service"
-         );
-         return 1;
-       },
+           Services::ReflectionService::reflect_class(context, foundService);
+           return 1;
+         },
      }}}
   );
 
@@ -344,12 +368,46 @@ void ReflectionService::register_reflections() {
      .properties = {
        {.name = "PreRender",
         .type = ReflectionPropertyType::Instance,
-        .get = [](const Instance *instance, lua_State *context) {
-          const auto *runService = dynamic_cast<const RunService *>(instance);
-          reflect_class(context, runService->preRender);
+        .get =
+          [](const Instance *instance, lua_State *context) {
+            const auto *runService = dynamic_cast<const RunService *>(instance);
+            reflect_class(context, runService->preRender);
 
-          return 1;
-        }}
+            return 1;
+          }},
+       {
+         .name = "OnExit",
+         .type = ReflectionPropertyType::Instance,
+         .get = [](const Instance *instance, lua_State *context) {
+           const auto *runService = dynamic_cast<const RunService *>(instance);
+           reflect_class(context, runService->onStop);
+
+           return 1;
+         },
+       }
+     }}
+  );
+
+  create_reflection(
+    {.className = "RenderingService",
+     .base = "Instance",
+     .isService = true,
+     .constructor =
+       []() {
+         throw std::runtime_error("Cannot create an instance of RenderingService");
+         return nullptr;
+       },
+     .properties = {
+       {
+         .name = "fps",
+         .readOnly = true,
+         .type = ReflectionPropertyType::Number,
+         .get = [](const Instance *instance, lua_State *context) {
+           const auto render = static_cast<const RenderingService*>(instance);
+           lua_pushnumber(context, render->fps);
+           return 1;
+         }
+       }
      }}
   );
 
@@ -358,31 +416,24 @@ void ReflectionService::register_reflections() {
      .base = "Instance",
      .isService = true,
      .constructor = []() { return std::make_shared<IOService>(); },
-     .properties = {{
-       .name = "read_file",
-       .type = ReflectionPropertyType::Method,
-       .get = [](const Instance *instance, lua_State *context) {
-         lua_pushcfunction(
-           context,
-           [](lua_State *context) {
-             const std::string path = luaL_checkstring(context, -1);
+     .methods = {
+       {.name = "read_file",
+        .method =
+          [](const std::shared_ptr<Instance> instance, lua_State *context) {
+            const std::string path = luaL_checkstring(context, -1);
 
-             try {
-               const std::string result = Services::IOService::read_file(path);
-               lua_pushstring(context, result.c_str());
-               return 1;
-             } catch (std::runtime_error &e) {
-               Core::Logger::log(e.what());
-               luaL_error(context, e.what());
-             }
+            try {
+              const std::string result = Services::IOService::read_file(path);
+              lua_pushstring(context, result.c_str());
+              return 1;
+            } catch (std::runtime_error &e) {
+              Core::Logger::log(e.what());
+              luaL_error(context, e.what());
+            }
 
-             return 1;
-           },
-           "read_file"
-         );
-         return 1;
-       },
-     }}}
+            return 1;
+          }}
+     }}
   );
 
   create_reflection(
@@ -416,14 +467,14 @@ void ReflectionService::register_reflections() {
         .get =
           [](const Instance *instance, lua_State *context) {
             const auto *label =
-              static_cast<const Instances::TextLabel *>(instance);
+              dynamic_cast<const Instances::TextLabel *>(instance);
             lua_pushstring(context, label->getText().c_str());
 
             return 1;
           },
         .set =
           [](Instance *instance, lua_State *context) {
-            auto *label = static_cast<Instances::TextLabel *>(instance);
+            auto *label = dynamic_cast<Instances::TextLabel *>(instance);
             const std::string text = luaL_checkstring(context, -1);
 
             label->setText(text);
@@ -433,32 +484,21 @@ void ReflectionService::register_reflections() {
   create_reflection(
     {.className = "Signal",
      .isService = false,
-     .properties = {
+     .methods = {
        {.name = "Connect",
-        .type = ReflectionPropertyType::Method,
-        .get = [](const Instance *instance, lua_State *context) {
-          lua_pushcfunction(
-            context,
-            [](lua_State *context) {
-              const auto *instance = get_instance_from_context(context, 1);
-              const auto signal =
-                std::dynamic_pointer_cast<Instances::SignalBase>(
-                  instance->pointer
-                );
+        .method =
+          [](const std::shared_ptr<Instance> &instance, lua_State *context) {
+            const auto signal =
+              std::dynamic_pointer_cast<Instances::SignalBase>(instance);
 
-              if (signal == nullptr) {
-                throw std::runtime_error(
-                  "Signal is nullptr upon access from Lua"
-                );
-              }
+            if (signal == nullptr) {
+              throw std::runtime_error(
+                "Signal is nullptr upon access from Lua"
+              );
+            }
 
-              return signal->connectLua(context);
-            },
-            "Signal::connect"
-          );
-
-          return 1;
-        }}
+            return signal->connectLua(context);
+          }}
      }}
   );
 }

@@ -18,14 +18,17 @@ namespace Nyanners::Services
 
         std::shared_ptr<Nyanners::Instances::Signal<float>> preRender;
         std::shared_ptr<Nyanners::Instances::Signal<float>> onTick;
+        std::shared_ptr<Nyanners::Instances::Signal<>> onStop;
 
         RunService() : Instance("RunService")
         {
           preRender = std::make_shared<Instances::Signal<float>>();
           onTick = std::make_shared<Instances::Signal<float>>();
+          onStop = std::make_shared<Instances::Signal<>>();
         };
 
         void bind_model(std::shared_ptr<Instances::DataModel> model);
+        float get_time_since_start();
         void run();
         void stop();;
         void tick();
@@ -33,6 +36,7 @@ namespace Nyanners::Services
     private:
         std::shared_ptr<Instances::DataModel> model;
         std::thread tickThread;
-        sf::Clock clock;
+        sf::Clock frameClock;
+        sf::Clock startClock;
     };
 }

@@ -4,10 +4,13 @@ project(Nyanners)
 set(CMAKE_CXX_STANDARD 23)
 add_subdirectory(third_party/luau EXCLUDE_FROM_ALL)
 add_subdirectory(third_party/sfml EXCLUDE_FROM_ALL)
+add_subdirectory(third_party/glm EXCLUDE_FROM_ALL)
+add_subdirectory(third_party/fast_obj EXCLUDE_FROM_ALL)
 
 set(LUAU_BUILD_CLI false)
 set(LUAU_BUILD_TESTS false)
 set(SFML_BUILD_NETWORK false)
+
 
 add_library(Nyanners Application.cpp Application.h
         instances/Instance.cpp
@@ -37,7 +40,17 @@ add_library(Nyanners Application.cpp Application.h
         instances/services/UIService.cpp
         instances/services/UIService.h
         instances/basic/SignalBase.h
+        data/UserdataTags.h
+        instances/drawable/ExampleTriangle.h
+        instances/drawable/ExampleTriangle.cpp
+        instances/drawable/MeshPart.h
+        instances/drawable/MeshPart.cpp
+        resources/Shader.cpp
+        resources/Shader.h
+        instances/drawable/TextLabel.cpp
 )
+
+target_include_directories(Nyanners PRIVATE third_party/glm/glm)
 #target_link_options(Nyanners PRIVATE -static-libgcc -static-libstdc++)
-target_link_libraries(Nyanners Luau.VM Luau.Require Luau.Compiler SFML::Window SFML::Graphics SFML::Audio stdc++exp)
+target_link_libraries(Nyanners Luau.VM Luau.Require Luau.Compiler SFML::Window SFML::Graphics SFML::Audio stdc++exp glm::glm fast_obj fast_obj_lib)
 target_include_directories(Nyanners PUBLIC .)

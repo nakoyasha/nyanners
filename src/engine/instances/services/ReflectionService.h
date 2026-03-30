@@ -1,13 +1,11 @@
 #pragma once
-#include <functional>
-
-#include "instances/Instance.h"
 #include "lua.h"
-
+#include "lualib.h"
+#include "instances/Instance.h"
+#include <functional>
 #include <map>
 #include <variant>
 
-#define LUA_SCRIPT_INSTANCE_TAG 0x02
 
 enum ReflectionPropertyType
 {
@@ -20,7 +18,6 @@ enum ReflectionPropertyType
   UserData,
 };
 
-using ReflectionMethod = std::function<int(lua_State*)>;
 using ReflectionGetter = std::function<int(const Nyanners::Instances::Instance*, lua_State*)>;
 using ReflectionSetter = std::function<void(Nyanners::Instances::Instance*, lua_State*)>;
 using ReflectionConstructor = std::function<std::shared_ptr<Nyanners::Instances::Instance>()>;
@@ -34,6 +31,16 @@ struct ReflectionProperty {
   const ReflectionSetter set;
 };
 
+using ReflectionMethodCallback = std::function<int(std::shared_ptr<Nyanners::Instances::Instance>, lua_State* context)>;
+
+struct ReflectionMethod {
+  const std::string name;
+  ReflectionMethodCallback method = [](const std::shared_ptr<Nyanners::Instances::Instance>&, lua_State* context){
+    luaL_error(context, "Method is unimplemented");
+    return 0;
+  };
+};
+
 struct ReflectionClass {
   const std::string className = "Instance";
   const std::string base = "Instance";
@@ -41,6 +48,7 @@ struct ReflectionClass {
 
   const ReflectionConstructor constructor;
   const std::vector<ReflectionProperty> properties;
+  const std::vector<ReflectionMethod> methods;
 };
 
 struct ReflectionInstance

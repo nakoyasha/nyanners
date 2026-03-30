@@ -1,6 +1,7 @@
 #pragma once
 #include "Instance.h"
 #include "services/ScriptService.h"
+#include "data/UserdataTags.h"
 
 namespace Nyanners::Instances {
   class Script : public Instance {
