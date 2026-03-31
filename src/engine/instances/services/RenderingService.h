@@ -16,18 +16,22 @@ namespace Nyanners::Services
 
         RenderingService() : Instance("RenderingService") {};
 
-        void initialize(const sf::VideoMode size, const std::optional<std::string> windowTitle);
+        void initialize(
+          sf::VideoMode size, const std::optional<std::string> &windowTitle
+        );
         void set_window_title(const std::string& newWindowTitle);
         void set_fps_limit(const unsigned int limit);
         void set_resolution(const sf::Vector2u newSize);
-        void handle_window_event(const std::optional<sf::Event> event);
+        void handle_window_event(const std::optional<sf::Event> &event);
         bool is_window_open() const;
 
         // shaders
-        static GLuint compile_shader(const int shaderType = GL_VERTEX_SHADER, const std::filesystem::path path = "assets/shaders/vertex.glsl");
+        static GLuint compile_shader(const int shaderType = GL_VERTEX_SHADER, const std::filesystem::path &path = "assets/shaders/vertex.glsl");
         static GLuint compile_program(const GLuint vertex, const GLuint fragment);
 
-        void render(std::shared_ptr<Instance> instanceToRender);
+        void start_frame();
+        void render(const std::shared_ptr<Instance> &instanceToRender);
+        void end_frame();
         void shutdown();
     private:
         sf::RenderWindow window;
@@ -43,7 +47,5 @@ namespace Nyanners::Services
             glm::vec3(0,0,0), // and looks at the origin
             glm::vec3(0,1,0)  // Head is up (set to 0,-1,0 to look upside-down)
             );
-        unsigned int VBO;
-      GLuint vertexArrayID;
     };
 }

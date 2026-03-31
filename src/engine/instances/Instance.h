@@ -10,6 +10,8 @@ namespace Nyanners::Instances {
   class Instance : public std::enable_shared_from_this<Instance> {
     public:
     std::string name;
+    bool active = true;
+
     explicit Instance(std::string name) : baseName(std::move(name)) {
       this->name = this->baseName;
     };
@@ -24,6 +26,7 @@ namespace Nyanners::Instances {
     virtual void remove_child(const std::shared_ptr<Instance> &child);
 
     virtual void update(const float deltaTime);
+    virtual void set_active(const bool newActiveState);
 
     template <typename T>
     std::shared_ptr<T> find_first_child(const std::string& childName) const {

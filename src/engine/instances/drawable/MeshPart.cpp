@@ -1,6 +1,8 @@
 #include "MeshPart.h"
 #include "Application.h"
 #include "fast_obj.h"
+#include "SFML/Graphics/Image.hpp"
+#include "SFML/Graphics/Texture.hpp"
 #include "core/Logger.h"
 #include "third_party/sfml/extlibs/headers/glad/include/glad/gl.h"
 
@@ -8,35 +10,72 @@ using namespace Nyanners::Instances;
 
 MeshPart::MeshPart() :
   Instance("MeshPart"), Transformable() {
-  // This will identify our vertex buffer
-  // Generate 1 buffer, put the resulting identifier in vertexbuffer
+
   glGenBuffers(1, &vertexBuffer);
-  // The following commands will talk about our 'vertexbuffer' buffer
   glBindBuffer(GL_ARRAY_BUFFER, vertexBuffer);
+
+  glGenVertexArrays(1, &vertexArrayID);
+  glBindVertexArray(vertexArrayID);
 
   runService = Application::instance()->currentModel->get_service<Services::RunService>("RunService");
 
+  glGenTextures(1, &textureId);
+  glBindTexture(GL_TEXTURE_2D, textureId);
+
+  // set the texture wrapping/filtering options (on the currently bound texture object)
+  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
+  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+
+  sf::Image image;
+  if (!image.loadFromFile("assets/textures/enanui.png")) {
+    throw std::runtime_error("Failed loading texture");
+  }
+
+  const auto size = image.getSize();
+  glTexImage2D(
+    GL_TEXTURE_2D,
+    0,
+    GL_RGBA,
+    size.x,
+    size.y,
+    0,
+    GL_RGBA,
+    GL_UNSIGNED_BYTE,
+    image.getPixelsPtr()
+  );
+  glGenerateMipmap(GL_TEXTURE_2D);
+
+  glBindVertexArray(vertexArrayID);
+  glBindBuffer(GL_ARRAY_BUFFER, vertexBuffer);
+  glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 8*sizeof(float), (void*)0);
+  glEnableVertexAttribArray(0);
+
+  glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 8*sizeof(float), (void*)(3*sizeof(float)));
+  glEnableVertexAttribArray(1);
+
+  glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, 8*sizeof(float), (void*)(6*sizeof(float)));
+  glEnableVertexAttribArray(2);
+
+  glBindVertexArray(0);
+
 }
 void MeshPart::draw(sf::RenderTarget &target) {
-  glEnableVertexAttribArray(0);
-  glBindBuffer(GL_ARRAY_BUFFER, vertexBuffer);
-  glVertexAttribPointer(
-     0,                  // attribute 0. No particular reason for 0, but must match the layout in the shader.
-     3,                  // size
-     GL_FLOAT,           // type
-     GL_FALSE,           // normalized?
-     0,                  // stride
-     (void*)0            // array buffer offset
-  );
+  glBindVertexArray(vertexArrayID);
+  // glEnableVertexAttribArray(0);
 
-  // Draw the triangle !
-  glDrawArrays(GL_TRIANGLES, 0, vertices.size()); // Starting from vertex 0; 3 vertices total -> 1 triangle
-  glDisableVertexAttribArray(0);
+  glActiveTexture(GL_TEXTURE0);
+  glBindTexture(GL_TEXTURE_2D, textureId);
+
+  glDrawArrays(GL_TRIANGLES, 0, vertices.size() / 8); // Starting from vertex 0; 3 vertices total -> 1 triangle
+  glBindVertexArray(0);
 }
+
 void MeshPart::update(const float deltaTime) {
   transform = glm::mat4(1.0f);
   transform = glm::translate(transform, glm::vec3(0.5f, -0.5f, 0.0f));
-  transform = glm::rotate(transform, (float)runService->get_time_since_start(), glm::vec3(0.0f, 0.0f, 1.0f));
+  transform = glm::rotate(transform, (float)runService->get_time_since_start(), glm::vec3(0.0f, 1.0f, 0.0f));
 }
 
 void MeshPart::load_from_obj_file(const std::filesystem::path &path) {
@@ -65,9 +104,27 @@ void MeshPart::load_from_obj_file(const std::filesystem::path &path) {
       const fastObjIndex& idx = mesh->indices[indexOffset + v];
 
       const float* p = &mesh->positions[idx.p * 3];
+      const float* t = idx.t != -1 ? &mesh->texcoords[idx.t * 2] : nullptr;
+
+      // position
       newVertices.push_back(p[0]);
       newVertices.push_back(p[1]);
       newVertices.push_back(p[2]);
+
+      // color (temporary)
+      newVertices.push_back(1.0f);
+      newVertices.push_back(1.0f);
+      newVertices.push_back(1.0f);
+
+      // uv
+      if (idx.t != -1) {
+        const float* t = &mesh->texcoords[idx.t * 2];
+        newVertices.push_back(t[0]);
+        newVertices.push_back(1.0f - t[1]); // OBJ V flip
+      } else {
+        newVertices.push_back(0.0f);
+        newVertices.push_back(0.0f);
+      }
     }
 
     indexOffset += fv;

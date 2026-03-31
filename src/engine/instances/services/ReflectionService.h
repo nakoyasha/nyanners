@@ -12,6 +12,7 @@ enum ReflectionPropertyType
   Unknown,
   String,
   Number,
+  Boolean,
   Instance,
   // void*
   Method,

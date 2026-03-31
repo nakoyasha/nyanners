@@ -19,7 +19,7 @@ namespace Nyanners::Instances {
     bool isLegacy() override {
       return true;
     }
-    void draw(sf::RenderTarget& target) override;
+    void draw(sf::RenderTarget &target) override;
     void setText(const std::string& newText);
 
     std::string getText() const;

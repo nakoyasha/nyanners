@@ -28,14 +28,22 @@ ReflectionService::get_instance_from_context(lua_State *context, const int id) {
 void ReflectionService::reflect_class(
   lua_State *context, const std::shared_ptr<Instance> &instance
 ) {
-  const auto descriptor = classes.find(instance->baseName);
+  auto descriptor = classes.find(instance->baseName);
 
-  if (descriptor == classes.end())
-    throw std::runtime_error(
+  if (descriptor == classes.end()) {
+    Core::Logger::log(
       std::format(
         "Class {} is missing a Reflection descriptor", instance->baseName
       )
     );
+
+    // this is mainly here to make dev easier
+    const auto defaultDescriptor = classes.find("Instance");
+
+    if (defaultDescriptor != classes.end()) {
+      descriptor = defaultDescriptor;
+    }
+  }
 
   auto *selfUser = static_cast<ReflectionInstance *>(lua_newuserdatatagged(
     context, sizeof(ReflectionInstance), LUA_SCRIPT_INSTANCE_TAG
@@ -192,7 +200,8 @@ int ReflectionService::instance_new_index(
   if (defaultDescriptor != classes.end()) {
     for (const auto &property : defaultDescriptor->second.properties) {
       if (property.name == propertyName) {
-        return property.get(instance->pointer.get(), context);
+        property.set(instance->pointer.get(), context);
+        return 0;
       }
     }
   }
@@ -257,6 +266,19 @@ void ReflectionService::register_reflections() {
         .set =
           [](Instance *instance, lua_State *context) {
             luaL_error(context, "Cannot modify a read-only property");
+            return 0;
+          }},
+       {.name = "Active",
+        .type = ReflectionPropertyType::Boolean,
+        .get =
+          [](const Instance *instance, lua_State *context) {
+            lua_pushboolean(context, instance->active);
+            return 1;
+          },
+        .set =
+          [](Instance *instance, lua_State *context) {
+            const auto newBool = luaL_checkboolean(context, -1);
+            instance->set_active(newBool);
             return 0;
           }},
        {.name = "Parent",
@@ -394,20 +416,20 @@ void ReflectionService::register_reflections() {
      .isService = true,
      .constructor =
        []() {
-         throw std::runtime_error("Cannot create an instance of RenderingService");
+         throw std::runtime_error(
+           "Cannot create an instance of RenderingService"
+         );
          return nullptr;
        },
      .properties = {
-       {
-         .name = "fps",
-         .readOnly = true,
-         .type = ReflectionPropertyType::Number,
-         .get = [](const Instance *instance, lua_State *context) {
-           const auto render = static_cast<const RenderingService*>(instance);
-           lua_pushnumber(context, render->fps);
-           return 1;
-         }
-       }
+       {.name = "fps",
+        .readOnly = true,
+        .type = ReflectionPropertyType::Number,
+        .get = [](const Instance *instance, lua_State *context) {
+          const auto render = static_cast<const RenderingService *>(instance);
+          lua_pushnumber(context, render->fps);
+          return 1;
+        }}
      }}
   );
 
@@ -481,6 +503,7 @@ void ReflectionService::register_reflections() {
           }}
      }}
   );
+
   create_reflection(
     {.className = "Signal",
      .isService = false,
@@ -500,5 +523,9 @@ void ReflectionService::register_reflections() {
             return signal->connectLua(context);
           }}
      }}
+  );
+
+  create_reflection(
+    {.className = "World", .isService = true, .properties = {}, .methods = {}}
   );
 }

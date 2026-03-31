@@ -10,7 +10,7 @@ void UIService::add_child(const std::shared_ptr<Instance>& child)
     Instance::add_child(child);
 }
 
-void UIService::draw(sf::RenderTarget& target)
+void UIService::draw(sf::RenderTarget &target)
 {
     for (const auto& drawable : drawables)
     {

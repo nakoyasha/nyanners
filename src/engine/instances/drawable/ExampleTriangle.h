@@ -8,7 +8,7 @@ namespace Nyanners::Instances {
   public:
     ExampleTriangle();
 
-    void draw(sf::RenderTarget& target) override;
+    void draw(sf::RenderTarget &target) override;
   private:
     const std::vector<GLfloat> g_vertex_buffer_data;
     GLuint vertexBuffer{};

@@ -1,6 +1,7 @@
 #include "RunService.h"
 #include "RenderingService.h"
 #include "UIService.h"
+#include "instances/world/World.h"
 
 using namespace Nyanners::Services;
 
@@ -8,6 +9,7 @@ void RunService::bind_model(const std::shared_ptr<Instances::DataModel> newModel
 {
     this->model = newModel;
 }
+
 float RunService::get_time_since_start() {
   const auto time = this->startClock.getElapsedTime();
   return time.asSeconds();
@@ -24,12 +26,16 @@ void RunService::run()
     // {
     const auto renderService = this->model->get_service<RenderingService>("RenderingService");
     const auto uiService = this->model->get_service<UIService>("UIService");
+    const auto world = this->model->get_service<World>("World");
 
     while (this->isRunning == true && renderService->is_window_open())
     {
         this->tick();
         this->preRender->fire(deltaTime);
+        renderService->start_frame();
+        renderService->render(world);
         renderService->render(uiService);
+        renderService->end_frame();
     }
     // });
 }

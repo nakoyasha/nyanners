@@ -6,6 +6,7 @@ add_subdirectory(third_party/luau EXCLUDE_FROM_ALL)
 add_subdirectory(third_party/sfml EXCLUDE_FROM_ALL)
 add_subdirectory(third_party/glm EXCLUDE_FROM_ALL)
 add_subdirectory(third_party/fast_obj EXCLUDE_FROM_ALL)
+#add_subdirectory(third_party/imgui-sfml EXCLUDE_FROM_ALL)
 
 set(LUAU_BUILD_CLI false)
 set(LUAU_BUILD_TESTS false)
@@ -48,9 +49,26 @@ add_library(Nyanners Application.cpp Application.h
         resources/Shader.cpp
         resources/Shader.h
         instances/drawable/TextLabel.cpp
+        instances/world/World.cpp
+        instances/world/World.h
+        instances/debug/DebugWindow.cpp
+        instances/debug/DebugWindow.h
 )
 
+add_library(
+        Nyanners.ThirdParty
+        third_party/dear-imgui/imgui.cpp
+        third_party/dear-imgui/backends/imgui_impl_opengl3.cpp
+        third_party/dear-imgui/imgui_demo.cpp
+        third_party/dear-imgui/imgui_draw.cpp
+        third_party/dear-imgui/imgui_tables.cpp
+        third_party/dear-imgui/imgui_widgets.cpp
+        third_party/dear-imgui/misc/cpp/imgui_stdlib.cpp
+)
+
+target_include_directories(Nyanners.ThirdParty PUBLIC third_party/dear-imgui third_party/dear-imgui/misc/cpp/ third_party/dear-imgui/backends/)
 target_include_directories(Nyanners PRIVATE third_party/glm/glm)
+
 #target_link_options(Nyanners PRIVATE -static-libgcc -static-libstdc++)
-target_link_libraries(Nyanners Luau.VM Luau.Require Luau.Compiler SFML::Window SFML::Graphics SFML::Audio stdc++exp glm::glm fast_obj fast_obj_lib)
+target_link_libraries(Nyanners Nyanners.ThirdParty Luau.VM Luau.Require Luau.Compiler SFML::Window SFML::Graphics SFML::Audio stdc++exp glm::glm fast_obj fast_obj_lib)
 target_include_directories(Nyanners PUBLIC .)

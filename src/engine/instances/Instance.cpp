@@ -31,9 +31,21 @@ void Instance::remove_child(const std::shared_ptr<Instance> &child) {
 
 void Instance::update(const float deltaTime)
 {
-  // force update of all children as well
+  if (this->active != true) {
+    return;
+  }
+
+  // force update of all children
   for (const auto& child: this->children)
   {
     child->update(deltaTime);
+  }
+}
+
+void Instance::set_active(const bool newActiveState) {
+  this->active = newActiveState;
+
+  for (const auto& child : this->children) {
+    child->set_active(false);
   }
 }
