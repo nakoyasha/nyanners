@@ -1,11 +1,14 @@
 #version 330 core
 
-out vec4 color;
-in vec2 tex_coord;
+layout(location = 0) out vec4 color;
 
-uniform sampler2D r_texture;
+in vec2 vTexCoord;
 
-void main(){
-  // color = vec3(1,0,0);
-  color = texture(r_texture, tex_coord);
+uniform vec4 uColor;
+uniform sampler2D uTexture;
+
+void main() {
+    vec4 texColor = texture(uTexture, vTexCoord);
+    color = texColor;
+    //color = vec4(1.0f, 0.0f, 0.0f, 1.0f);
 }

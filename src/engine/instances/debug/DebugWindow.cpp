@@ -1,9 +1,12 @@
 #include "DebugWindow.h"
+#include "Application.h"
 #include "imgui.h"
+#include "instances/services/RenderingService.h"
 
 using namespace Nyanners::Instances;
 
 DebugWindow::DebugWindow() : Instance("DebugWindow") {
+	onImmediateRender = new Signal<>();
   ImGui::CreateContext();
   ImGui::StyleColorsDark();
 
@@ -12,7 +15,8 @@ DebugWindow::DebugWindow() : Instance("DebugWindow") {
   };
 }
 
-void DebugWindow::draw(sf::RenderTarget& target) {
+void DebugWindow::draw(const sf::RenderTarget &target) {
+  const auto render = Application::instance()->currentModel->get_service<Services::RenderingService>("RenderingService");
   ImGuiIO& io = ImGui::GetIO();
   io.DisplaySize = ImVec2(
       static_cast<float>(target.getSize().x),
@@ -23,6 +27,15 @@ void DebugWindow::draw(sf::RenderTarget& target) {
 
   ImGui::Begin("test");
   ImGui::Text("if there's anything here i will be genuinely surprised");
+
+  ImGui::InputDouble("FPS", &newFps);
+
+  if (ImGui::Button("Set FPS")) {
+    render->set_fps_limit(newFps);
+  }
+
+	this->onImmediateRender->fire();
+
   ImGui::End();
 
   ImGui::Render();

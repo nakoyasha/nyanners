@@ -5,8 +5,6 @@ local UIService = DataModel:get_service("UIService")
 local World = DataModel:get_service("World")
 
 local label = UIService:find_first_child("TextLabel")
-
-print(IOService:read_file("C:/Users/Haruka/Documents/mitmproxy.conf"))
 --World.Active = false
 
 RunService.PreRender:Connect(function()

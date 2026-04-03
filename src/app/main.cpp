@@ -9,6 +9,7 @@
 #include "instances/services/RenderingService.h"
 #include "instances/services/RunService.h"
 #include "instances/services/UIService.h"
+#include "instances/world/Skybox.h"
 #include "instances/world/World.h"
 
 using namespace Nyanners;
@@ -45,12 +46,80 @@ int main() {
 
   auto label = std::make_shared<Instances::TextLabel>();
   auto mesh = std::make_shared<Instances::MeshPart>();
+	auto meshTwo = std::make_shared<Instances::MeshPart>();
+	auto skybox = std::make_shared<Instances::Skybox>();
+
+  // mesh->transform = glm::translate(mesh->transform, glm::vec3(0.0f, 5.0f, 0.0f));
   auto debugWindow = std::make_shared<Instances::DebugWindow>();
 
-  uiService->add_child(label);
+  // uiService->add_child(label);
   uiService->add_child(debugWindow);
   // uiService->add_child(triangle);
-  mesh->load_from_obj_file("assets/models/teapot.obj");
+  // mesh->load_from_obj_file("assets/models/teapot.obj");
+
+	mesh->set_vertices({
+		-0.5f, -0.5f, 0.0f, 0.0f,
+		0.5f, -0.5f, 1.0f, 0.0f,
+		0.5f, 0.5f, 1.0f, 1.0f,
+		-0.5f, 0.5f, 0.0f, 1.0f
+	});
+
+	// 0 and 2 are duplicates; therefore it can be optimized down here:
+	mesh->set_indexes({0, 1, 2, 2, 3, 0});
+	mesh->set_color({187, 221, 34});
+
+	meshTwo->set_vertices({
+		-0.5f, -0.5f, 0.0f, 0.0f,
+		0.5f, -0.5f, 1.0f, 0.0f,
+		0.5f, 0.5f, 1.0f, 1.0f,
+		-0.5f, 0.5f, 0.0f, 1.0f
+	});
+
+	// 0 and 2 are duplicates; therefore it can be optimized down here:
+	meshTwo->set_indexes({0, 1, 2, 2, 3, 0});
+	meshTwo->set_color({187, 221, 34});
+
+	mesh->set_position(glm::vec3(0.0f, 0.0f, 0.0f));
+	meshTwo->set_position(glm::vec3(0.0f, 2.0f, -1.0f));
+
+	mesh->texture->load_from_file("assets/textures/enanui.png");
+	meshTwo->texture->load_from_file("assets/textures/saa_anyo.png");
+	// meshTwo->texture->set_mipmap_enabled(false);
+
+	debugWindow->onImmediateRender->connect([renderingService, meshTwo]() {
+		static float newPosition[3] = {meshTwo->position.x, meshTwo->position.y, meshTwo->position.z};
+		static glm::vec3 cameraView = glm::vec3(renderingService->view[3]);
+		static glm::vec3 camRot = glm::vec3(0.0f); // pitch, yaw, roll
+
+		if (ImGui::SliderFloat3("Position", newPosition, -24, 24)) {
+			meshTwo->set_position({
+					newPosition[0],
+					newPosition[1],
+					newPosition[2]
+			});
+		};
+
+		if (ImGui::SliderFloat3("Camera View", &cameraView.x, -1024, 1024)) {
+			renderingService->view[3][0] = cameraView[0];
+		}
+		//
+		// ImGui::SliderFloat3("Camera Rotation", &camRot.x, -180.f, 180.f);
+		//
+		// glm::mat4 view(1.0f);
+		//
+		// // rotations (convert to radians)
+		// view = glm::rotate(view, glm::radians(camRot.x), glm::vec3(1, 0, 0)); // pitch
+		// view = glm::rotate(view, glm::radians(camRot.y), glm::vec3(0, 1, 0)); // yaw
+		// view = glm::rotate(view, glm::radians(camRot.z), glm::vec3(0, 0, 1)); // roll
+		//
+		// // translation (camera moves opposite)
+		// view = glm::translate(view, -cameraView);
+
+		// renderingService->view = view;
+	});
+
+	world->add_child(skybox);
+	world->add_child(meshTwo);
   world->add_child(mesh);
 
   const sf::Font font("C:/Windows/Fonts/arial.ttf");
@@ -58,8 +127,8 @@ int main() {
 
   script->run_script();
 
-  app->start();
   Core::Logger::log(std::format("Running Test App"));
+  app->start();
 
   // while (runService->isRunning == true && renderingService->is_window_open())
   // {

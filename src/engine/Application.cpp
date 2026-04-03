@@ -38,6 +38,7 @@ void Nyanners::Application::shutdown() {
   runService->stop();
   renderingService->shutdown();
 
+	this->currentModel.reset();
   this->currentModel = nullptr;
 }
 

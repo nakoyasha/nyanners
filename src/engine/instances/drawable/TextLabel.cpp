@@ -1,8 +1,9 @@
 #include "TextLabel.h"
 
 using namespace Nyanners::Instances;
-void TextLabel::draw(sf::RenderTarget& target) {
-  target.draw(this->label);
+
+void TextLabel::draw(const sf::RenderTarget &target) {
+  // target.draw(this->label);
 }
 
 void TextLabel::setText(const std::string &newText) {

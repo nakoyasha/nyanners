@@ -5,14 +5,13 @@
 namespace Nyanners::Services
 {
     // TODO: add aux methods for ui
-    class UIService : public Instances::Instance, public Instances::Drawable
-    {
+    class UIService : public Instances::Instance {
     public:
         UIService() : Instance("UIService") {};
 
-        void add_child(const std::shared_ptr<Instance>& child) override;
-        void draw(sf::RenderTarget &target) override;;
+        // void add_child(const std::shared_ptr<Instance>& child) override;
+        // void draw(sf::RenderTarget &target, const glm::mat4&) override;
     private:
-        std::vector<std::shared_ptr<Drawable>> drawables;
+        // std::vector<std::shared_ptr<Drawable>> drawables;
     };
 }

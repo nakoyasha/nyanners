@@ -6,7 +6,7 @@ IndentWidth: 2
 TabWidth: 2
 ConstructorInitializerIndentWidth: 2
 IndentCaseLabels: true
-UseTab: Never
+UseTab: ForIndentation
 SortIncludes: true
 SortUsingDeclarations: false
 AlignConsecutiveMacros: false

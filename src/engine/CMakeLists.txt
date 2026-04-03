@@ -30,6 +30,7 @@ add_library(Nyanners Application.cpp Application.h
         instances/services/IOService.h
         instances/drawable/Drawable.h
         instances/drawable/TextLabel.h
+        instances/drawable/TextLabel.cpp
         instances/services/ReflectionService.cpp
         instances/services/ReflectionService.cpp
         instances/services/ReflectionService.h
@@ -42,17 +43,20 @@ add_library(Nyanners Application.cpp Application.h
         instances/services/UIService.h
         instances/basic/SignalBase.h
         data/UserdataTags.h
-        instances/drawable/ExampleTriangle.h
-        instances/drawable/ExampleTriangle.cpp
         instances/drawable/MeshPart.h
         instances/drawable/MeshPart.cpp
         resources/Shader.cpp
         resources/Shader.h
-        instances/drawable/TextLabel.cpp
         instances/world/World.cpp
         instances/world/World.h
         instances/debug/DebugWindow.cpp
         instances/debug/DebugWindow.h
+        instances/datatypes/Color3.h
+        instances/drawable/Drawable.cpp
+        resources/Texture.cpp
+        resources/Texture.h
+        instances/world/Skybox.cpp
+        instances/world/Skybox.h
 )
 
 add_library(
@@ -66,7 +70,7 @@ add_library(
         third_party/dear-imgui/misc/cpp/imgui_stdlib.cpp
 )
 
-target_include_directories(Nyanners.ThirdParty PUBLIC third_party/dear-imgui third_party/dear-imgui/misc/cpp/ third_party/dear-imgui/backends/)
+target_include_directories(Nyanners.ThirdParty PUBLIC third_party/dear-imgui third_party/dear-imgui/misc/cpp/ third_party/dear-imgui/backends/ third_party/stb/)
 target_include_directories(Nyanners PRIVATE third_party/glm/glm)
 
 #target_link_options(Nyanners PRIVATE -static-libgcc -static-libstdc++)

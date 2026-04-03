@@ -1,10 +1,7 @@
 #pragma once
-#include <iostream>
 #include <utility>
 #include <vector>
 #include <memory>
-
-#include "drawable/Drawable.h"
 
 namespace Nyanners::Instances {
   class Instance : public std::enable_shared_from_this<Instance> {
@@ -16,7 +13,13 @@ namespace Nyanners::Instances {
       this->name = this->baseName;
     };
 
-    virtual ~Instance() = default;
+    virtual ~Instance() {
+	    for (const auto child : children) {
+		    Instance::remove_child(child);
+	    	delete child.get();
+	    }
+    	children.clear();
+    };
     std::shared_ptr<Instance> parent;
 
     const std::string baseName;

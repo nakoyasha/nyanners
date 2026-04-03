@@ -33,6 +33,13 @@ void RunService::run()
         this->tick();
         this->preRender->fire(deltaTime);
         renderService->start_frame();
+
+    		// ^ start_frame might involve the user closing the window
+    		// therefore we stop here
+    		if (!renderService->is_window_open()) {
+    			break;
+    		}
+
         renderService->render(world);
         renderService->render(uiService);
         renderService->end_frame();
