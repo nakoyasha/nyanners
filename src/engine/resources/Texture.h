@@ -1,34 +1,35 @@
 #pragma once
-#include "SFML/Graphics/Image.hpp"
-#include "third_party/sfml/extlibs/headers/glad/include/glad/gl.h"
 #include <filesystem>
 
 namespace Nyanners::Resources {
 	class Texture {
 	public:
-		Texture();
-		Texture(const std::filesystem::path& path);
-		~Texture();
+		virtual ~Texture() = default;
 
 		int height;
 		int width;
-		GLuint textureId = 0;
-
 		void  *textureBuffer;
 
-		void load_from_file(const std::filesystem::path& path);
-		void upload_buffer(
+		virtual void load_from_file(const std::filesystem::path& path) = 0;
+
+		virtual void upload_buffer(
 		  int internalFormat,
 		  int externalFormat,
 		  int width,
 		  int height,
 		  const void *imageBuffer
-		) const;
-		void set_mipmap_enabled(const bool newState);
-		void use();
-		void unuse();
-	private:
+		) const = 0;
 
+		virtual void set_mipmap_enabled(const bool newState) = 0;
+		virtual void use() = 0;
+		virtual void* get_texture_handle() const = 0;
+		virtual void unuse() = 0;
+
+		static Texture* create();
+		static Texture* create(const std::filesystem::path& path);
+	protected:
+		void load_file_into_buffer(const std::filesystem::path& path);
+	private:
 		bool useMipmaps = false;
 		bool inUse = false;
 		int channelsInFile = 4;

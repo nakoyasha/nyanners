@@ -25,9 +25,8 @@ void ExplorerPanel::render_instance(const std::shared_ptr<Instance>& instance) {
 		ImGui::SetCursorPosX(ImGui::GetCursorPosX() - style.IndentSpacing * 0.6f + 1.5f);
 		ImGui::SetCursorPosY(ImGui::GetCursorPosY() + 2.f); // not the faintest idea
 
-
 		ImGui::ImageWithBg(
-			workspaceIcon.textureId,
+			workspaceIcon->get_texture_handle(),
 			ImVec2(16.f, 16.f),
 			ImVec2(0.f, 0.f),
 			ImVec2(1.f, 1.f),

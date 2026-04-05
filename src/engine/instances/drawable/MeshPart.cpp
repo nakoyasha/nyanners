@@ -14,7 +14,7 @@ MeshPart::MeshPart() : Instance("MeshPart"){
 	    "RunService"
 	  );
 
-	texture = new Resources::Texture();
+	texture = Resources::Texture::create();
 	mesh = Resources::Mesh::create();
 
 	glBindVertexArray(vertexArrayID);

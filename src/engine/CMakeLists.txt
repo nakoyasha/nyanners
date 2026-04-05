@@ -83,6 +83,8 @@ add_library(Nyanners
         resources/VertexBuffer.h
         resources/opengl/OpenGLVertexBuffer.cpp
         resources/opengl/OpenGLVertexBuffer.h
+        resources/opengl/OpenGLTexture.cpp
+        resources/opengl/OpenGLTexture.h
 )
 
 add_library(

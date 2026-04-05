@@ -11,7 +11,7 @@ namespace TestApp::Panels {
 		  void render_instance(const std::shared_ptr<Instance> &instance);
 		  void draw(const sf::RenderTarget& target) override;
 	private:
-		const Nyanners::Resources::Texture workspaceIcon = Nyanners::Resources::Texture("assets/textures/editor/world.png");
+		const Nyanners::Resources::Texture* workspaceIcon = Nyanners::Resources::Texture::create("assets/textures/editor/world.png");
 
 		std::shared_ptr<Nyanners::Instances::DataModel> activeDm;
 		std::shared_ptr<Nyanners::Services::SelectionService> selectionService;

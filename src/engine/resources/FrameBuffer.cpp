@@ -5,13 +5,13 @@
 using namespace Nyanners::Resources;
 
 FrameBuffer::FrameBuffer(const int width, const int height) {
-	framebufferTexture = new Resources::Texture();
+	framebufferTexture = Resources::Texture::create();
 	glGenFramebuffers(1, &framebufferId);
 	glBindFramebuffer(GL_FRAMEBUFFER, framebufferId);
 
 	this->framebufferTexture->use();
 	this->framebufferTexture->upload_buffer(GL_RGBA8, GL_RGBA, width, height, nullptr);
-	glCheck(glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, this->framebufferTexture->textureId, 0));
+	glCheck(glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, static_cast<GLuint>(reinterpret_cast<uintptr_t>(this->framebufferTexture->get_texture_handle())), 0));
 
 	glCheck(glGenRenderbuffers(1, &renderBufferId));
 	glCheck(glBindRenderbuffer(GL_RENDERBUFFER, renderBufferId));
@@ -49,18 +49,18 @@ void FrameBuffer::release() {
 }
 
 GLuint FrameBuffer::get_texture_id() {
-	return this->framebufferTexture->textureId;
+	return static_cast<GLuint>(reinterpret_cast<uintptr_t>(this->framebufferTexture->get_texture_handle()));
 }
 
 void FrameBuffer::resize(const int width, const int height) {
 	this->use();
-	framebufferTexture = new Resources::Texture();
+	framebufferTexture = Resources::Texture::create();
 	glGenFramebuffers(1, &framebufferId);
 	glBindFramebuffer(GL_FRAMEBUFFER, framebufferId);
 
 	this->framebufferTexture->use();
 	this->framebufferTexture->upload_buffer(GL_RGBA8, GL_RGBA, width, height, nullptr);
-	glCheck(glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, this->framebufferTexture->textureId, 0));
+	glCheck(glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, static_cast<GLuint>(reinterpret_cast<uintptr_t>(this->framebufferTexture->get_texture_handle())), 0));
 
 	glCheck(glBindRenderbuffer(GL_RENDERBUFFER, renderBufferId));
 	glCheck(glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH24_STENCIL8, width, height));
