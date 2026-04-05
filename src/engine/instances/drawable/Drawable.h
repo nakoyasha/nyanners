@@ -1,14 +1,10 @@
 #pragma once
-#include "instances/datatypes/Color3.h"
-#include "resources/Shader.h"
-
 #include "SFML/Graphics/RenderTarget.hpp"
+#include "instances/datatypes/Color3.h"
+#include "resources/Mesh.h"
+#include "resources/Shader.h"
 #include "third_party/sfml/extlibs/headers/glad/include/glad/gl.h"
 #include <glm/gtc/matrix_transform.hpp>
-
-namespace Nyanners::DataTypes {
-	using Vertices = std::vector<GLfloat>;
-}
 
 namespace Nyanners::Instances {
   class Drawable {
@@ -16,20 +12,15 @@ namespace Nyanners::Instances {
 		glm::vec3 position;
   	glm::mat4 transform;
   	Resources::Shader currentShader;
-
-  	int vertexCount = 0;
-  	GLuint vertexBufferId {};
-  	GLuint indexBufferId {};
+  	Resources::Mesh* mesh;
 
   	int indexCount;
   	GLuint vertexArrayID {};
-  	Nyanners::DataTypes::Vertices vertices {};
 
-  	bool isOpaque;
+  	bool isOpaque = true;
 
   	DataTypes::Color3 color = {255, 255, 255, 255};
-
-  	Drawable();
+		Drawable();
 		virtual ~Drawable();
 
   	virtual void set_position(const glm::vec3& newPosition);

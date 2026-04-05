@@ -4,7 +4,11 @@ project(Nyanners.App)
 set(CMAKE_CXX_STANDARD 23)
 add_subdirectory(src/engine)
 
-add_executable(Nyanners.App src/app/main.cpp)
+add_executable(Nyanners.App src/app/main.cpp
+        src/app/debug/ExplorerPanel.cpp
+        src/app/debug/ExplorerPanel.h
+        src/app/debug/ViewportPanel.cpp
+        src/app/debug/ViewportPanel.h)
 target_link_libraries(Nyanners.App PUBLIC Nyanners)
 link_libraries(Nyanners.App Nyanners)
 

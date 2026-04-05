@@ -6,6 +6,7 @@
 #include "core/Logger.h"
 #include "instances/Instance.h"
 #include <functional>
+#include <format>
 
 struct LuaScriptConnection {
     lua_State* context;

@@ -1,7 +1,8 @@
 #pragma once
+#include "drawable/Drawable.h"
+#include <memory>
 #include <utility>
 #include <vector>
-#include <memory>
 
 namespace Nyanners::Instances {
   class Instance : public std::enable_shared_from_this<Instance> {
@@ -24,6 +25,7 @@ namespace Nyanners::Instances {
 
     const std::string baseName;
     std::vector<std::shared_ptr<Instance>> children;
+  	std::vector<std::shared_ptr<Drawable>> renderableChildren;
 
     virtual void add_child(const std::shared_ptr<Instance>& child);
     virtual void remove_child(const std::shared_ptr<Instance> &child);

@@ -18,10 +18,13 @@ namespace Nyanners {
       return m_Instance;
     }
 
-    Application();;
+    Application();
 
-    virtual void start() const;
+    virtual void start();
     virtual void shutdown();
+  protected:
+  	virtual void on_update() {};
+  	virtual void on_draw() const {};
   private:
     // const std::string projectName;
     static inline Application* m_Instance;

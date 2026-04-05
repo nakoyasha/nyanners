@@ -67,6 +67,7 @@ namespace Nyanners::Services {
     static void reflect_class(lua_State* context, const std::shared_ptr<Instance>& instance);
     static ReflectionClass create_reflection(const ReflectionClass& descriptor);
     static ReflectionInstance* get_instance_from_context(lua_State* context, const int id);
+  	static std::vector<ReflectionProperty> get_properties(const std::shared_ptr<Instance>& instance);
     static void register_reflections();
   private:
     static int instance_index(lua_State* context, const ReflectionInstance* instance);

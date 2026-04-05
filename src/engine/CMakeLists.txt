@@ -13,50 +13,76 @@ set(LUAU_BUILD_TESTS false)
 set(SFML_BUILD_NETWORK false)
 
 
-add_library(Nyanners Application.cpp Application.h
-        instances/Instance.cpp
-        instances/Instance.h
-        instances/DataModel.cpp
-        instances/DataModel.h
-        instances/services/EngineService.cpp
-        instances/services/EngineService.h
-        instances/Script.cpp
-        instances/Script.h
-        instances/services/ScriptService.cpp
-        instances/services/ScriptService.h
-        core/Logger.cpp
+add_library(Nyanners
+        Application.h
+        Application.cpp
         core/Logger.h
-        instances/services/IOService.cpp
-        instances/services/IOService.h
-        instances/drawable/Drawable.h
-        instances/drawable/TextLabel.h
-        instances/drawable/TextLabel.cpp
-        instances/services/ReflectionService.cpp
-        instances/services/ReflectionService.cpp
-        instances/services/ReflectionService.h
-        instances/services/RenderingService.cpp
-        instances/services/RenderingService.h
-        instances/services/RunService.cpp
-        instances/services/RunService.h
-        instances/basic/Signal.h
-        instances/services/UIService.cpp
-        instances/services/UIService.h
-        instances/basic/SignalBase.h
+        core/Logger.cpp
         data/UserdataTags.h
+        instances/basic/SignalBase.h
+        instances/basic/Signal.h
+        instances/basic/WorldObject.h
+        instances/basic/WorldObject.cpp
+        instances/datatypes/Color3.h
+        instances/drawable/Drawable.h
+        instances/drawable/Drawable.cpp
         instances/drawable/MeshPart.h
         instances/drawable/MeshPart.cpp
-        resources/Shader.cpp
-        resources/Shader.h
-        instances/world/World.cpp
-        instances/world/World.h
-        instances/debug/DebugWindow.cpp
+        instances/drawable/TextLabel.h
+        instances/drawable/TextLabel.cpp
+        instances/debug/DebugUIService.h
+        instances/debug/DebugUIService.cpp
         instances/debug/DebugWindow.h
-        instances/datatypes/Color3.h
-        instances/drawable/Drawable.cpp
-        resources/Texture.cpp
-        resources/Texture.h
-        instances/world/Skybox.cpp
+        instances/debug/DebugWindow.cpp
+        instances/Instance.h
+        instances/Instance.cpp
+        instances/DataModel.h
+        instances/DataModel.cpp
+        instances/Script.h
+        instances/Script.cpp
+        instances/services/EngineService.h
+        instances/services/EngineService.cpp
+        instances/services/IOService.h
+        instances/services/IOService.cpp
+        instances/services/ReflectionService.h
+        instances/services/ReflectionService.cpp
+        instances/services/RenderingService.h
+        instances/services/RenderingService.cpp
+        instances/services/RunService.h
+        instances/services/RunService.cpp
+        instances/services/ScriptService.h
+        instances/services/ScriptService.cpp
+        instances/services/SelectionService.h
+        instances/services/SelectionService.cpp
+        instances/services/UIService.h
+        instances/services/UIService.cpp
+        instances/world/World.h
+        instances/world/World.cpp
         instances/world/Skybox.h
+        instances/world/Skybox.cpp
+        resources/FrameBuffer.h
+        resources/FrameBuffer.cpp
+        resources/Shader.h
+        resources/Shader.cpp
+        resources/Texture.h
+        resources/Texture.cpp
+        core/rendering/OpenGLRenderer.cpp
+        core/rendering/OpenGLRenderer.h
+        core/rendering/Renderer.h
+        core/rendering/RenderQueue.h
+        resources/Mesh.cpp
+        resources/Mesh.h
+        resources/opengl/OpenGLMesh.cpp
+        resources/opengl/OpenGLMesh.h
+        resources/IndexBuffer.cpp
+        resources/IndexBuffer.h
+        instances/datatypes/Vertices.h
+        resources/opengl/OpenGLIndexBuffer.cpp
+        resources/opengl/OpenGLIndexBuffer.h
+        resources/VertexBuffer.cpp
+        resources/VertexBuffer.h
+        resources/opengl/OpenGLVertexBuffer.cpp
+        resources/opengl/OpenGLVertexBuffer.h
 )
 
 add_library(

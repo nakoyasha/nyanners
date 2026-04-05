@@ -1,8 +1,13 @@
 #include "RenderingService.h"
+#include "Application.h"
 #include "IOService.h"
+#include "RunService.h"
+#include "imgui.h"
+#include "imgui_impl_opengl3.h"
 #include "SFML/Graphics/Font.hpp"
 #include "core/Logger.h"
-#include "instances/debug/DebugWindow.h"
+#include "instances/basic/WorldObject.h"
+#include "instances/debug/DebugUIService.h"
 #include "instances/drawable/Drawable.h"
 #include <glm/gtc/matrix_transform.hpp>
 
@@ -34,6 +39,7 @@ void RenderingService::initialize(
 		  size, "Nyanners", sf::Style::Default, sf::State::Windowed, settings
 		);
 	}
+
 
 	// window.setVerticalSyncEnabled(true);
 	window.setFramerateLimit(60);
@@ -71,9 +77,19 @@ void RenderingService::initialize(
 	  0.1f,
 	  100.0f
 	);
+	ImGui::CreateContext();
+	ImGui::StyleColorsDark();
+
+	if (!ImGui_ImplOpenGL3_Init("#version 330")) {
+		throw std::runtime_error("Failed to initialize ImGui");
+	};
+
+	ImGuiIO &io = ImGui::GetIO();
+	io.ConfigFlags |= ImGuiConfigFlags_DockingEnable;
+	io.ConfigFlags |= ImGuiConfigFlags_ViewportsEnable;
 
 	// window.setMouseCursorVisible(false);
-	window.setMouseCursorGrabbed(true);
+	// window.setMouseCursorGrabbed(true);
 
 	// left, right, bottom, top, zNear, zFar
 	// projection = glm::ortho(-2.0f, 2.0f, -1.5f, 1.5f, -1.0f, 1.0f);
@@ -96,17 +112,13 @@ void RenderingService::start_frame() {
 void RenderingService::render(
   const std::shared_ptr<Instance> &instanceToRender
 ) {
-	for (const auto &child : instanceToRender->children) {
-		if (child->active == false) {
-			continue;
-		}
+	if (framebuffer != nullptr) {
+		glDisable(GL_DEPTH_TEST);
+		framebuffer->use();
+	}
 
-		const auto drawable = std::dynamic_pointer_cast<Instances::Drawable>(child);
-		if (drawable == nullptr) {
-			continue;
-		}
-
-		if (drawable->isLegacy()) {
+	for (const auto &child : instanceToRender->renderableChildren) {
+		if (child->isLegacy()) {
 			// absolutely jank code, god this is awful.
 			GLint vao;
 			glGetIntegerv(GL_VERTEX_ARRAY_BINDING, &vao);
@@ -114,24 +126,44 @@ void RenderingService::render(
 			glUseProgram(0);
 
 			this->window.pushGLStates();
-			drawable->draw(this->window);
+			child->draw(this->window);
 			this->window.popGLStates();
 
 			glBindVertexArray(vao);
 		} else {
-			drawable->currentShader.use();
-			drawable->currentShader.setMatrix("uModel", drawable->transform);
-			drawable->currentShader.setMatrix("uView", view);
-			drawable->currentShader.setMatrix("uProjection", projection);
+			// const auto runService = Application::instance()->currentModel->get_service<RunService>("RunService");
 
-			drawable->draw(this->window);
+			child->currentShader.use();
+			child->currentShader.setMatrix("uModel", child->transform);
+
+			child->currentShader.setMatrix("uView", view);
+			child->currentShader.setMatrix("uProjection", projection);
+			// child->currentShader.setFloat("iTime", runService->get_time_since_start());
+
+			child->draw(this->window);
 		}
 
 		handle_error(instanceToRender);
 	}
+
+	if (framebuffer != nullptr) {
+		framebuffer->release();
+		glEnable(GL_DEPTH_TEST);
+	}
+}
+
+void RenderingService::render_to_framebuffer(
+  const std::shared_ptr<Instance> &instanceToRender
+) {
+	glDisable(GL_DEPTH_TEST);
+	this->framebuffer->use();
+	this->render(instanceToRender);
+	this->framebuffer->release();
+	glEnable(GL_DEPTH_TEST);
 }
 
 void RenderingService::end_frame() {
+	DebugUIService::on_frame_end();
 	window.display();
 }
 
@@ -180,34 +212,33 @@ void RenderingService::handle_window_event(
 
 	// Mouse look
 	else if (const auto* moved = event->getIf<sf::Event::MouseMoved>()) {
-
 		if (firstMouse) {
 			lastMouse = { moved->position.x, moved->position.y };
 			firstMouse = false;
 		}
 
-		float xoffset = moved->position.x - lastMouse.x;
-		float yoffset = moved->position.y - lastMouse.y;
+			float xoffset = moved->position.x - lastMouse.x;
+			float yoffset = moved->position.y - lastMouse.y;
 
-		lastMouse = { moved->position.x, moved->position.y };
+			lastMouse = { moved->position.x, moved->position.y };
 
-		xoffset *= mouseSens;
-		yoffset *= mouseSens;
+			xoffset *= mouseSens;
+			yoffset *= mouseSens;
 
-		yaw   += xoffset;
-		pitch -= yoffset;
+			yaw   += xoffset;
+			pitch -= yoffset;
 
-		// pitch = glm::clamp(pitch, -89.0f, 89.0f);
+			// pitch = glm::clamp(pitch, -89.0f, 89.0f);
 
-		glm::vec3 front;
-		front.x = cos(glm::radians(yaw)) * cos(glm::radians(pitch));
-		front.y = sin(glm::radians(pitch));
-		front.z = sin(glm::radians(yaw)) * cos(glm::radians(pitch));
+			glm::vec3 front;
+			front.x = cos(glm::radians(yaw)) * cos(glm::radians(pitch));
+			front.y = sin(glm::radians(pitch));
+			front.z = sin(glm::radians(yaw)) * cos(glm::radians(pitch));
 
-		cameraFront = glm::normalize(front);
+			cameraFront = glm::normalize(front);
 	}
 
-	Instances::DebugWindow::handle_event(window, &event.value());
+	DebugUIService::handle_event(window, &event.value());
 }
 
 void RenderingService::update(const float deltaTime) {

@@ -1,6 +1,7 @@
 #pragma once
 #include "SFML/Graphics/RenderWindow.hpp"
 #include "instances/Instance.h"
+#include "resources/FrameBuffer.h"
 #include "resources/Shader.h"
 #include "third_party/sfml/extlibs/headers/glad/include/glad/gl.h"
 #include <glm/gtc/matrix_transform.hpp>
@@ -12,6 +13,8 @@ namespace Nyanners::Services
     {
         public:
         static Resources::Shader defaultShader;
+        sf::RenderWindow window;
+    		std::unique_ptr<Resources::FrameBuffer> framebuffer;
 
         float deltaTime = 0.0f;
         int fps = 0.0f;
@@ -32,6 +35,7 @@ namespace Nyanners::Services
         void set_window_title(const std::string& newWindowTitle);
         void set_fps_limit(const unsigned int limit);
         void set_resolution(const sf::Vector2u newSize);
+    		void bind_framebuffer(const Resources::FrameBuffer& framebuffer);
         void handle_window_event(const std::optional<sf::Event> &event);
 		    void update(const float deltaTime) override;
 		    bool is_window_open() const;
@@ -42,13 +46,13 @@ namespace Nyanners::Services
 
         void start_frame();
         void render(const std::shared_ptr<Instance> &instanceToRender);
+    		void render_to_framebuffer(const std::shared_ptr<Instance> &instanceToRender);
     		static Resources::Shader create_default_shader();
         void end_frame();
         void shutdown();
     private:
     		static void handle_error(const std::shared_ptr<Instance> whereItHappened);
 
-        sf::RenderWindow window;
         glm::mat4 projection;
         sf::Clock fpsClock;
 

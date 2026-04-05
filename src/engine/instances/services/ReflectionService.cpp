@@ -24,6 +24,27 @@ ReflectionService::get_instance_from_context(lua_State *context, const int id) {
 
   return instance;
 }
+std::vector<ReflectionProperty> ReflectionService::get_properties(const std::shared_ptr<Instance> &instance) {
+	const auto descriptor = classes.find(instance->baseName);
+	const auto defaultDescriptor = classes.find("Instance");
+
+	if (descriptor == classes.end()) {
+		return defaultDescriptor->second.properties;
+	} else {
+		std::vector<ReflectionProperty> newProperties;
+
+		for (const auto& property : defaultDescriptor->second.properties) {
+			newProperties.push_back(property);
+		}
+
+		for (const auto& property : descriptor->second.properties) {
+			newProperties.push_back(property);
+		}
+
+		return newProperties;
+	}
+
+}
 
 void ReflectionService::reflect_class(
   lua_State *context, const std::shared_ptr<Instance> &instance

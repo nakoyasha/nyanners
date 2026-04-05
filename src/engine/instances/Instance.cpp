@@ -1,6 +1,6 @@
 #include "Instance.h"
-
 #include "core/Logger.h"
+#include "drawable/Drawable.h"
 
 using namespace Nyanners::Instances;
 void Instance::add_child(const std::shared_ptr<Instance>& child) {
@@ -13,6 +13,10 @@ void Instance::add_child(const std::shared_ptr<Instance>& child) {
   if (child->parent != nullptr) {
     child->parent->remove_child(child);
   }
+
+	if (auto drawable = std::dynamic_pointer_cast<Drawable>(child)) {
+		this->renderableChildren.push_back(drawable);
+	}
 
   this->children.push_back(child);
   child->parent = us;

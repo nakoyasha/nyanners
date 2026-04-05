@@ -8,13 +8,14 @@
 
 using namespace Nyanners::Instances;
 
-MeshPart::MeshPart() : Instance("MeshPart") {
+MeshPart::MeshPart() : Instance("MeshPart"){
 	runService =
 	  Application::instance()->currentModel->get_service<Services::RunService>(
 	    "RunService"
 	  );
 
 	texture = new Resources::Texture();
+	mesh = Resources::Mesh::create();
 
 	glBindVertexArray(vertexArrayID);
 	currentShader.use();
@@ -34,11 +35,16 @@ void MeshPart::draw(const sf::RenderTarget &target) {
 	glActiveTexture(GL_TEXTURE0);
 	texture->use();
 
+	// this->mesh->vertexBuffer->use();
+	this->mesh->indexBuffer->use();
+
 	if (indexCount == 0) {
-		glDrawArrays(GL_TRIANGLES, 0, static_cast<GLint>(vertexCount));
+		glDrawArrays(GL_TRIANGLES, 0, static_cast<GLint>(mesh->vertexCount));
 	} else {
 		glDrawElements(GL_TRIANGLES, static_cast<int>(indexCount), GL_UNSIGNED_INT, nullptr);
 	}
+
+	glBindVertexArray(0);
 }
 
 void MeshPart::load_from_obj_file(const std::filesystem::path &path) {
@@ -50,7 +56,6 @@ void MeshPart::load_from_obj_file(const std::filesystem::path &path) {
 	}
 
 	glBindVertexArray(vertexArrayID);
-	glBindBuffer(GL_ARRAY_BUFFER, vertexBufferId);
 
 	std::vector<float> newVertices;
 	newVertices.reserve(mesh->index_count * 3);
@@ -97,16 +102,11 @@ void MeshPart::load_from_obj_file(const std::filesystem::path &path) {
 	this->set_vertices(newVertices);
 }
 
-void MeshPart::set_vertices(const DataTypes::Vertices &newVertices) {
+void MeshPart::set_vertices(const DataTypes::Vertices &newVertices) const {
 	glBindVertexArray(vertexArrayID);
-	glBindBuffer(GL_ARRAY_BUFFER, vertexBufferId);
 
-	glBufferData(
-		GL_ARRAY_BUFFER,
-		static_cast<GLsizeiptr>(newVertices.size()  * sizeof(float)),
-		newVertices.data(),
-		GL_STATIC_DRAW
-	);
+	this->mesh->set_vertices(newVertices);
+	this->mesh->vertexBuffer->use();
 
 	glEnableVertexAttribArray(0);
 	glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, sizeof(float) * 4, nullptr);
@@ -114,23 +114,14 @@ void MeshPart::set_vertices(const DataTypes::Vertices &newVertices) {
 	glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, sizeof(float) * 4, (void*)(sizeof(float) * 2));
 
 	glBindVertexArray(0);
-	glBindBuffer(GL_ARRAY_BUFFER, 0);
-
-	vertexCount = static_cast<int>(newVertices.size());
+	this->mesh->vertexBuffer->release();
 }
 
 void MeshPart::set_indexes(const std::vector<unsigned>& indexes) {
 	glBindVertexArray(vertexArrayID);
-	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, indexBufferId);
-
-	glBufferData(
-		GL_ELEMENT_ARRAY_BUFFER,
-		static_cast<GLsizeiptr>(indexes.size() * sizeof(unsigned int)),
-		indexes.data(),
-	GL_STATIC_DRAW
-	);
-
+	this->mesh->vertexBuffer->use();
+	this->mesh->set_indexes(indexes);
+	indexCount = this->mesh->indexBuffer->indexCount;
 	glBindVertexArray(0);
-	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
-	indexCount = static_cast<int>(indexes.size());
+	this->mesh->vertexBuffer->release();
 }

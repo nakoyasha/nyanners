@@ -9,8 +9,8 @@ Skybox::Skybox() : Instance("Skybox") {
 	glBindTexture(GL_TEXTURE_CUBE_MAP, textureId);
 
 	std::vector<std::string> files = {
-		"assets/textures/skybox/txStormydays_right.png",
 		"assets/textures/skybox/txStormydays_left.png",
+		"assets/textures/skybox/txStormydays_right.png",
 		"assets/textures/skybox/txStormydays_up.png",
 		"assets/textures/skybox/txStormydays_down.png",
 		"assets/textures/skybox/txStormydays_front.png",
@@ -29,6 +29,8 @@ Skybox::Skybox() : Instance("Skybox") {
 			GL_TEXTURE_CUBE_MAP_POSITIVE_X + i,
 			0, GL_RGB, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, data
 			));
+
+			stbi_image_free(data);
 	}
 
 	glCheck(glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MAG_FILTER, GL_LINEAR));
@@ -42,7 +44,7 @@ Skybox::Skybox() : Instance("Skybox") {
 
 	glCheck(glBindVertexArray(vertexArrayID));
 
-	vertices = {
+	this->mesh->set_vertices({
 		-1.0f,  1.0f, -1.0f,
 		-1.0f, -1.0f, -1.0f,
 		 1.0f, -1.0f, -1.0f,
@@ -84,19 +86,12 @@ Skybox::Skybox() : Instance("Skybox") {
 		 1.0f, -1.0f, -1.0f,
 		-1.0f, -1.0f,  1.0f,
 		 1.0f, -1.0f,  1.0f
-	};
+	});
 
-	glCheck(glBindBuffer(GL_ARRAY_BUFFER, vertexBufferId));
-
-	glCheck(glBufferData(
-		GL_ARRAY_BUFFER,
-		static_cast<GLsizeiptr>(vertices.size()  * sizeof(float)),
-		vertices.data(),
-		GL_STATIC_DRAW
-	));
-
+	this->mesh->vertexBuffer->use();
 	glCheck(glEnableVertexAttribArray(0));
 	glCheck(glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(float) * 3, nullptr));
+	this->mesh->vertexBuffer->release();
 
 	glCheck(glBindVertexArray(0));
 }
@@ -111,7 +106,7 @@ void Skybox::draw(const sf::RenderTarget& target) {
 	glCheck(glBindTexture(GL_TEXTURE_CUBE_MAP, textureId));
 
 	glCheck(glBindVertexArray(vertexArrayID));
-	glCheck(glDrawArrays(GL_TRIANGLES, 0, vertices.size()));
+	glCheck(glDrawArrays(GL_TRIANGLES, 0, this->mesh->vertexCount));
 	glCheck(glBindVertexArray(0));
 
 	glCheck(glDepthFunc(GL_LESS));

@@ -1,6 +1,7 @@
 #include "RunService.h"
 #include "RenderingService.h"
 #include "UIService.h"
+#include "instances/debug/DebugUIService.h"
 #include "instances/world/World.h"
 
 using namespace Nyanners::Services;
@@ -18,8 +19,6 @@ float RunService::get_time_since_start() {
 void RunService::run()
 {
     frameClock.start();
-    startClock.reset();
-    startClock.start();
     this->isRunning = true;
 
     // tickThread = std::thread([this]()
@@ -27,9 +26,13 @@ void RunService::run()
     const auto renderService = this->model->get_service<RenderingService>("RenderingService");
     const auto uiService = this->model->get_service<UIService>("UIService");
     const auto world = this->model->get_service<World>("World");
+		const auto debugUI = this->model->get_service<DebugUIService>("DebugUIService");
 
     while (this->isRunning == true && renderService->is_window_open())
     {
+    		startClock.reset();
+    		startClock.start();
+
         this->tick();
         this->preRender->fire(deltaTime);
         renderService->start_frame();
@@ -40,8 +43,10 @@ void RunService::run()
     			break;
     		}
 
-        renderService->render(world);
         renderService->render(uiService);
+        renderService->render(world);
+    		debugUI->draw_imgui(renderService->window);
+
         renderService->end_frame();
     }
     // });
@@ -61,6 +66,24 @@ void RunService::tick()
 {
     const auto time = frameClock.restart();
     deltaTime = time.asSeconds();
+
+		startClock.reset();
+		startClock.start();
+
+		this->preRender->fire(deltaTime);
+		// renderService->start_frame();
+
+		// ^ start_frame might involve the user closing the window
+		// therefore we stop here
+		// if (!renderService->is_window_open()) {
+			// break;
+		// }
+
+		// renderService->render(uiService);
+		// renderService->render(world);
+		// debugUI->draw_imgui(renderService->window);
+
+		// renderService->end_frame();
 
     model->update(deltaTime);
 }
