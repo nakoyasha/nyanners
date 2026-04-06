@@ -1,6 +1,11 @@
 #pragma once
 #include <filesystem>
 
+enum TextureType {
+	Texture2D = 0,
+	Cubemap = 1,
+};
+
 namespace Nyanners::Resources {
 	class Texture {
 	public:
@@ -25,8 +30,8 @@ namespace Nyanners::Resources {
 		virtual void* get_texture_handle() const = 0;
 		virtual void unuse() = 0;
 
-		static Texture* create();
-		static Texture* create(const std::filesystem::path& path);
+		static Texture* create(const TextureType type);
+		static Texture* create(const TextureType type, const std::filesystem::path& path);
 	protected:
 		void load_file_into_buffer(const std::filesystem::path& path);
 	private:

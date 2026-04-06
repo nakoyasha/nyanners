@@ -11,6 +11,7 @@ namespace Nyanners::Resources {
     ~Shader();
 
     void use() const;
+  	void release() const;
     void load_from_file(
       const std::filesystem::path &vertexPath,
       const std::filesystem::path &fragmentPath

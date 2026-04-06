@@ -7,7 +7,7 @@ using namespace TestApp::Panels;
 ExplorerPanel::ExplorerPanel() : Instance("ExplorerPanel") {
 	activeDm = Nyanners::Application::instance()->currentModel;
 	selectionService = activeDm->get_service<Nyanners::Services::SelectionService>("SelectionService");
-Z
+
 	script = std::make_shared<Nyanners::Instances::Script>();
 	script->initialize_script();
 }
@@ -15,12 +15,28 @@ Z
 void ExplorerPanel::render_instance(const std::shared_ptr<Instance>& instance) {
 	const ImGuiStyle& style = ImGui::GetStyle();
 
-	if (ImGui::TreeNode(instance->name.c_str())) {
+	ImGui::PushID(instance.get());
+	ImGuiTreeNodeFlags flags = ImGuiTreeNodeFlags_OpenOnArrow | ImGuiTreeNodeFlags_SpanFullWidth;
+
+	if (instance->children.empty()) {
+		flags |= ImGuiTreeNodeFlags_Leaf | ImGuiTreeNodeFlags_NoTreePushOnOpen;
+	}
+
+	bool isOpened = ImGui::TreeNodeEx(instance->name.c_str(), flags);
+
+
+	if (ImGui::IsItemClicked()) {
+		selectionService->set_selection(instance);
+	}
+
+	if (isOpened) {
 		for (const auto& child : instance->children) {
 			render_instance(child);
 		}
 
-		ImGui::TreePop();
+		if (!instance->children.empty()) {
+			ImGui::TreePop();
+		}
 	}
 
 	if (instance->baseName == "World") {
@@ -37,10 +53,9 @@ void ExplorerPanel::render_instance(const std::shared_ptr<Instance>& instance) {
 			instance->active ? ImVec4(1.f, 1.f, 1.f, 1.f) : ImVec4(.5f, .5f, .5f, 1.f)
 		);
 	}
-//a
-	if (ImGui::IsItemClicked()) {
-		selectionService->set_selection(instance);
-	}
+
+
+	ImGui::PopID();
 }
 
 void ExplorerPanel::draw(const sf::RenderTarget& target) {

@@ -53,3 +53,7 @@ void Shader::use() const {
 
   glUseProgram(this->shaderId);
 }
+
+void Shader::release() const {
+	glUseProgram(0);
+}

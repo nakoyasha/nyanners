@@ -1,12 +1,13 @@
 #include "Skybox.h"
 #include "stb_image.h"
+#include "instances/services/RenderingService.h"
 #include "third_party/sfml/src/SFML/Graphics/GLCheck.hpp"
 
 using namespace Nyanners::Instances;
 
 Skybox::Skybox() : Instance("Skybox") {
-	glGenTextures(1, &textureId);
-	glBindTexture(GL_TEXTURE_CUBE_MAP, textureId);
+	skyboxTexture = Resources::Texture::create(TextureType::Cubemap);
+	skyboxTexture->use();
 
 	std::vector<std::string> files = {
 		"assets/textures/skybox/txStormydays_left.png",
@@ -25,8 +26,9 @@ Skybox::Skybox() : Instance("Skybox") {
 			auto file = files[i];
 
 			data = stbi_load(file.c_str(), &width, &height, &nrChannels, 3);
+
 			glCheck(glTexImage2D(
-			GL_TEXTURE_CUBE_MAP_POSITIVE_X + i,
+				GL_TEXTURE_CUBE_MAP_POSITIVE_X + i,
 			0, GL_RGB, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, data
 			));
 
@@ -39,8 +41,8 @@ Skybox::Skybox() : Instance("Skybox") {
 	glCheck(glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE));
 	glCheck(glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_R, GL_CLAMP_TO_EDGE));
 
-	currentShader = Resources::Shader();
-	currentShader.load_from_file("assets/shaders/skybox/vertex.glsl", "assets/shaders/skybox/frag.glsl");
+	material->set_shader("assets/shaders/skybox/vertex.glsl", "assets/shaders/skybox/frag.glsl");
+	material->set_texture(skyboxTexture);
 
 	glCheck(glBindVertexArray(vertexArrayID));
 
@@ -100,13 +102,9 @@ void Skybox::draw(const sf::RenderTarget& target) {
 	glCheck(glDepthMask(GL_FALSE));
 	glCheck(glDepthFunc(GL_LEQUAL));
 
-	currentShader.use();
-
-	glActiveTexture(GL_TEXTURE0);
-	glCheck(glBindTexture(GL_TEXTURE_CUBE_MAP, textureId));
-
+	this->material->use();
 	glCheck(glBindVertexArray(vertexArrayID));
-	glCheck(glDrawArrays(GL_TRIANGLES, 0, this->mesh->vertexCount));
+	Services::RenderingService::render_mesh(this->mesh);
 	glCheck(glBindVertexArray(0));
 
 	glCheck(glDepthFunc(GL_LESS));

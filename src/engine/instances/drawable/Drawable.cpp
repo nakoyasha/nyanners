@@ -9,9 +9,7 @@ Drawable::Drawable() : position(1.0f), transform(1.0f), indexCount(0) {
 	glBindVertexArray(vertexArrayID);
 
 	mesh = Resources::Mesh::create();
-
-	currentShader = Services::RenderingService::defaultShader;
-	currentShader.use();
+	material = Resources::Material::create();
 
 	Drawable::set_color(color);
 
@@ -33,8 +31,7 @@ void Drawable::set_color(const DataTypes::Color3 &newColor) {
 	glBindVertexArray(vertexArrayID);
 
 	this->color = newColor;
-	this->currentShader.use();
-	this->currentShader.setColor("uColor", newColor);
+	this->material->set_color(newColor);
 
 	glBindVertexArray(0);
 }

@@ -14,13 +14,9 @@ MeshPart::MeshPart() : Instance("MeshPart"){
 	    "RunService"
 	  );
 
-	texture = Resources::Texture::create();
 	mesh = Resources::Mesh::create();
 
 	glBindVertexArray(vertexArrayID);
-	currentShader.use();
-	currentShader.setInt("uTexture", 0);
-
 	glUseProgram(0);
 	glBindVertexArray(0);
 }
@@ -31,19 +27,9 @@ void MeshPart::update(const float deltaTime) {
 
 void MeshPart::draw(const sf::RenderTarget &target) {
 	glBindVertexArray(vertexArrayID);
-	currentShader.use();
-	glActiveTexture(GL_TEXTURE0);
-	texture->use();
-
-	// this->mesh->vertexBuffer->use();
-	this->mesh->indexBuffer->use();
-
-	if (indexCount == 0) {
-		glDrawArrays(GL_TRIANGLES, 0, static_cast<GLint>(mesh->vertexCount));
-	} else {
-		glDrawElements(GL_TRIANGLES, static_cast<int>(indexCount), GL_UNSIGNED_INT, nullptr);
-	}
-
+	this->material->use();
+	Services::RenderingService::render_mesh(this->mesh);
+	this->material->release();
 	glBindVertexArray(0);
 }
 

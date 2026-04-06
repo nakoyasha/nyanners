@@ -9,6 +9,6 @@ namespace Nyanners::Instances {
 
 		void draw(const sf::RenderTarget &target) override;
 	private:
-		GLuint textureId;
+		Resources::Texture* skyboxTexture;
 	};
 }

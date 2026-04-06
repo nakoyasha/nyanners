@@ -6,7 +6,6 @@
 #include "imgui_impl_opengl3.h"
 #include "SFML/Graphics/Font.hpp"
 #include "core/Logger.h"
-#include "instances/basic/WorldObject.h"
 #include "instances/debug/DebugUIService.h"
 #include "instances/drawable/Drawable.h"
 #include <glm/gtc/matrix_transform.hpp>
@@ -110,7 +109,8 @@ void RenderingService::start_frame() {
 }
 
 void RenderingService::render(
-  const std::shared_ptr<Instance> &instanceToRender
+  const std::shared_ptr<Instance> &instanceToRender,
+  const std::shared_ptr<Instances::Camera>& camera
 ) {
 	if (framebuffer != nullptr) {
 		glDisable(GL_DEPTH_TEST);
@@ -133,12 +133,12 @@ void RenderingService::render(
 		} else {
 			// const auto runService = Application::instance()->currentModel->get_service<RunService>("RunService");
 
-			child->currentShader.use();
-			child->currentShader.setMatrix("uModel", child->transform);
-
-			child->currentShader.setMatrix("uView", view);
-			child->currentShader.setMatrix("uProjection", projection);
-			// child->currentShader.setFloat("iTime", runService->get_time_since_start());
+			child->material->shader->use();
+			child->material->shader->setMatrix("uModel", child->transform);
+			//
+			child->material->shader->setMatrix("uView", camera->view);
+			child->material->shader->setMatrix("uProjection", camera->projection);
+			// child->material->shader->setFloat("iTime", runService->get_time_since_start());
 
 			child->draw(this->window);
 		}
@@ -153,13 +153,28 @@ void RenderingService::render(
 }
 
 void RenderingService::render_to_framebuffer(
-  const std::shared_ptr<Instance> &instanceToRender
+  const std::shared_ptr<Instance> &instanceToRender,
+  const std::shared_ptr<Instances::Camera> &camera
 ) {
 	glDisable(GL_DEPTH_TEST);
 	this->framebuffer->use();
-	this->render(instanceToRender);
+	this->render(instanceToRender, camera);
 	this->framebuffer->release();
 	glEnable(GL_DEPTH_TEST);
+}
+
+void RenderingService::render_mesh(const Resources::Mesh *mesh) {
+	mesh->vertexBuffer->use();
+	mesh->indexBuffer->use();
+
+	if (mesh->indexCount == 0) {
+		glDrawArrays(GL_TRIANGLES, 0, static_cast<GLint>(mesh->vertexCount));
+	} else {
+		glDrawElements(GL_TRIANGLES, static_cast<int>(mesh->indexCount), GL_UNSIGNED_INT, nullptr);
+	}
+
+	mesh->indexBuffer->release();
+	mesh->vertexBuffer->release();
 }
 
 void RenderingService::end_frame() {

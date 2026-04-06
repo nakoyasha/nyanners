@@ -5,8 +5,8 @@
 namespace Nyanners::Resources::OpenGL {
 	class OpenGLTexture : public Texture {
 	public:
-		OpenGLTexture();
-		OpenGLTexture(const std::filesystem::path &path);
+		OpenGLTexture(const TextureType type);
+		OpenGLTexture(const TextureType type, const std::filesystem::path &path);
 		~OpenGLTexture();
 
 		void load_from_file(const std::filesystem::path &path) override;
@@ -17,6 +17,7 @@ namespace Nyanners::Resources::OpenGL {
 		void *get_texture_handle() const override;
 	private:
 		bool useMipmaps = false;
+		GLenum textureType {};
 		GLuint textureId {};
 	};
 }

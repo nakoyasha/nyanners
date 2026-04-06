@@ -5,7 +5,7 @@
 using namespace Nyanners::Resources;
 
 FrameBuffer::FrameBuffer(const int width, const int height) {
-	framebufferTexture = Resources::Texture::create();
+	framebufferTexture = Resources::Texture::create(TextureType::Texture2D);
 	glGenFramebuffers(1, &framebufferId);
 	glBindFramebuffer(GL_FRAMEBUFFER, framebufferId);
 
@@ -54,7 +54,7 @@ GLuint FrameBuffer::get_texture_id() {
 
 void FrameBuffer::resize(const int width, const int height) {
 	this->use();
-	framebufferTexture = Resources::Texture::create();
+	framebufferTexture = Resources::Texture::create(TextureType::Texture2D);
 	glGenFramebuffers(1, &framebufferId);
 	glBindFramebuffer(GL_FRAMEBUFFER, framebufferId);
 

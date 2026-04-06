@@ -4,7 +4,7 @@ local RenderingService = DataModel:get_service("RenderingService")
 local UIService = DataModel:get_service("UIService")
 local World = DataModel:get_service("World")
 
-local label = UIService:find_first_child("TextLabel")
+--local label = UIService:find_first_child("TextLabel")
 --World.Active = false
 
 RunService.PreRender:Connect(function()

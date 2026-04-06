@@ -8,8 +8,6 @@
 namespace Nyanners::Instances {
   class MeshPart : public Instance, public Drawable {
   public:
-  	Resources::Texture* texture;
-
     void draw(const sf::RenderTarget &target) override;
     MeshPart();
 

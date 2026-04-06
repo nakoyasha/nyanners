@@ -23,32 +23,32 @@ void RunService::run()
 
     // tickThread = std::thread([this]()
     // {
-    const auto renderService = this->model->get_service<RenderingService>("RenderingService");
-    const auto uiService = this->model->get_service<UIService>("UIService");
-    const auto world = this->model->get_service<World>("World");
-		const auto debugUI = this->model->get_service<DebugUIService>("DebugUIService");
-
-    while (this->isRunning == true && renderService->is_window_open())
-    {
-    		startClock.reset();
-    		startClock.start();
-
-        this->tick();
-        this->preRender->fire(deltaTime);
-        renderService->start_frame();
-
-    		// ^ start_frame might involve the user closing the window
-    		// therefore we stop here
-    		if (!renderService->is_window_open()) {
-    			break;
-    		}
-
-        renderService->render(uiService);
-        renderService->render(world);
-    		debugUI->draw_imgui(renderService->window);
-
-        renderService->end_frame();
-    }
+  //   const auto renderService = this->model->get_service<RenderingService>("RenderingService");
+  //   const auto uiService = this->model->get_service<UIService>("UIService");
+  //   const auto world = this->model->get_service<World>("World");
+		// const auto debugUI = this->model->get_service<DebugUIService>("DebugUIService");
+  //
+  //   while (this->isRunning == true && renderService->is_window_open())
+  //   {
+  //   		startClock.reset();
+  //   		startClock.start();
+  //
+  //       this->tick();
+  //       this->preRender->fire(deltaTime);
+  //       renderService->start_frame();
+  //
+  //   		// ^ start_frame might involve the user closing the window
+  //   		// therefore we stop here
+  //   		if (!renderService->is_window_open()) {
+  //   			break;
+  //   		}
+  //
+  //       renderService->render(uiService);
+  //       renderService->render(world);
+  //   		debugUI->draw_imgui(renderService->window);
+  //
+  //       renderService->end_frame();
+  //   }
     // });
 }
 

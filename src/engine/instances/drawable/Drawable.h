@@ -1,8 +1,8 @@
 #pragma once
 #include "SFML/Graphics/RenderTarget.hpp"
 #include "instances/datatypes/Color3.h"
+#include "resources/Material.h"
 #include "resources/Mesh.h"
-#include "resources/Shader.h"
 #include "third_party/sfml/extlibs/headers/glad/include/glad/gl.h"
 #include <glm/gtc/matrix_transform.hpp>
 
@@ -11,7 +11,7 @@ namespace Nyanners::Instances {
   public:
 		glm::vec3 position;
   	glm::mat4 transform;
-  	Resources::Shader currentShader;
+  	Resources::Material* material;
   	Resources::Mesh* mesh;
 
   	int indexCount;

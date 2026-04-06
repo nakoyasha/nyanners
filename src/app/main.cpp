@@ -19,12 +19,19 @@ using namespace Nyanners::Services;
 
 class TestApplication : public Application {
 	public:
+	std::shared_ptr<Instances::Camera> camera;
+
 	TestApplication() : Application() {
+		m_Instance = this;
+
 		this->runService = currentModel->get_service<Services::RunService>("RunService");
 		this->renderService = currentModel->get_service<Services::RenderingService>("RenderingService");
 		this->world = currentModel->get_service<Services::World>("World");
 		this->uiService = currentModel->get_service<Services::UIService>("UIService");
 		this->debugUI = currentModel->get_service<Services::DebugUIService>("DebugUIService");
+		this->camera = std::make_shared<Instances::Camera>();
+
+		renderService->add_child(camera);
 	}
 
 	void start() override;
@@ -39,7 +46,10 @@ private:
 };
 
 void TestApplication::start() {
-
+	while (renderService->is_window_open()) {
+		this->on_update();
+		this->on_draw();
+	}
 }
 
 void TestApplication::on_draw() const {
@@ -51,8 +61,8 @@ void TestApplication::on_draw() const {
 		return;
 	}
 
-	renderService->render(uiService);
-	renderService->render(world);
+	renderService->render(uiService, camera);
+	renderService->render(world, camera);
 	debugUI->draw_imgui(renderService->window);
 
 	renderService->end_frame();
@@ -63,7 +73,7 @@ void TestApplication::on_update() {
 }
 
 int main() {
-  auto* app = TestApplication::instance();
+  auto* app = new TestApplication();
 
   const auto model = app->currentModel;
   const auto engineService = model->find_first_child<EngineService>("EngineService");
@@ -132,8 +142,8 @@ int main() {
 	mesh->set_position(glm::vec3(0.0f, 0.0f, 0.0f));
 	meshTwo->set_position(glm::vec3(0.0f, 2.0f, -1.0f));
 
-	mesh->texture->load_from_file("assets/textures/enanui.png");
-	meshTwo->texture->load_from_file("assets/textures/saa_anyo.png");
+	mesh->material->set_texture("assets/textures/enanui.png");
+	meshTwo->material->set_texture("assets/textures/saa_anyo.png");
 	// meshTwo->texture->set_mipmap_enabled(false);
 
 	// debugWindow->onImmediateRender->connect([renderingService, meshTwo]() {
