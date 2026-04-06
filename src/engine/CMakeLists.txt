@@ -3,15 +3,14 @@ project(Nyanners)
 
 set(CMAKE_CXX_STANDARD 23)
 add_subdirectory(third_party/luau EXCLUDE_FROM_ALL)
+add_subdirectory(third_party/glfw EXCLUDE_FROM_ALL)
 add_subdirectory(third_party/sfml EXCLUDE_FROM_ALL)
 add_subdirectory(third_party/glm EXCLUDE_FROM_ALL)
 add_subdirectory(third_party/fast_obj EXCLUDE_FROM_ALL)
-#add_subdirectory(third_party/imgui-sfml EXCLUDE_FROM_ALL)
 
 set(LUAU_BUILD_CLI false)
 set(LUAU_BUILD_TESTS false)
 set(SFML_BUILD_NETWORK false)
-
 
 add_library(Nyanners
         Application.h
@@ -91,6 +90,8 @@ add_library(Nyanners
         resources/Material.h
         resources/opengl/OpenGLMaterial.cpp
         resources/opengl/OpenGLMaterial.h
+        core/rendering/Renderer.cpp
+        instances/datatypes/Vector.h
 )
 
 add_library(
@@ -108,5 +109,5 @@ target_include_directories(Nyanners.ThirdParty PUBLIC third_party/dear-imgui thi
 target_include_directories(Nyanners PRIVATE third_party/glm/glm)
 
 #target_link_options(Nyanners PRIVATE -static-libgcc -static-libstdc++)
-target_link_libraries(Nyanners Nyanners.ThirdParty Luau.VM Luau.Require Luau.Compiler SFML::Window SFML::Graphics SFML::Audio stdc++exp glm::glm fast_obj fast_obj_lib)
+target_link_libraries(Nyanners Nyanners.ThirdParty Luau.VM Luau.Require Luau.Compiler glfw SFML::Window SFML::Graphics stdc++exp glm::glm fast_obj fast_obj_lib)
 target_include_directories(Nyanners PUBLIC .)

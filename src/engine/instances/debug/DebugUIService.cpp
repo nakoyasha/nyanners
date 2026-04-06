@@ -12,11 +12,11 @@ DebugUIService::~DebugUIService() {
 	ImGui::DestroyContext();
 }
 
-void DebugUIService::draw_imgui(const sf::RenderTarget &target) {
+void DebugUIService::draw_imgui(const sf::Window* target) {
 	ImGuiIO &io = ImGui::GetIO();
 	io.DisplaySize = ImVec2(
-	  static_cast<float>(target.getSize().x),
-	  static_cast<float>(target.getSize().y)
+	  static_cast<float>(target->getSize().x),
+	  static_cast<float>(target->getSize().y)
 	);
 	ImGui::NewFrame();
 	ImGui_ImplOpenGL3_NewFrame();
@@ -30,7 +30,7 @@ void DebugUIService::draw_imgui(const sf::RenderTarget &target) {
 			continue;
 		}
 
-		drawable->draw(target);
+		drawable->draw();
 	}
 }
 
@@ -40,16 +40,16 @@ void DebugUIService::on_frame_end() {
 }
 
 void DebugUIService::handle_event(
-  const sf::RenderTarget &target, const sf::Event *event
+  const sf::Window* window, const sf::Event *event
 ) {
 	ImGuiIO &io = ImGui::GetIO();
 
 	if (const auto *moved = event->getIf<sf::Event::MouseMoved>()) {
-		if (moved->position.x > target.getSize().x || moved->position.x < 0) {
+		if (moved->position.x > window->getSize().x || moved->position.x < 0) {
 			return;
 		}
 
-		if (moved->position.y > target.getSize().y || moved->position.y < 0) {
+		if (moved->position.y > window->getSize().y || moved->position.y < 0) {
 			return;
 		}
 

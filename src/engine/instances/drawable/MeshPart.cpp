@@ -25,7 +25,7 @@ void MeshPart::update(const float deltaTime) {
 
 };
 
-void MeshPart::draw(const sf::RenderTarget &target) {
+void MeshPart::draw() {
 	glBindVertexArray(vertexArrayID);
 	this->material->use();
 	Services::RenderingService::render_mesh(this->mesh);

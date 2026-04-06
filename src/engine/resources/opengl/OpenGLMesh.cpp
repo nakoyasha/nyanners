@@ -39,3 +39,13 @@ void OpenGLMesh::set_indexes(const std::vector<unsigned> &indexes) {
 
 	indexBuffer->release();
 }
+
+void OpenGLMesh::bind() const {
+	vertexBuffer->use();
+	indexBuffer->use();
+}
+
+void OpenGLMesh::unbind() const {
+	vertexBuffer->release();
+	indexBuffer->release();
+}

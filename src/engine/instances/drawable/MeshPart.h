@@ -8,7 +8,7 @@
 namespace Nyanners::Instances {
   class MeshPart : public Instance, public Drawable {
   public:
-    void draw(const sf::RenderTarget &target) override;
+    void draw() override;
     MeshPart();
 
     void update(const float deltaTime) override;

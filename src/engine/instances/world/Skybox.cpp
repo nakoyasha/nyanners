@@ -98,7 +98,7 @@ Skybox::Skybox() : Instance("Skybox") {
 	glCheck(glBindVertexArray(0));
 }
 
-void Skybox::draw(const sf::RenderTarget& target) {
+void Skybox::draw() {
 	glCheck(glDepthMask(GL_FALSE));
 	glCheck(glDepthFunc(GL_LEQUAL));
 

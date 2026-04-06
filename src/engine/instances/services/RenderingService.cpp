@@ -2,21 +2,20 @@
 #include "Application.h"
 #include "IOService.h"
 #include "RunService.h"
-#include "imgui.h"
-#include "imgui_impl_opengl3.h"
-#include "SFML/Graphics/Font.hpp"
+#include "SFML/Graphics/RenderWindow.hpp"
+#include "SFML/Window/VideoMode.hpp"
 #include "core/Logger.h"
 #include "instances/debug/DebugUIService.h"
 #include "instances/drawable/Drawable.h"
-#include <glm/gtc/matrix_transform.hpp>
 
 using namespace Nyanners::Services;
 
 Nyanners::Resources::Shader RenderingService::defaultShader;
+std::unique_ptr<Nyanners::Core::Renderer> RenderingService::renderer;
 
-void RenderingService::initialize(
-  const sf::VideoMode size, const std::optional<std::string> &windowTitle
-) {
+RenderingService::RenderingService(
+  const DataTypes::Vector2 size, const std::optional<std::string> &windowTitle
+) : Instance("RenderingService") {
 	sf::ContextSettings settings;
 	settings.depthBits = 24;
 	settings.stencilBits = 8;
@@ -25,73 +24,39 @@ void RenderingService::initialize(
 	settings.minorVersion = 6;
 	settings.attributeFlags = sf::ContextSettings::Core;
 
+	auto videoMode = sf::VideoMode({size.x, size.y});
+
 	if (windowTitle.has_value()) {
-		window = sf::RenderWindow(
-		  size,
+		window = new sf::RenderWindow(
+		  videoMode,
 		  windowTitle.value(),
 		  sf::Style::Default,
 		  sf::State::Windowed,
 		  settings
 		);
 	} else {
-		window = sf::RenderWindow(
-		  size, "Nyanners", sf::Style::Default, sf::State::Windowed, settings
+		window = new sf::RenderWindow(
+		  videoMode, "Nyanners", sf::Style::Default, sf::State::Windowed, settings
 		);
 	}
 
+	window->setFramerateLimit(60);
 
-	// window.setVerticalSyncEnabled(true);
-	window.setFramerateLimit(60);
+	// glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 4);
+	// glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 6);
+	// glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
+	// window = glfwCreateWindow(size.x, size.y, windowTitle->c_str(), nullptr, nullptr);
 
-	if (!window.setActive(true)) {
-		throw std::runtime_error("OpenGL initialiaztion failed");
-	};
+	// if (!window) {
+		// glfwTerminate();
+		// Core::Logger::log("RenderingService could not acquire a window");
+		// return;
+	// }
 
-	const GLubyte *version = glGetString(GL_VERSION);
-	const GLubyte *profile = glGetString(GL_RENDERER);
-
-	Core::Logger::log(
-	  std::format(
-	    "initializing RenderingService with OpenGL {} on {}",
-	    reinterpret_cast<const char *>(version),
-	    reinterpret_cast<const char *>(profile)
-	  )
-	);
-
-	glEnable(GL_BLEND);
-	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-	glEnable(GL_DEPTH_TEST);
-
-	defaultShader.load_from_file(
-	  "assets/shaders/vertex.glsl", "assets/shaders/frag.glsl"
-	);
-	defaultShader.use();
-
-	// Projection matrix: 45° Field of View, 4:3 ratio, display range: 0.1 unit <-> 100 units
-	const auto windowSize = this->window.getSize();
-
-	projection = glm::perspective(
-	  glm::radians(45.0f),
-	  static_cast<float>(windowSize.x) / static_cast<float>(windowSize.y),
-	  0.1f,
-	  100.0f
-	);
-	ImGui::CreateContext();
-	ImGui::StyleColorsDark();
-
-	if (!ImGui_ImplOpenGL3_Init("#version 330")) {
-		throw std::runtime_error("Failed to initialize ImGui");
-	};
-
-	ImGuiIO &io = ImGui::GetIO();
-	io.ConfigFlags |= ImGuiConfigFlags_DockingEnable;
-	io.ConfigFlags |= ImGuiConfigFlags_ViewportsEnable;
-
-	// window.setMouseCursorVisible(false);
-	// window.setMouseCursorGrabbed(true);
-
-	// left, right, bottom, top, zNear, zFar
-	// projection = glm::ortho(-2.0f, 2.0f, -1.5f, 1.5f, -1.0f, 1.0f);
+	renderer = Core::Renderer::create(window);
+}
+void RenderingService::initialize() {
+	renderer->initialize();
 }
 
 void RenderingService::start_frame() {
@@ -100,86 +65,27 @@ void RenderingService::start_frame() {
 
 	fps = currentFPS;
 
-	while (const std::optional event = window.pollEvent()) {
+	while (const auto event = window->pollEvent()) {
 		this->handle_window_event(event);
 	}
 
-	window.clear();
-	glClear(GL_DEPTH_BUFFER_BIT);
+	renderer->start_frame();
 }
 
 void RenderingService::render(
   const std::shared_ptr<Instance> &instanceToRender,
   const std::shared_ptr<Instances::Camera>& camera
 ) {
-	if (framebuffer != nullptr) {
-		glDisable(GL_DEPTH_TEST);
-		framebuffer->use();
-	}
-
-	for (const auto &child : instanceToRender->renderableChildren) {
-		if (child->isLegacy()) {
-			// absolutely jank code, god this is awful.
-			GLint vao;
-			glGetIntegerv(GL_VERTEX_ARRAY_BINDING, &vao);
-			glBindVertexArray(0);
-			glUseProgram(0);
-
-			this->window.pushGLStates();
-			child->draw(this->window);
-			this->window.popGLStates();
-
-			glBindVertexArray(vao);
-		} else {
-			// const auto runService = Application::instance()->currentModel->get_service<RunService>("RunService");
-
-			child->material->shader->use();
-			child->material->shader->setMatrix("uModel", child->transform);
-			//
-			child->material->shader->setMatrix("uView", camera->view);
-			child->material->shader->setMatrix("uProjection", camera->projection);
-			// child->material->shader->setFloat("iTime", runService->get_time_since_start());
-
-			child->draw(this->window);
-		}
-
-		handle_error(instanceToRender);
-	}
-
-	if (framebuffer != nullptr) {
-		framebuffer->release();
-		glEnable(GL_DEPTH_TEST);
-	}
-}
-
-void RenderingService::render_to_framebuffer(
-  const std::shared_ptr<Instance> &instanceToRender,
-  const std::shared_ptr<Instances::Camera> &camera
-) {
-	glDisable(GL_DEPTH_TEST);
-	this->framebuffer->use();
-	this->render(instanceToRender, camera);
-	this->framebuffer->release();
-	glEnable(GL_DEPTH_TEST);
+	renderer->render(instanceToRender);
 }
 
 void RenderingService::render_mesh(const Resources::Mesh *mesh) {
-	mesh->vertexBuffer->use();
-	mesh->indexBuffer->use();
-
-	if (mesh->indexCount == 0) {
-		glDrawArrays(GL_TRIANGLES, 0, static_cast<GLint>(mesh->vertexCount));
-	} else {
-		glDrawElements(GL_TRIANGLES, static_cast<int>(mesh->indexCount), GL_UNSIGNED_INT, nullptr);
-	}
-
-	mesh->indexBuffer->release();
-	mesh->vertexBuffer->release();
+	renderer->render_mesh(mesh);
 }
 
 void RenderingService::end_frame() {
 	DebugUIService::on_frame_end();
-	window.display();
+	renderer->end_frame();
 }
 
 Nyanners::Resources::Shader RenderingService::create_default_shader() {
@@ -191,16 +97,28 @@ Nyanners::Resources::Shader RenderingService::create_default_shader() {
 	return shader;
 }
 
-void RenderingService::set_window_title(const std::string &newWindowTitle) {
-	window.setTitle(newWindowTitle);
+void RenderingService::set_window_title(const std::string &newWindowTitle
+) const {
+	// glfwSetWindowTitle(window, newWindowTitle.c_str());
+	window->setTitle(newWindowTitle);
 }
 
 void RenderingService::set_fps_limit(const unsigned int limit) {
-	this->window.setFramerateLimit(limit);
+	this->window->setFramerateLimit(limit);
 }
 
 void RenderingService::set_resolution(const sf::Vector2u newSize) {
-	this->window.setSize(newSize);
+	this->window->setSize(newSize);
+}
+void RenderingService::bind_framebuffer(
+  Resources::FrameBuffer *framebuffer
+) {
+	// this->framebuffer = framebuffer;
+	renderer->bind_framebuffer(framebuffer);
+}
+
+void RenderingService::unbind_framebuffer() {
+	renderer->unbind_framebuffer();
 }
 
 void RenderingService::handle_window_event(
@@ -211,70 +129,14 @@ void RenderingService::handle_window_event(
 
 	// Close window
 	if (event->is<sf::Event::Closed>()) {
-		window.close();
-	}
-
-	// Resize
-	else if (const auto* resized = event->getIf<sf::Event::Resized>()) {
-		projection = glm::perspective(
-				glm::radians(45.0f),
-				static_cast<float>(resized->size.x) /
-				static_cast<float>(resized->size.y),
-				0.1f,
-				100.0f
-		);
-	}
-
-	// Mouse look
-	else if (const auto* moved = event->getIf<sf::Event::MouseMoved>()) {
-		if (firstMouse) {
-			lastMouse = { moved->position.x, moved->position.y };
-			firstMouse = false;
-		}
-
-			float xoffset = moved->position.x - lastMouse.x;
-			float yoffset = moved->position.y - lastMouse.y;
-
-			lastMouse = { moved->position.x, moved->position.y };
-
-			xoffset *= mouseSens;
-			yoffset *= mouseSens;
-
-			yaw   += xoffset;
-			pitch -= yoffset;
-
-			// pitch = glm::clamp(pitch, -89.0f, 89.0f);
-
-			glm::vec3 front;
-			front.x = cos(glm::radians(yaw)) * cos(glm::radians(pitch));
-			front.y = sin(glm::radians(pitch));
-			front.z = sin(glm::radians(yaw)) * cos(glm::radians(pitch));
-
-			cameraFront = glm::normalize(front);
+		window->close();
 	}
 
 	DebugUIService::handle_event(window, &event.value());
 }
 
-void RenderingService::update(const float deltaTime) {
-	float velocity = moveSpeed * deltaTime;
-
-	if (sf::Keyboard::isKeyPressed(sf::Keyboard::Key::W))
-		cameraPos += cameraFront * velocity;
-	if (sf::Keyboard::isKeyPressed(sf::Keyboard::Key::S))
-		cameraPos -= cameraFront * velocity;
-
-	if (sf::Keyboard::isKeyPressed(sf::Keyboard::Key::A))
-		cameraPos -= glm::normalize(glm::cross(cameraFront, cameraUp)) * velocity;
-	if (sf::Keyboard::isKeyPressed(sf::Keyboard::Key::D))
-		cameraPos += glm::normalize(glm::cross(cameraFront, cameraUp)) * velocity;
-
-	// rebuild view
-	view = glm::lookAt(cameraPos, cameraPos + cameraFront, cameraUp);
-}
-
 bool RenderingService::is_window_open() const {
-	return window.isOpen();
+	return window->isOpen();
 }
 
 GLuint RenderingService::compile_shader(
@@ -345,7 +207,7 @@ RenderingService::compile_program(const GLuint vertex, const GLuint fragment) {
 }
 
 void RenderingService::shutdown() {
-	this->window.close();
+	this->window->close();
 }
 
 constexpr const char *glErrorToString(GLenum error) {

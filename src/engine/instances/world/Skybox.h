@@ -7,7 +7,7 @@ namespace Nyanners::Instances {
 		public:
 		Skybox();
 
-		void draw(const sf::RenderTarget &target) override;
+		void draw() override;
 	private:
 		Resources::Texture* skyboxTexture;
 	};

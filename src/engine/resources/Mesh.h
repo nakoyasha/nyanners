@@ -16,6 +16,9 @@ namespace Nyanners::Resources {
 		virtual void set_vertices(const DataTypes::Vertices& newVertices) = 0;
 		virtual void set_indexes(const std::vector<unsigned int>& indexes) = 0;
 
+		virtual void bind() const = 0;
+		virtual void unbind() const = 0;
+
 		static Mesh* create();
 		virtual ~Mesh() = default;
 	};

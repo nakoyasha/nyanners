@@ -2,7 +2,7 @@
 
 using namespace Nyanners::Instances;
 
-void TextLabel::draw(const sf::RenderTarget &target) {
+void TextLabel::draw() {
   // target.draw(this->label);
 }
 

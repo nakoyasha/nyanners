@@ -29,6 +29,6 @@ namespace Nyanners::Instances {
 
 		virtual bool isLegacy();
     virtual void draw() {};
-    virtual void draw(const sf::RenderTarget &target) {};
+    // virtual void draw(const sf::RenderTarget &target) {};
   };
 }

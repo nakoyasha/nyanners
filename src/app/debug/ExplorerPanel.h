@@ -10,7 +10,7 @@ namespace TestApp::Panels {
 		public:
 		ExplorerPanel();
 		  void render_instance(const std::shared_ptr<Instance> &instance);
-		  void draw(const sf::RenderTarget& target) override;
+		  void draw() override;
 	private:
 		const Nyanners::Resources::Texture* workspaceIcon = Nyanners::Resources::Texture::create(TextureType::Texture2D, "assets/textures/editor/world.png");
 

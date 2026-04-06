@@ -58,7 +58,7 @@ void ExplorerPanel::render_instance(const std::shared_ptr<Instance>& instance) {
 	ImGui::PopID();
 }
 
-void ExplorerPanel::draw(const sf::RenderTarget& target) {
+void ExplorerPanel::draw() {
 	ImGui::Begin("Explorer");
 	ImGui::SetNextItemOpen(true);
 	render_instance(activeDm);

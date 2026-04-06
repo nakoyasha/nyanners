@@ -9,7 +9,7 @@
 #include "instances/services/UIService.h"
 #include "instances/world/World.h"
 
-Nyanners::Application::Application()
+Nyanners::Application::Application(const DataTypes::Vector2 size, const std::string& windowTitle)
 {
   auto model = std::make_shared<Instances::DataModel>();
   auto runService = std::make_shared<Services::RunService>();
@@ -19,7 +19,7 @@ Nyanners::Application::Application()
   model->add_child(std::make_shared<Services::EngineService>());
 	model->add_child(std::make_shared<Services::SelectionService>());
   model->add_child(std::make_shared<Services::IOService>());
-  model->add_child(std::make_shared<Services::RenderingService>());
+  model->add_child(std::make_shared<Services::RenderingService>(size, windowTitle));
   model->add_child(std::make_shared<Services::ReflectionService>());
 	model->add_child(std::make_shared<Services::DebugUIService>());
   model->add_child(std::make_shared<Services::UIService>());

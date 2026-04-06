@@ -9,13 +9,31 @@ Camera::Camera() : Instance("Camera") {
 
 void Camera::update(const float deltaTime) {
 	this->calculate_projection();
+	float velocity = moveSpeed * deltaTime;
+
+	if (sf::Keyboard::isKeyPressed(sf::Keyboard::Key::W))
+		cameraPos += cameraFront * velocity;
+	if (sf::Keyboard::isKeyPressed(sf::Keyboard::Key::S))
+		cameraPos -= cameraFront * velocity;
+	if (sf::Keyboard::isKeyPressed(sf::Keyboard::Key::E))
+		cameraPos += cameraUp * velocity;
+	if (sf::Keyboard::isKeyPressed(sf::Keyboard::Key::Q))
+		cameraPos -= cameraUp * velocity;
+
+	if (sf::Keyboard::isKeyPressed(sf::Keyboard::Key::A))
+		cameraPos -= glm::normalize(glm::cross(cameraFront, cameraUp)) * velocity;
+	if (sf::Keyboard::isKeyPressed(sf::Keyboard::Key::D))
+		cameraPos += glm::normalize(glm::cross(cameraFront, cameraUp)) * velocity;
+
+	// rebuild view
+	view = glm::lookAt(cameraPos, cameraPos + cameraFront, cameraUp);
 	Instance::update(deltaTime);
 }
 
 
 void Camera::calculate_projection() {
 	const auto renderService = Application::instance()->currentModel->get_service<Services::RenderingService>("RenderingService");
-	const auto size = renderService->window.getSize();
+	const auto size = renderService->window->getSize();
 
 	if (size.x == 0 || size.y == 0) {
 		projection = glm::perspective(

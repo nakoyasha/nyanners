@@ -20,8 +20,9 @@ using namespace Nyanners::Services;
 class TestApplication : public Application {
 	public:
 	std::shared_ptr<Instances::Camera> camera;
+	Nyanners::Resources::FrameBuffer* framebuffer;
 
-	TestApplication() : Application() {
+	TestApplication() : Application({1280, 720}, "TestApp") {
 		m_Instance = this;
 
 		this->runService = currentModel->get_service<Services::RunService>("RunService");
@@ -43,9 +44,11 @@ private:
 	std::shared_ptr<World> world;
 	std::shared_ptr<UIService> uiService;
 	std::shared_ptr<DebugUIService> debugUI;
+
 };
 
 void TestApplication::start() {
+	renderService->renderer->set_current_camera(camera);
 	while (renderService->is_window_open()) {
 		this->on_update();
 		this->on_draw();
@@ -61,9 +64,12 @@ void TestApplication::on_draw() const {
 		return;
 	}
 
+	debugUI->draw_imgui(renderService->window);
+
+	renderService->bind_framebuffer(framebuffer);
 	renderService->render(uiService, camera);
 	renderService->render(world, camera);
-	debugUI->draw_imgui(renderService->window);
+	renderService->unbind_framebuffer();
 
 	renderService->end_frame();
 }
@@ -100,7 +106,8 @@ int main() {
   const auto world = app->currentModel->get_service<Services::World>("World");
 	const auto debugUI = app->currentModel->get_service<Services::DebugUIService>("DebugUIService");
 
-  renderingService->initialize(sf::VideoMode({1280, 720}), "Test App");
+  renderingService->initialize();
+	app->framebuffer = new Nyanners::Resources::FrameBuffer(1280, 720);
 
   auto label = std::make_shared<Instances::TextLabel>();
   auto mesh = std::make_shared<Instances::MeshPart>();
@@ -109,9 +116,9 @@ int main() {
 
   // mesh->transform = glm::translate(mesh->transform, glm::vec3(0.0f, 5.0f, 0.0f));
   auto debugWindow = std::make_shared<TestApp::Panels::ExplorerPanel>();
-	// auto viewport = std::make_shared<TestApp::Panels::ViewportPanel>();
+	auto viewport = std::make_shared<TestApp::Panels::ViewportPanel>(app->framebuffer);
 
-	// debugUI->add_child(viewport);
+	debugUI->add_child(viewport);
   debugUI->add_child(debugWindow);
 
 	mesh->set_vertices({
@@ -140,7 +147,7 @@ int main() {
 	meshTwo->set_color({187, 221, 34});
 
 	mesh->set_position(glm::vec3(0.0f, 0.0f, 0.0f));
-	meshTwo->set_position(glm::vec3(0.0f, 2.0f, -1.0f));
+	meshTwo->set_position(glm::vec3(0.0f, 2.0f, 0.0f));
 
 	mesh->material->set_texture("assets/textures/enanui.png");
 	meshTwo->material->set_texture("assets/textures/saa_anyo.png");

@@ -20,7 +20,7 @@ namespace Nyanners::Instances {
       return true;
     }
 
-    void draw(const sf::RenderTarget &target) override;
+    void draw() override;
     void setText(const std::string& newText);
 
     std::string getText() const;

@@ -1,6 +1,7 @@
 #pragma once
 
 #include "instances/DataModel.h"
+#include "instances/datatypes/Vector.h"
 #include "instances/services/IOService.h"
 #include <memory>
 
@@ -11,14 +12,10 @@ namespace Nyanners {
     virtual ~Application();
 
     static Application* instance() {
-      if (m_Instance == nullptr) {
-        m_Instance = new Application();
-      }
-
       return m_Instance;
     }
 
-    Application();
+  	Application(const DataTypes::Vector2 size, const std::string& windowTitle);
 
     virtual void start();
     virtual void shutdown();

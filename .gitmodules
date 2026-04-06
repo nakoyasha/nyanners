@@ -23,3 +23,6 @@
 [submodule "src/engine/third_party/imgui-sfml"]
 	path = src/engine/third_party/imgui-sfml
 	url = https://github.com/SFML/imgui-sfml
+[submodule "src/engine/third_party/glfw"]
+	path = src/engine/third_party/glfw
+	url = https://github.com/glfw/glfw
