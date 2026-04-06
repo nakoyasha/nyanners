@@ -8,7 +8,7 @@ ViewportPanel::ViewportPanel() : Instance("ViewportPanel") {
 	renderService = Nyanners::Application::instance()->currentModel->get_service<Nyanners::Services::RenderingService>("RenderingService");
 }
 
-void TestApp::Panels::ViewportPanel::draw(const sf::RenderTarget& target) {
+void ViewportPanel::draw(const sf::RenderTarget& target) {
 	ImGui::Begin("Viewport");
 
 	const float window_width = ImGui::GetContentRegionAvail().x;
@@ -19,7 +19,7 @@ void TestApp::Panels::ViewportPanel::draw(const sf::RenderTarget& target) {
 
 	ImVec2 pos = ImGui::GetCursorScreenPos();
 	ImGui::GetWindowDrawList()->AddImage(
-		(void*)renderService->framebuffer->get_texture_id(),
+		renderService->framebuffer->get_texture_id(),
 		ImVec2(pos.x, pos.y),
 		ImVec2(pos.x + window_width, pos.y + window_height),
 		ImVec2(0, 1),

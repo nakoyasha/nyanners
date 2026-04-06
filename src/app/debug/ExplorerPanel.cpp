@@ -7,6 +7,9 @@ using namespace TestApp::Panels;
 ExplorerPanel::ExplorerPanel() : Instance("ExplorerPanel") {
 	activeDm = Nyanners::Application::instance()->currentModel;
 	selectionService = activeDm->get_service<Nyanners::Services::SelectionService>("SelectionService");
+Z
+	script = std::make_shared<Nyanners::Instances::Script>();
+	script->initialize_script();
 }
 
 void ExplorerPanel::render_instance(const std::shared_ptr<Instance>& instance) {
@@ -34,7 +37,7 @@ void ExplorerPanel::render_instance(const std::shared_ptr<Instance>& instance) {
 			instance->active ? ImVec4(1.f, 1.f, 1.f, 1.f) : ImVec4(.5f, .5f, .5f, 1.f)
 		);
 	}
-
+//a
 	if (ImGui::IsItemClicked()) {
 		selectionService->set_selection(instance);
 	}
@@ -54,7 +57,50 @@ void ExplorerPanel::draw(const sf::RenderTarget& target) {
 		const auto properties = Nyanners::Services::ReflectionService::get_properties(selectionService->currentSelection);
 
 		for (const auto& property : properties) {
-			ImGui::Text(property.name.c_str());
+			// if (property.name == "Parent") {
+			// 	continue;
+			// }
+
+			try {
+				property.get(selectionService->currentSelection.get(), script->context);
+
+				int type = lua_type(script->context, -1);
+
+				if (type == LUA_TNUMBER) {
+					const double value = lua_tonumber(script->context, -1);
+					ImGui::Text(property.name.c_str());
+					ImGui::SameLine();
+					ImGui::Text(std::to_string(value).c_str());
+				} else if (type == LUA_TSTRING) {
+					const std::string value = lua_tostring(script->context, -1);
+					ImGui::Text(property.name.c_str());
+					ImGui::SameLine();
+					ImGui::Text(value.c_str());
+				} else if (type == LUA_TBOOLEAN) {
+					bool value = lua_toboolean(script->context, -1);
+					ImGui::Checkbox(property.name.c_str(), &value);
+				} else if (type == LUA_TUSERDATA) {
+					const auto* instance = Nyanners::Services::ReflectionService::get_instance_from_context(script->context, -1);
+
+
+					ImGui::Text(property.name.c_str());
+					ImGui::SameLine();
+					if (instance == nullptr || instance->pointer == nullptr) {
+						ImGui::Text("None");
+					} else {
+						ImGui::Text(instance->pointer->name.c_str());
+					}
+				}
+				else {
+					ImGui::Text(property.name.c_str());
+					ImGui::SameLine();
+					ImGui::Text("idk lol");
+				}
+
+				lua_pop(script->context, -1);
+			} catch (void* exception) {
+				ImGui::Text("idk lol");
+			}
 		}
 	} else {
 		ImGui::Text("No Instance selected");
