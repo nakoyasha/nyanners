@@ -4,7 +4,7 @@
 #include "SFML/Graphics/Image.hpp"
 #include "core/Logger.h"
 #include "instances/services/RenderingService.h"
-#include "third_party/sfml/extlibs/headers/glad/include/glad/gl.h"
+#include "glad/glad.h"
 
 using namespace Nyanners::Instances;
 
@@ -28,7 +28,7 @@ void MeshPart::update(const float deltaTime) {
 void MeshPart::draw() {
 	glBindVertexArray(vertexArrayID);
 	this->material->use();
-	Services::RenderingService::render_mesh(this->mesh);
+	Services::RenderingService::renderer->render_mesh(this->mesh);
 	this->material->release();
 	glBindVertexArray(0);
 }

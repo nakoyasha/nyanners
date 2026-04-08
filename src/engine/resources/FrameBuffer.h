@@ -1,6 +1,6 @@
 #pragma once
 #include "Texture.h"
-#include "third_party/sfml/extlibs/headers/glad/include/glad/gl.h"
+#include "glad/glad.h"
 
 namespace Nyanners::Resources {
 		class FrameBuffer {

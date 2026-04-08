@@ -1,3 +1,6 @@
+#define STB_IMAGE_IMPLEMENTATION
+#include "stb_image.h"
+
 #include "RenderingService.h"
 #include "Application.h"
 #include "IOService.h"
@@ -6,7 +9,6 @@
 #include "SFML/Window/VideoMode.hpp"
 #include "core/Logger.h"
 #include "instances/debug/DebugUIService.h"
-#include "instances/drawable/Drawable.h"
 
 using namespace Nyanners::Services;
 
@@ -27,7 +29,7 @@ RenderingService::RenderingService(
 	auto videoMode = sf::VideoMode({size.x, size.y});
 
 	if (windowTitle.has_value()) {
-		window = new sf::RenderWindow(
+		window = new sf::Window(
 		  videoMode,
 		  windowTitle.value(),
 		  sf::Style::Default,
@@ -35,7 +37,7 @@ RenderingService::RenderingService(
 		  settings
 		);
 	} else {
-		window = new sf::RenderWindow(
+		window = new sf::Window(
 		  videoMode, "Nyanners", sf::Style::Default, sf::State::Windowed, settings
 		);
 	}
@@ -70,17 +72,6 @@ void RenderingService::start_frame() {
 	}
 
 	renderer->start_frame();
-}
-
-void RenderingService::render(
-  const std::shared_ptr<Instance> &instanceToRender,
-  const std::shared_ptr<Instances::Camera>& camera
-) {
-	renderer->render(instanceToRender);
-}
-
-void RenderingService::render_mesh(const Resources::Mesh *mesh) {
-	renderer->render_mesh(mesh);
 }
 
 void RenderingService::end_frame() {

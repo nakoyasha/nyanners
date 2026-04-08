@@ -1,9 +1,9 @@
 #pragma once
-#include "SFML/Graphics/RenderTarget.hpp"
+
 #include "instances/datatypes/Color3.h"
 #include "resources/Material.h"
 #include "resources/Mesh.h"
-#include "third_party/sfml/extlibs/headers/glad/include/glad/gl.h"
+#include "glad/glad.h"
 #include <glm/gtc/matrix_transform.hpp>
 
 namespace Nyanners::Instances {

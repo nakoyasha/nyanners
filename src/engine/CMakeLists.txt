@@ -2,15 +2,20 @@ cmake_minimum_required(VERSION 4.1)
 project(Nyanners)
 
 set(CMAKE_CXX_STANDARD 23)
+set(SFML_USE_SYSTEM_DEPS OFF)
+set(SFML_BUILD_GRAPHICS OFF)
+set(LUAU_BUILD_CLI false)
+set(LUAU_BUILD_TESTS false)
+set(SFML_BUILD_NETWORK false)
+set(LUAU_STATIC_CRT true)
+
 add_subdirectory(third_party/luau EXCLUDE_FROM_ALL)
 add_subdirectory(third_party/glfw EXCLUDE_FROM_ALL)
 add_subdirectory(third_party/sfml EXCLUDE_FROM_ALL)
 add_subdirectory(third_party/glm EXCLUDE_FROM_ALL)
 add_subdirectory(third_party/fast_obj EXCLUDE_FROM_ALL)
+add_subdirectory(third_party/freetype EXCLUDE_FROM_ALL)
 
-set(LUAU_BUILD_CLI false)
-set(LUAU_BUILD_TESTS false)
-set(SFML_BUILD_NETWORK false)
 
 add_library(Nyanners
         Application.h
@@ -105,9 +110,17 @@ add_library(
         third_party/dear-imgui/misc/cpp/imgui_stdlib.cpp
 )
 
+add_library(
+        Nyanners.ThirdParty.Glad
+        third_party/glad/src/glad.c
+)
+
+set_property(TARGET Nyanners PROPERTY INTERPROCEDURAL_GENERATION TRUE)
+
+target_include_directories(Nyanners.ThirdParty.Glad PUBLIC third_party/glad/include)
 target_include_directories(Nyanners.ThirdParty PUBLIC third_party/dear-imgui third_party/dear-imgui/misc/cpp/ third_party/dear-imgui/backends/ third_party/stb/)
 target_include_directories(Nyanners PRIVATE third_party/glm/glm)
 
-#target_link_options(Nyanners PRIVATE -static-libgcc -static-libstdc++)
-target_link_libraries(Nyanners Nyanners.ThirdParty Luau.VM Luau.Require Luau.Compiler glfw SFML::Window SFML::Graphics stdc++exp glm::glm fast_obj fast_obj_lib)
+target_link_options(Nyanners PRIVATE -static-libgcc -static-libstdc++)
+target_link_libraries(Nyanners Nyanners.ThirdParty Nyanners.ThirdParty.Glad Luau.VM Luau.Require Luau.Compiler glfw SFML::Window stdc++exp glm::glm freetype fast_obj fast_obj_lib)
 target_include_directories(Nyanners PUBLIC .)

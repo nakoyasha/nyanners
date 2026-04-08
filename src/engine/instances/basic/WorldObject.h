@@ -1,5 +1,5 @@
 #pragma once
-#include "third_party/sfml/extlibs/headers/glad/include/glad/gl.h"
+#include "glad/glad.h"
 #include <glm/gtc/matrix_transform.hpp>
 
 namespace Nyanners::DataTypes {

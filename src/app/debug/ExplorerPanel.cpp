@@ -22,12 +22,38 @@ void ExplorerPanel::render_instance(const std::shared_ptr<Instance>& instance) {
 		flags |= ImGuiTreeNodeFlags_Leaf | ImGuiTreeNodeFlags_NoTreePushOnOpen;
 	}
 
-	bool isOpened = ImGui::TreeNodeEx(instance->name.c_str(), flags);
-
+	bool isOpened = ImGui::TreeNodeEx(static_cast<const void *>(nullptr), flags, "%s", "");
 
 	if (ImGui::IsItemClicked()) {
 		selectionService->set_selection(instance);
 	}
+
+	ImGui::SameLine();
+	ImGui::SetCursorPosX(ImGui::GetCursorPosX() - 8.0f);
+	// ImGui::SetCursorPosY(ImGui::GetCursorPosY() + 2.f); // not the faintest idea
+	if (instance->baseName == "World") {
+
+		ImGui::ImageWithBg(
+			workspaceIcon->get_texture_handle(),
+			ImVec2(16.f, 16.f),
+			ImVec2(0.f, 1.f),
+			ImVec2(1.f, 0.f),
+			ImVec4(),
+			instance->active ? ImVec4(1.f, 1.f, 1.f, 1.f) : ImVec4(.5f, .5f, .5f, 1.f)
+		);
+	} else {
+		ImGui::ImageWithBg(
+			unknownIcon->get_texture_handle(),
+			ImVec2(16.f, 16.f),
+			ImVec2(0.f, 1.f),
+			ImVec2(1.f, 0.f),
+			ImVec4(),
+			instance->active ? ImVec4(1.f, 1.f, 1.f, 1.f) : ImVec4(.5f, .5f, .5f, 1.f)
+		);
+	}
+
+	ImGui::SameLine();
+	ImGui::Text(instance->name.c_str());
 
 	if (isOpened) {
 		for (const auto& child : instance->children) {
@@ -38,22 +64,6 @@ void ExplorerPanel::render_instance(const std::shared_ptr<Instance>& instance) {
 			ImGui::TreePop();
 		}
 	}
-
-	if (instance->baseName == "World") {
-		ImGui::SameLine();
-		ImGui::SetCursorPosX(ImGui::GetCursorPosX() - style.IndentSpacing * 0.6f + 1.5f);
-		ImGui::SetCursorPosY(ImGui::GetCursorPosY() + 2.f); // not the faintest idea
-
-		ImGui::ImageWithBg(
-			workspaceIcon->get_texture_handle(),
-			ImVec2(16.f, 16.f),
-			ImVec2(0.f, 0.f),
-			ImVec2(1.f, 1.f),
-			ImVec4(),
-			instance->active ? ImVec4(1.f, 1.f, 1.f, 1.f) : ImVec4(.5f, .5f, .5f, 1.f)
-		);
-	}
-
 
 	ImGui::PopID();
 }
@@ -82,21 +92,16 @@ void ExplorerPanel::draw() {
 				int type = lua_type(script->context, -1);
 
 				if (type == LUA_TNUMBER) {
-					const double value = lua_tonumber(script->context, -1);
-					ImGui::Text(property.name.c_str());
-					ImGui::SameLine();
-					ImGui::Text(std::to_string(value).c_str());
+					double value = lua_tonumber(script->context, -1);
+					ImGui::InputDouble(property.name.c_str(), &value, 1);
 				} else if (type == LUA_TSTRING) {
 					const std::string value = lua_tostring(script->context, -1);
-					ImGui::Text(property.name.c_str());
-					ImGui::SameLine();
-					ImGui::Text(value.c_str());
+					ImGui::InputText(property.name.c_str(), searchBuffer, IM_ARRAYSIZE(searchBuffer));
 				} else if (type == LUA_TBOOLEAN) {
 					bool value = lua_toboolean(script->context, -1);
 					ImGui::Checkbox(property.name.c_str(), &value);
 				} else if (type == LUA_TUSERDATA) {
 					const auto* instance = Nyanners::Services::ReflectionService::get_instance_from_context(script->context, -1);
-
 
 					ImGui::Text(property.name.c_str());
 					ImGui::SameLine();
@@ -121,5 +126,9 @@ void ExplorerPanel::draw() {
 		ImGui::Text("No Instance selected");
 	}
 
+	ImGui::End();
+
+	ImGui::Begin("ImGui Style Editor");
+	ImGui::ShowStyleEditor();
 	ImGui::End();
 }

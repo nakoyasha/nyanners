@@ -1,6 +1,6 @@
 #pragma once
 #include "resources/IndexBuffer.h"
-#include "third_party/sfml/extlibs/headers/glad/include/glad/gl.h"
+#include "glad/glad.h"
 
 namespace Nyanners::Resources::OpenGL {
 	class OpenGLIndexBuffer : public IndexBuffer {

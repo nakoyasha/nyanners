@@ -64,11 +64,11 @@ void TestApplication::on_draw() const {
 		return;
 	}
 
-	debugUI->draw_imgui(renderService->window);
+	debugUI->draw_imgui();
 
 	renderService->bind_framebuffer(framebuffer);
-	renderService->render(uiService, camera);
-	renderService->render(world, camera);
+	RenderingService::renderer->render(uiService);
+	RenderingService::renderer->render(world);
 	renderService->unbind_framebuffer();
 
 	renderService->end_frame();
@@ -176,8 +176,8 @@ int main() {
 	world->add_child(meshTwo);
   world->add_child(mesh);
 
-  const sf::Font font("C:/Windows/Fonts/arial.ttf");
-  sf::Text text(font, "Hello SFML", 50);
+  // const sf::Font font("C:/Windows/Fonts/arial.ttf");
+  // sf::Text text(font, "Hello SFML", 50);
 
   script->run_script();
 

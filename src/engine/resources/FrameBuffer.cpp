@@ -1,6 +1,6 @@
 #include "FrameBuffer.h"
 #include "core/Logger.h"
-#include "third_party/sfml/src/SFML/Graphics/GLCheck.hpp"
+
 
 using namespace Nyanners::Resources;
 
@@ -11,12 +11,12 @@ FrameBuffer::FrameBuffer(const int width, const int height) {
 
 	this->framebufferTexture->use();
 	this->framebufferTexture->upload_buffer(GL_RGB, GL_RGB, width, height, nullptr);
-	glCheck(glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, static_cast<GLuint>(reinterpret_cast<uintptr_t>(this->framebufferTexture->get_texture_handle())), 0));
+	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, static_cast<GLuint>(reinterpret_cast<uintptr_t>(this->framebufferTexture->get_texture_handle())), 0);
 
-	glCheck(glGenRenderbuffers(1, &renderBufferId));
-	glCheck(glBindRenderbuffer(GL_RENDERBUFFER, renderBufferId));
-	glCheck(glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH24_STENCIL8, width, height));
-	glCheck(glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_STENCIL_ATTACHMENT, GL_RENDERBUFFER, renderBufferId));
+	glGenRenderbuffers(1, &renderBufferId);
+	glBindRenderbuffer(GL_RENDERBUFFER, renderBufferId);
+	glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH24_STENCIL8, width, height);
+	glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_STENCIL_ATTACHMENT, GL_RENDERBUFFER, renderBufferId);
 
 	auto status = glCheckFramebufferStatus(GL_FRAMEBUFFER);
 
@@ -41,11 +41,11 @@ FrameBuffer::~FrameBuffer() {
 }
 
 void FrameBuffer::use() {
-	glCheck(glBindFramebuffer(GL_FRAMEBUFFER, this->framebufferId));
+	glBindFramebuffer(GL_FRAMEBUFFER, this->framebufferId);
 }
 
 void FrameBuffer::release() {
-	glCheck(glBindFramebuffer(GL_FRAMEBUFFER, 0));
+	glBindFramebuffer(GL_FRAMEBUFFER, 0);
 }
 
 GLuint FrameBuffer::get_texture_id() {
@@ -62,13 +62,13 @@ void FrameBuffer::resize(const int width, const int height) {
 
 	framebufferTexture->upload_buffer(GL_RGB, GL_RGB, width, height, nullptr);
 
-	glCheck(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR));
-	glCheck(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR));
-	glCheck(glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, static_cast<GLuint>(reinterpret_cast<uintptr_t>(this->framebufferTexture->get_texture_handle())), 0));
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, static_cast<GLuint>(reinterpret_cast<uintptr_t>(this->framebufferTexture->get_texture_handle())), 0);
 
-	glCheck(glBindRenderbuffer(GL_RENDERBUFFER, renderBufferId));
-	glCheck(glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH24_STENCIL8, width, height));
-	glCheck(glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_STENCIL_ATTACHMENT, GL_RENDERBUFFER, renderBufferId));
+	glBindRenderbuffer(GL_RENDERBUFFER, renderBufferId);
+	glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH24_STENCIL8, width, height);
+	glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_STENCIL_ATTACHMENT, GL_RENDERBUFFER, renderBufferId);
 
 	// auto status = glCheckFramebufferStatus(GL_FRAMEBUFFER);
 	//

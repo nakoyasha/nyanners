@@ -1,6 +1,6 @@
 #pragma once
 #include "resources/Texture.h"
-#include "third_party/sfml/extlibs/headers/glad/include/glad/gl.h"
+#include "glad/glad.h"
 
 namespace Nyanners::Resources::OpenGL {
 	class OpenGLTexture : public Texture {

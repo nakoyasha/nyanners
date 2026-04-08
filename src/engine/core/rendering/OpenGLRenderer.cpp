@@ -19,6 +19,13 @@ void OpenGLRenderer::initialize() {
 		throw std::runtime_error("OpenGL initialiaztion failed");
 	};
 
+	if (!gladLoadGLLoader(
+	      reinterpret_cast<GLADloadproc>(sf::Context::getFunction)
+	    )) {
+		throw std::runtime_error("Failed to initialize GLAD");
+		return;
+	}
+
 	const GLubyte *version = glGetString(GL_VERSION);
 	const GLubyte *profile = glGetString(GL_RENDERER);
 
@@ -115,6 +122,10 @@ void OpenGLRenderer::render_mesh(const Resources::Mesh *mesh) {
 	mesh->unbind();
 }
 
+void OpenGLRenderer::render_text(const std::string &text) {
+
+}
+
 void OpenGLRenderer::handle_event(const sf::Event *event) {}
 
 void OpenGLRenderer::end_frame() {
@@ -123,6 +134,15 @@ void OpenGLRenderer::end_frame() {
 
 void OpenGLRenderer::shutdown() {
 	currentWindow->close();
+}
+
+Nyanners::DataTypes::Vector2 OpenGLRenderer::get_window_size() {
+	const auto size = this->currentWindow->getSize();
+	return {size.x, size.y};
+}
+
+void OpenGLRenderer::set_window_size(const DataTypes::Vector2 newWindowSize) {
+	this->currentWindow->setSize({newWindowSize.x, newWindowSize.y});
 }
 
 constexpr const char *glErrorToString(GLenum error) {
@@ -144,6 +164,10 @@ constexpr const char *glErrorToString(GLenum error) {
 		default:
 			return "UNKNOWN_GL_ERROR";
 	}
+}
+
+void OpenGLRenderer::generateCharacters() {
+
 }
 
 void OpenGLRenderer::handle_error(

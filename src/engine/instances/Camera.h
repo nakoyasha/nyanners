@@ -1,4 +1,5 @@
 #pragma once
+
 #include "instances/Instance.h"
 #include <glm/gtc/matrix_transform.hpp>
 
@@ -29,8 +30,5 @@ namespace Nyanners::Instances {
 
 		float moveSpeed = 6.0f;
 		float mouseSens = 0.1f;
-
-		bool firstMouse = true;
-		sf::Vector2i lastMouse;
 	};
 }

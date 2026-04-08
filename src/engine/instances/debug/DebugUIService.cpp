@@ -1,6 +1,7 @@
 #include "DebugUIService.h"
 #include "imgui.h"
 #include "imgui_impl_opengl3.h"
+#include "instances/services/RenderingService.h"
 
 using namespace Nyanners::Services;
 
@@ -12,15 +13,15 @@ DebugUIService::~DebugUIService() {
 	ImGui::DestroyContext();
 }
 
-void DebugUIService::draw_imgui(const sf::Window* target) {
+void DebugUIService::draw_imgui() {
 	ImGuiIO &io = ImGui::GetIO();
+	const auto size = RenderingService::renderer->get_window_size();
 	io.DisplaySize = ImVec2(
-	  static_cast<float>(target->getSize().x),
-	  static_cast<float>(target->getSize().y)
+	  static_cast<float>(size.x),
+	  static_cast<float>(size.y)
 	);
 	ImGui::NewFrame();
 	ImGui_ImplOpenGL3_NewFrame();
-
 
 	ImGui::DockSpaceOverViewport(0, ImGui::GetMainViewport(), ImGuiDockNodeFlags_PassthruCentralNode);
 	for (const auto &child : children) {

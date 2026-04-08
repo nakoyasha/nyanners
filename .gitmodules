@@ -26,3 +26,6 @@
 [submodule "src/engine/third_party/glfw"]
 	path = src/engine/third_party/glfw
 	url = https://github.com/glfw/glfw
+[submodule "src/engine/third_party/freetype"]
+	path = src/engine/third_party/freetype
+	url = https://gitlab.freedesktop.org/freetype/freetype

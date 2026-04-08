@@ -10,7 +10,7 @@ namespace Nyanners::Services {
 		DebugUIService();
 		~DebugUIService();
 
-		void draw_imgui(const sf::Window *target);
+		void draw_imgui();
 		static void on_frame_end();
 		static void handle_event(const sf::Window* target, const sf::Event* event);
 	};

@@ -1,5 +1,5 @@
 #include "OpenGLIndexBuffer.h"
-#include "third_party/sfml/extlibs/headers/glad/include/glad/gl.h"
+#include "glad/glad.h"
 
 using namespace Nyanners::Resources::OpenGL;
 

@@ -36,8 +36,6 @@ namespace Nyanners::Services
         static GLuint compile_program(const GLuint vertex, const GLuint fragment);
 
         void start_frame();
-        void render(const std::shared_ptr<Instance> &instanceToRender, const std::shared_ptr<Instances::Camera>& camera);
-    		static void render_mesh(const Resources::Mesh* mesh);
     		static Resources::Shader create_default_shader();
         void end_frame();
         void shutdown();

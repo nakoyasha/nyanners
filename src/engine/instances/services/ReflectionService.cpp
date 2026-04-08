@@ -491,18 +491,19 @@ void ReflectionService::register_reflections() {
 	      .type = ReflectionPropertyType::String,
 	      .get =
 	        [](const Instance *instance, lua_State *context) {
-		        const auto *label =
-		          dynamic_cast<const Instances::TextLabel *>(instance);
-		        lua_pushstring(context, label->getText().c_str());
+		        // const auto *label =
+		        //   dynamic_cast<const Instances::TextLabel *>(instance);
+		        // lua_pushstring(context, label->getText().c_str());
+	        	lua_pushstring(context, "WIP");
 
 		        return 1;
 	        },
 	      .set =
 	        [](Instance *instance, lua_State *context) {
-		        auto *label = dynamic_cast<Instances::TextLabel *>(instance);
-		        const std::string text = luaL_checkstring(context, -1);
-
-		        label->setText(text);
+		        // auto *label = dynamic_cast<Instances::TextLabel *>(instance);
+		        // const std::string text = luaL_checkstring(context, -1);
+		        //
+		        // label->setText(text);
 	        }}
 	   }}
 	);

@@ -1,7 +1,6 @@
 #include "Skybox.h"
 #include "stb_image.h"
 #include "instances/services/RenderingService.h"
-#include "third_party/sfml/src/SFML/Graphics/GLCheck.hpp"
 
 using namespace Nyanners::Instances;
 
@@ -27,24 +26,24 @@ Skybox::Skybox() : Instance("Skybox") {
 
 			data = stbi_load(file.c_str(), &width, &height, &nrChannels, 3);
 
-			glCheck(glTexImage2D(
+			glTexImage2D(
 				GL_TEXTURE_CUBE_MAP_POSITIVE_X + i,
 			0, GL_RGB, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, data
-			));
+			);
 
 			stbi_image_free(data);
 	}
 
-	glCheck(glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MAG_FILTER, GL_LINEAR));
-	glCheck(glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MIN_FILTER, GL_LINEAR));
-	glCheck(glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE));
-	glCheck(glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE));
-	glCheck(glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_R, GL_CLAMP_TO_EDGE));
+	glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+	glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+	glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+	glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+	glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_R, GL_CLAMP_TO_EDGE);
 
 	material->set_shader("assets/shaders/skybox/vertex.glsl", "assets/shaders/skybox/frag.glsl");
 	material->set_texture(skyboxTexture);
 
-	glCheck(glBindVertexArray(vertexArrayID));
+	glBindVertexArray(vertexArrayID);
 
 	this->mesh->set_vertices({
 		-1.0f,  1.0f, -1.0f,
@@ -91,22 +90,22 @@ Skybox::Skybox() : Instance("Skybox") {
 	});
 
 	this->mesh->vertexBuffer->use();
-	glCheck(glEnableVertexAttribArray(0));
-	glCheck(glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(float) * 3, nullptr));
+	glEnableVertexAttribArray(0);
+	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(float) * 3, nullptr);
 	this->mesh->vertexBuffer->release();
 
-	glCheck(glBindVertexArray(0));
+	glBindVertexArray(0);
 }
 
 void Skybox::draw() {
-	glCheck(glDepthMask(GL_FALSE));
-	glCheck(glDepthFunc(GL_LEQUAL));
+	glDepthMask(GL_FALSE);
+	glDepthFunc(GL_LEQUAL);
 
 	this->material->use();
-	glCheck(glBindVertexArray(vertexArrayID));
-	Services::RenderingService::render_mesh(this->mesh);
-	glCheck(glBindVertexArray(0));
+	glBindVertexArray(vertexArrayID);
+	Services::RenderingService::renderer->render_mesh(this->mesh);
+	glBindVertexArray(0);
 
-	glCheck(glDepthFunc(GL_LESS));
-	glCheck(glDepthMask(GL_TRUE));
+	glDepthFunc(GL_LESS);
+	glDepthMask(GL_TRUE);
 }

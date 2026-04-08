@@ -2,7 +2,6 @@
 #include "Drawable.h"
 #include "instances/services/RunService.h"
 #include "resources/Mesh.h"
-#include "resources/Texture.h"
 #include <filesystem>
 
 namespace Nyanners::Instances {
