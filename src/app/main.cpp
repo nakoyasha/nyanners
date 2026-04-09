@@ -1,8 +1,10 @@
 #include "Application.h"
 #include "core/Logger.h"
+#include "debug/CommandBar.h"
 #include "debug/ExplorerPanel.h"
 #include "debug/ViewportPanel.h"
 #include "instances/Script.h"
+#include "instances/debug/DebugUIService.h"
 #include "instances/drawable/MeshPart.h"
 #include "instances/drawable/TextLabel.h"
 #include "instances/services/EngineService.h"
@@ -10,7 +12,6 @@
 #include "instances/services/RenderingService.h"
 #include "instances/services/RunService.h"
 #include "instances/services/UIService.h"
-#include "instances/debug/DebugUIService.h"
 #include "instances/world/Skybox.h"
 #include "instances/world/World.h"
 
@@ -20,7 +21,7 @@ using namespace Nyanners::Services;
 class TestApplication : public Application {
 	public:
 	std::shared_ptr<Instances::Camera> camera;
-	Nyanners::Resources::FrameBuffer* framebuffer;
+	Resources::FrameBuffer* framebuffer;
 
 	TestApplication() : Application({1280, 720}, "TestApp") {
 		m_Instance = this;
@@ -117,9 +118,11 @@ int main() {
   // mesh->transform = glm::translate(mesh->transform, glm::vec3(0.0f, 5.0f, 0.0f));
   auto debugWindow = std::make_shared<TestApp::Panels::ExplorerPanel>();
 	auto viewport = std::make_shared<TestApp::Panels::ViewportPanel>(app->framebuffer);
+	auto commandBar = std::make_shared<TestApp::Panels::CommandBar>();
 
 	debugUI->add_child(viewport);
   debugUI->add_child(debugWindow);
+	debugUI->add_child(commandBar);
 
 	mesh->set_vertices({
 		-0.5f, -0.5f, 0.0f, 0.0f,

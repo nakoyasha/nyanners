@@ -48,14 +48,14 @@ struct ReflectionClass {
   const bool isService = false;
 
   const ReflectionConstructor constructor;
-  const std::vector<ReflectionProperty> properties;
-  const std::vector<ReflectionMethod> methods;
+  std::vector<ReflectionProperty> properties;
+	std::vector<ReflectionMethod> methods;
 };
 
 struct ReflectionInstance
 {
   std::shared_ptr<Nyanners::Instances::Instance> pointer;
-  const ReflectionClass* descriptor;
+  ReflectionClass* descriptor;
 };
 
 namespace Nyanners::Services {
@@ -66,11 +66,16 @@ namespace Nyanners::Services {
 
     static void reflect_class(lua_State* context, const std::shared_ptr<Instance>& instance);
     static ReflectionClass create_reflection(const ReflectionClass& descriptor);
+  	static void add_property(ReflectionClass& descriptor, const ReflectionProperty& property);
+  	static void add_method(ReflectionClass& descriptor, const ReflectionMethod& method);
     static ReflectionInstance* get_instance_from_context(lua_State* context, const int id);
+  	static ReflectionClass* get_descriptor(const std::string className);
   	static std::vector<ReflectionProperty> get_properties(const std::shared_ptr<Instance>& instance);
     static void register_reflections();
   private:
     static int instance_index(lua_State* context, const ReflectionInstance* instance);
+  	static int handle_property(lua_State* context, std::string_view propertyName,const ReflectionInstance* instance, const ReflectionClass& descriptor);
+  	static int handle_new_value(lua_State* context, std::string_view propertyName,const ReflectionInstance* instance, const ReflectionClass& descriptor);
     static int instance_new_index(lua_State* context, const ReflectionInstance* instance);
   };
 

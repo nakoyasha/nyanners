@@ -1,6 +1,7 @@
 #include "ExplorerPanel.h"
 #include "Application.h"
 #include "imgui.h"
+#include "misc/cpp/imgui_stdlib.h"
 
 using namespace TestApp::Panels;
 
@@ -77,6 +78,7 @@ void ExplorerPanel::draw() {
 	ImGui::Begin("Properties");
 
 	if (selectionService->currentSelection != nullptr) {
+		const auto selection = selectionService->currentSelection;
 		static char searchBuffer[1024];
 		ImGui::InputText("Search for properties", searchBuffer, IM_ARRAYSIZE(searchBuffer));
 		const auto properties = Nyanners::Services::ReflectionService::get_properties(selectionService->currentSelection);
@@ -91,20 +93,37 @@ void ExplorerPanel::draw() {
 
 				int type = lua_type(script->context, -1);
 
+				ImGui::Text(property.name.c_str());
+				ImGui::SameLine();
 				if (type == LUA_TNUMBER) {
 					double value = lua_tonumber(script->context, -1);
-					ImGui::InputDouble(property.name.c_str(), &value, 1);
+
+					if (ImGui::InputDouble(property.name.c_str(), &value, 1)) {
+						lua_pushnumber(script->context, (int)value);
+						property.set(selection.get(), script->context);
+					};
+
 				} else if (type == LUA_TSTRING) {
 					const std::string value = lua_tostring(script->context, -1);
-					ImGui::InputText(property.name.c_str(), searchBuffer, IM_ARRAYSIZE(searchBuffer));
+					auto& buffer = get_or_make_string_cache(selection, property.name, value);
+
+					if (ImGui::InputText(property.name.c_str(), buffer.buffer.data(), buffer.buffer.size(), ImGuiInputTextFlags_EnterReturnsTrue)) {
+						std::string string = buffer.buffer.data();
+
+						lua_pushstring(script->context, string.c_str());
+						property.set(selection.get(), script->context);
+					};
+
 				} else if (type == LUA_TBOOLEAN) {
 					bool value = lua_toboolean(script->context, -1);
-					ImGui::Checkbox(property.name.c_str(), &value);
+
+					if (ImGui::Checkbox(property.name.c_str(), &value)) {
+						lua_pushboolean(script->context, value);
+						property.set(selection.get(), script->context);
+					};
 				} else if (type == LUA_TUSERDATA) {
 					const auto* instance = Nyanners::Services::ReflectionService::get_instance_from_context(script->context, -1);
 
-					ImGui::Text(property.name.c_str());
-					ImGui::SameLine();
 					if (instance == nullptr || instance->pointer == nullptr) {
 						ImGui::Text("None");
 					} else {
@@ -131,4 +150,22 @@ void ExplorerPanel::draw() {
 	ImGui::Begin("ImGui Style Editor");
 	ImGui::ShowStyleEditor();
 	ImGui::End();
+}
+
+StringValueCache& ExplorerPanel::get_or_make_string_cache(
+  const std::shared_ptr<Instance> &instance, const std::string &property, const std::string &value
+) {
+	for (auto& buffer : stringValueBuffers) {
+		if (buffer.value == property && buffer.instance == instance) {
+			return buffer;
+		}
+	}
+
+	StringValueCache& cache = stringValueBuffers.emplace_back();
+	cache.instance = instance;
+	cache.value = value;
+	std::copy(value.begin(), value.begin() + std::min(value.size(), cache.buffer.size()), cache.buffer.data());
+
+	stringValueBuffers.push_back(cache);
+	return cache;
 }

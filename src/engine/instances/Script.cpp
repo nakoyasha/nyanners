@@ -1,15 +1,14 @@
 #include "Script.h"
-
 #include "Application.h"
+#include "lua.h"
 #include "Luau/Compiler.h"
 #include "core/Logger.h"
-#include "lua.h"
+#include "scripting/LibInstance.h"
+#include "scripting/data/UserdataTags.h"
+#include "services/IOService.h"
 #include "services/ReflectionService.h"
-
 #include <format>
 #include <ranges>
-
-#include "services/IOService.h"
 
 using namespace Nyanners::Instances;
 
@@ -64,6 +63,9 @@ void Script::run_script()
     auto model = Application::instance()->currentModel;
     Services::ReflectionService::reflect_class(context, model);
     lua_setglobal(context, "DataModel");
+
+		Scripting::LibInstance::attach(context);
+		lua_setglobal(context, "Instance");
 
     if (result != LUA_OK)
     {

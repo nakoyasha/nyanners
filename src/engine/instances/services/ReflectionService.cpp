@@ -7,10 +7,9 @@
 #include "UIService.h"
 #include "lualib.h"
 #include "core/Logger.h"
-#include "data/UserdataTags.h"
 #include "instances/DataModel.h"
 #include "instances/basic/Signal.h"
-#include "instances/drawable/TextLabel.h"
+#include "scripting/data/UserdataTags.h"
 #include <ranges>
 
 using namespace Nyanners::Services;
@@ -24,6 +23,17 @@ ReflectionService::get_instance_from_context(lua_State *context, const int id) {
 
 	return instance;
 }
+ReflectionClass *
+ReflectionService::get_descriptor(const std::string className) {
+	const auto descriptor = classes.find(className);
+
+	if (descriptor != classes.end()) {
+		return &descriptor->second;
+	} else {
+		return nullptr;
+	}
+}
+
 std::vector<ReflectionProperty>
 ReflectionService::get_properties(const std::shared_ptr<Instance> &instance) {
 	const auto descriptor = classes.find(instance->baseName);
@@ -127,6 +137,93 @@ ReflectionService::create_reflection(const ReflectionClass &descriptor) {
 
 	return descriptor;
 }
+void ReflectionService::add_property(
+  ReflectionClass &descriptor, const ReflectionProperty &property
+) {
+	descriptor.properties.push_back(property);
+}
+
+void ReflectionService::add_method(
+  ReflectionClass &descriptor, const ReflectionMethod &method
+) {
+	descriptor.methods.push_back(method);
+}
+
+int ReflectionService::handle_property(
+  lua_State *context,
+  std::string_view propertyName,
+  const ReflectionInstance *instance,
+  const ReflectionClass &descriptor
+) {
+	for (const auto &property : descriptor.properties) {
+		if (property.name == propertyName) {
+			return property.get(instance->pointer.get(), context);
+		}
+	}
+
+	for (auto &method : descriptor.methods) {
+		if (method.name == propertyName) {
+			// oh lord, this is evil.
+			auto **methodData =
+			  static_cast<const ReflectionMethodCallback **>(lua_newuserdatatagged(
+			    context, sizeof(ReflectionMethod *), LUA_PROPERTY_METHOD_TAG
+			  ));
+			*methodData = &method.method;
+
+			lua_pushcclosure(
+			  context,
+			  [](lua_State *context) {
+				  auto **method =
+				    static_cast<ReflectionMethodCallback **>(lua_touserdatatagged(
+				      context, lua_upvalueindex(1), LUA_PROPERTY_METHOD_TAG
+				    ));
+				  auto instance = get_instance_from_context(context, 1);
+				  ;
+
+				  return (**method)(instance->pointer, context);
+			  },
+			  method.name.c_str(),
+			  1
+			);
+			return 1;
+		}
+	}
+
+	if (auto child =
+	      instance->pointer->find_first_child<Instance>(propertyName.data())) {
+		reflect_class(context, child);
+		return 1;
+	}
+
+	return 0;
+}
+int ReflectionService::handle_new_value(
+  lua_State *context,
+  std::string_view propertyName,
+  const ReflectionInstance *instance,
+  const ReflectionClass &descriptor
+) {
+	for (const auto &property : descriptor.properties) {
+		if (property.name == propertyName) {
+			property.set(instance->pointer.get(), context);
+			break;
+		}
+	}
+
+	for (const auto &property : descriptor.properties) {
+		if (property.name == propertyName) {
+			if (property.readOnly == true) {
+				luaL_error(context, "Cannot modify a read-only property");
+				return 0;
+			}
+
+			property.set(instance->pointer.get(), context);
+			break;
+		}
+	}
+
+	return 0;
+}
 
 int ReflectionService::instance_index(
   lua_State *context, const ReflectionInstance *instance
@@ -141,66 +238,30 @@ int ReflectionService::instance_index(
 		throw std::runtime_error("Instance pointer is null");
 	}
 
-	const auto defaultDescriptor = classes.find(instance->descriptor->base);
+	ReflectionClass *descriptor = get_descriptor(instance->descriptor->className);
 
-	if (defaultDescriptor != classes.end()) {
-		for (const auto &property : defaultDescriptor->second.properties) {
-			if (property.name == propertyName) {
-				return property.get(instance->pointer.get(), context);
-			}
+	while (descriptor != nullptr) {
+		int result = handle_property(context, propertyName, instance, *descriptor);
+
+		if (result != 0) {
+			return result;
 		}
 
-		for (auto &method : instance->descriptor->methods) {
-			if (method.name == propertyName) {
-				// oh lord, this is evil.
-				auto **methodData =
-				  static_cast<const ReflectionMethodCallback **>(lua_newuserdatatagged(
-				    context, sizeof(ReflectionMethod *), LUA_PROPERTY_METHOD_TAG
-				  ));
-				*methodData = &method.method;
-
-				lua_pushcclosure(
-				  context,
-				  [](lua_State *context) {
-					  auto **method =
-					    static_cast<ReflectionMethodCallback **>(lua_touserdatatagged(
-					      context, lua_upvalueindex(1), LUA_PROPERTY_METHOD_TAG
-					    ));
-					  auto instance = get_instance_from_context(context, 1);
-					  ;
-
-					  return (**method)(instance->pointer, context);
-				  },
-				  method.name.c_str(),
-				  1
-				);
-				return 1;
-			}
+		if (!descriptor->base.empty()) {
+			descriptor = get_descriptor(descriptor->base);
 		}
-	}
+	};
 
-	for (const auto &property : instance->descriptor->properties) {
-		if (property.name == propertyName) {
-			return property.get(instance->pointer.get(), context);
-		}
-	}
-
-	if (auto child =
-	      instance->pointer->find_first_child<Instance>(propertyName)) {
-		reflect_class(context, child);
-		return 1;
-	} else {
-		luaL_error(
-		  context,
-		  std::format(
-		    "{}::{} is an invalid property and or child",
-		    instance->pointer->baseName,
-		    propertyName
-		  )
-		    .c_str()
-		);
-		return 0;
-	}
+	luaL_error(
+	  context,
+	  std::format(
+	    "{}::{} is an invalid property and or child",
+	    instance->pointer->baseName,
+	    propertyName
+	  )
+	    .c_str()
+	);
+	return 0;
 }
 
 int ReflectionService::instance_new_index(
@@ -216,41 +277,27 @@ int ReflectionService::instance_new_index(
 		throw std::runtime_error("Instance pointer is null");
 	}
 
-	const auto defaultDescriptor = classes.find(instance->descriptor->base);
+	ReflectionClass *descriptor = get_descriptor(instance->descriptor->className);
 
-	if (defaultDescriptor != classes.end()) {
-		for (const auto &property : defaultDescriptor->second.properties) {
-			if (property.name == propertyName) {
-				property.set(instance->pointer.get(), context);
-				return 0;
-			}
-		}
-	}
+	while (descriptor != nullptr) {
+		int result = handle_new_value(context, propertyName, instance, *descriptor);
 
-	for (const auto &property : instance->descriptor->properties) {
-		if (property.name == propertyName) {
-			if (property.readOnly == true) {
-				luaL_error(context, "Cannot modify a read-only property");
-				return 0;
-			}
-
-			property.set(instance->pointer.get(), context);
-			return 0;
+		if (result != 0) {
+			return result;
 		}
 
-		luaL_error(
-		  context,
-		  std::format(
-		    "{}::{} is an invalid property",
-		    instance->pointer->baseName,
-		    propertyName
-		  )
-		    .c_str()
-		);
-		return 0;
-	}
+		if (!descriptor->base.empty()) {
+			descriptor = get_descriptor(descriptor->base);
+		}
+	};
 
-	return 0;
+	luaL_error(
+	  context,
+	  std::format(
+	    "{}::{} is an invalid property", instance->pointer->baseName, propertyName
+	  )
+	    .c_str()
+	);
 }
 
 void ReflectionService::register_reflections() {
@@ -388,38 +435,6 @@ void ReflectionService::register_reflections() {
 	);
 
 	create_reflection(
-	  {.className = "RunService",
-	   .base = "Instance",
-	   .isService = true,
-	   .constructor =
-	     []() {
-		     throw std::runtime_error("Cannot create an instance of RunService");
-		     return nullptr;
-	     },
-	   .properties = {
-	     {.name = "PreRender",
-	      .type = ReflectionPropertyType::Instance,
-	      .get =
-	        [](const Instance *instance, lua_State *context) {
-		        const auto *runService = dynamic_cast<const RunService *>(instance);
-		        reflect_class(context, runService->preRender);
-
-		        return 1;
-	        }},
-	     {
-	       .name = "OnExit",
-	       .type = ReflectionPropertyType::Instance,
-	       .get = [](const Instance *instance, lua_State *context) {
-		       const auto *runService = dynamic_cast<const RunService *>(instance);
-		       reflect_class(context, runService->onStop);
-
-		       return 1;
-	       },
-	     }
-	   }}
-	);
-
-	create_reflection(
 	  {.className = "RenderingService",
 	   .base = "Instance",
 	   .isService = true,
@@ -494,7 +509,7 @@ void ReflectionService::register_reflections() {
 		        // const auto *label =
 		        //   dynamic_cast<const Instances::TextLabel *>(instance);
 		        // lua_pushstring(context, label->getText().c_str());
-	        	lua_pushstring(context, "WIP");
+		        lua_pushstring(context, "WIP");
 
 		        return 1;
 	        },

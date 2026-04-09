@@ -1,7 +1,7 @@
 #pragma once
 #include "Instance.h"
 #include "Luau/Compiler.h"
-#include "data/UserdataTags.h"
+#include "scripting/data/UserdataTags.h"
 #include "services/ScriptService.h"
 #include <filesystem>
 

@@ -4,7 +4,7 @@
 #include "Luau/Compiler.h"
 #include "core/Logger.h"
 #include "instances/Script.h"
-#include "data/UserdataTags.h"
+#include "scripting/data/UserdataTags.h"
 #include "lua.h"
 #include "lualib.h"
 
