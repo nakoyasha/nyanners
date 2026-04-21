@@ -9,6 +9,6 @@ namespace Nyanners::Instances {
 
 		void draw() override;
 	private:
-		Resources::Texture* skyboxTexture;
+		std::shared_ptr<Resources::Texture> skyboxTexture;
 	};
 }

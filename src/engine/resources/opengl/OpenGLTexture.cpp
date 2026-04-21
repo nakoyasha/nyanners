@@ -1,5 +1,6 @@
 //
 #include "OpenGLTexture.h"
+#include "utils/glCheck.h"
 
 using namespace Nyanners::Resources::OpenGL;
 
@@ -12,15 +13,15 @@ OpenGLTexture::OpenGLTexture(const TextureType type) {
 		throw std::runtime_error("Failed creating texture: Unsupported TextureType");
 	}
 
-	glGenTextures(1, &textureId);
-	glBindTexture(textureType, textureId);
+	GL_CHECK(glGenTextures(1, &textureId));
+	GL_CHECK(glBindTexture(textureType, textureId));
 
-	glTexParameteri(textureType, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-	glTexParameteri(textureType, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
-	glTexParameteri(textureType, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+	GL_CHECK(glTexParameteri(textureType, GL_TEXTURE_MAG_FILTER, GL_LINEAR));
+	GL_CHECK(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR));
+	GL_CHECK(glTexParameteri(textureType, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE));
+	GL_CHECK(glTexParameteri(textureType, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE));
 
-	glBindTexture(textureType, 0);
+	GL_CHECK(glBindTexture(textureType, 0));
 }
 
 OpenGLTexture::OpenGLTexture(const TextureType type, const std::filesystem::path &path) : OpenGLTexture(type) {
@@ -28,32 +29,37 @@ OpenGLTexture::OpenGLTexture(const TextureType type, const std::filesystem::path
 }
 
 OpenGLTexture::~OpenGLTexture() {
-	glDeleteTextures(1, &textureId);
+	GL_CHECK(glDeleteTextures(1, &textureId));
 }
 
 void OpenGLTexture::load_from_file(const std::filesystem::path &path) {
 	this->use();
 	this->load_file_into_buffer(path);
 	this->upload_buffer(
-		GL_RGBA8,
-		GL_RGBA,
-		static_cast<int>(width),
-		static_cast<int>(height),
-		textureBuffer
+	  GL_RGBA8,
+	  GL_RGBA,
+	  static_cast<int>(width),
+	  static_cast<int>(height),
+	  textureBuffer
 	);
 	this->unuse();
 }
 
-void OpenGLTexture::upload_buffer(const int internalFormat, const int externalFormat, const int width, const int height, const void* imageBuffer) const {
-	glTexImage2D(textureType, 0, internalFormat, width, height, 0, externalFormat, GL_UNSIGNED_BYTE, imageBuffer);
+void OpenGLTexture::upload_buffer(const int internalFormat, const int externalFormat, const int width, const int height, void* imageBuffer
+) {
+	this->textureBuffer = imageBuffer;
+	this->width = width;
+	this->height = height;
+
+	GL_CHECK(glTexImage2D(textureType, 0, internalFormat, width, height, 0, externalFormat, GL_UNSIGNED_BYTE, imageBuffer));
 }
 
 void OpenGLTexture::set_mipmap_enabled(const bool newState) {
 	if (newState == true) {
-		glTexParameteri(textureType, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
-		glGenerateMipmap(textureType);
+		GL_CHECK(glTexParameteri(textureType, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR));
+		GL_CHECK(glGenerateMipmap(textureType));
 	} else {
-		glTexParameteri(textureType, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+		GL_CHECK(glTexParameteri(textureType, GL_TEXTURE_MIN_FILTER, GL_LINEAR));
 	}
 
 	useMipmaps = newState;

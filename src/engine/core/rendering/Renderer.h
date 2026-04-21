@@ -25,7 +25,7 @@ namespace Nyanners::Core {
 		}
 		virtual void unbind_framebuffer() = 0;
 		virtual void render_mesh(const Resources::Mesh* mesh) = 0;
-		virtual void render_text(const std::string& text) = 0;
+		virtual void render_text(const std::string &text, float x, float y, const DataTypes::Color3 &color) = 0;
 		virtual void handle_event(const sf::Event* event) = 0;
 		virtual void end_frame() = 0;
 		virtual void shutdown() = 0;

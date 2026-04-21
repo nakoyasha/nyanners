@@ -5,12 +5,12 @@
 
 using namespace Nyanners::Resources;
 
-Texture *Texture::create(const TextureType type) {
-	return new Resources::OpenGL::OpenGLTexture(type);
+std::shared_ptr<Texture> Texture::create(const TextureType type) {
+	return std::make_shared<Resources::OpenGL::OpenGLTexture>(type);
 }
 
-Texture *Texture::create(const TextureType type, const std::filesystem::path &path) {
- return new Resources::OpenGL::OpenGLTexture(type, path);
+std::shared_ptr<Texture> Texture::create(const TextureType type, const std::filesystem::path &path) {
+	return std::make_shared<Resources::OpenGL::OpenGLTexture>(type, path);
 }
 
 void Texture::load_file_into_buffer(const std::filesystem::path &path) {

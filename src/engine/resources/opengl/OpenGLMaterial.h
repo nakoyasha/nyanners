@@ -9,8 +9,8 @@ namespace Nyanners::Resources::OpenGL {
 		void use() override;
 		void release() override;
 
-		void set_color(const DataTypes::Color3 &newColor) override;
-		void set_texture(Resources::Texture* newTexture) override;
+		void set_color(DataTypes::Color3 *newColor) override;
+		void set_texture(std::shared_ptr<Resources::Texture> newTexture) override;
 		void set_texture(const std::filesystem::path& newTexturePath) override;
 
 		void set_shader(Resources::Shader* newShader) override;

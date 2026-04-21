@@ -23,14 +23,17 @@ namespace TestApp::Panels {
 
 		public:
 		ExplorerPanel();
+			void render_vec3(
+		  glm::vec3 &values, ReflectionProperty property, Instance *instance
+		);
 		  void render_instance(const std::shared_ptr<Instance> &instance);
 		  void draw() override;
 			StringValueCache& get_or_make_string_cache(
 		    const std::shared_ptr<Instance> &, const std::string &property, const std::string &value
 		  );
 	private:
-		const Nyanners::Resources::Texture* workspaceIcon = Nyanners::Resources::Texture::create(TextureType::Texture2D, "assets/textures/editor/world.png");
-		const Nyanners::Resources::Texture* unknownIcon = Nyanners::Resources::Texture::create(TextureType::Texture2D, "assets/textures/editor/exclamation.png");
+		const std::shared_ptr<Nyanners::Resources::Texture> workspaceIcon = Nyanners::Resources::Texture::create(TextureType::Texture2D, "assets/textures/editor/world.png");
+		const std::shared_ptr<Nyanners::Resources::Texture> unknownIcon = Nyanners::Resources::Texture::create(TextureType::Texture2D, "assets/textures/editor/exclamation.png");
 
 		std::vector<StringValueCache> stringValueBuffers;
 

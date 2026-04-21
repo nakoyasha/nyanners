@@ -9,8 +9,10 @@
 namespace Nyanners::Instances {
   class Drawable {
   public:
-		glm::vec3 position;
+		glm::vec3* position;
   	glm::mat4 transform;
+  	glm::vec3 scale {1.0f, 1.0f, 1.0f};
+
   	Resources::Material* material;
   	Resources::Mesh* mesh;
 
@@ -19,16 +21,15 @@ namespace Nyanners::Instances {
 
   	bool isOpaque = true;
 
-  	DataTypes::Color3 color = {255, 255, 255, 255};
 		Drawable();
 		virtual ~Drawable();
 
   	virtual void set_position(const glm::vec3& newPosition);
+  	virtual void set_scale(const glm::vec3& newScale);
+  	virtual void set_color(DataTypes::Color3 newColor);
+  	virtual void set_color(DataTypes::Color3* newColor);
 
-		virtual void set_color(const DataTypes::Color3& newColor);
-
-		virtual bool isLegacy();
+  	virtual bool isLegacy();
     virtual void draw() {};
-    // virtual void draw(const sf::RenderTarget &target) {};
   };
 }

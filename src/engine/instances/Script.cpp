@@ -3,6 +3,7 @@
 #include "lua.h"
 #include "Luau/Compiler.h"
 #include "core/Logger.h"
+#include "scripting/LibDatatype.h"
 #include "scripting/LibInstance.h"
 #include "scripting/data/UserdataTags.h"
 #include "services/IOService.h"
@@ -66,6 +67,7 @@ void Script::run_script()
 
 		Scripting::LibInstance::attach(context);
 		lua_setglobal(context, "Instance");
+		Scripting::LibDatatype::attach(context);
 
     if (result != LUA_OK)
     {

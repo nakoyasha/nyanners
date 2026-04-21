@@ -1,4 +1,5 @@
 #include "OpenGLMaterial.h"
+#include "utils/glCheck.h"
 
 using namespace Nyanners::Resources::OpenGL;
 
@@ -14,7 +15,7 @@ OpenGLMaterial::OpenGLMaterial() {
 
 void OpenGLMaterial::use() {
 	this->shader->use();
-	glActiveTexture(GL_TEXTURE0);
+	GL_CHECK(glActiveTexture(GL_TEXTURE0));
 	this->texture->use();
 }
 
@@ -23,16 +24,17 @@ void OpenGLMaterial::release() {
 	texture->unuse();
 }
 
-void OpenGLMaterial::set_color(const DataTypes::Color3 &newColor) {
+void OpenGLMaterial::set_color(DataTypes::Color3 *newColor) {
 	shader->use();
-	shader->setColor("uColor", newColor);
+	shader->setColor("uColor", *newColor);
+	color = newColor;
 	shader->release();
 }
 
-void OpenGLMaterial::set_texture(Resources::Texture *newTexture) {
+void OpenGLMaterial::set_texture(std::shared_ptr<Resources::Texture> newTexture) {
 	texture->unuse();
-	delete texture;
 	texture = newTexture;
+	texture->use();
 }
 
 void OpenGLMaterial::set_texture(const std::filesystem::path &newTexturePath) {

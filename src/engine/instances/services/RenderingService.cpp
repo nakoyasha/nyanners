@@ -42,7 +42,7 @@ RenderingService::RenderingService(
 		);
 	}
 
-	window->setFramerateLimit(60);
+	window->setFramerateLimit(3000);
 
 	// glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 4);
 	// glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 6);
@@ -118,9 +118,22 @@ void RenderingService::handle_window_event(
 	if (!event.has_value())
 		return;
 
+	if (!window->hasFocus())
+		return;
+
 	// Close window
 	if (event->is<sf::Event::Closed>()) {
 		window->close();
+	}
+
+	if (event->is<sf::Event::FocusGained>()) {
+		inFocus = true;
+	} else if (event->is<sf::Event::FocusLost>()) {
+		inFocus = false;
+	}
+
+	if (!inFocus) {
+		return;
 	}
 
 	DebugUIService::handle_event(window, &event.value());
@@ -157,7 +170,7 @@ GLuint RenderingService::compile_shader(
 			  shaderID, infoLogLength, nullptr, &shaderErrorMessage[0]
 			);
 
-			Core::Logger::log(
+			Core::Logger::log_error(
 			  std::format(
 			    "Error while compiling {}: {}", path.string(), &shaderErrorMessage[0]
 			  )

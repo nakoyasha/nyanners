@@ -1,16 +1,8 @@
 #pragma once
 #include "Renderer.h"
 #include "SFML/Window/Context.hpp"
-#include <map>
 
 namespace Nyanners::Core {
-		struct Character {
-			unsigned int textureId;
-			DataTypes::Vector2 size;
-			DataTypes::Vector2 bearing;
-			unsigned int nextGlyph;
-		};
-
 		class OpenGLRenderer : public Renderer {
 			public:
 			OpenGLRenderer(sf::Window* window);
@@ -23,7 +15,7 @@ namespace Nyanners::Core {
 			void bind_framebuffer(Resources::FrameBuffer* newFrameBuffer) override;
 			void unbind_framebuffer() override;
 			void render_mesh(const Resources::Mesh* mesh) override;
-			void render_text(const std::string& text) override;
+			void render_text(const std::string &text, float x, float y, const DataTypes::Color3 &color) override;
 			void handle_event(const sf::Event* event) override;
 			void end_frame() override;
 			void shutdown() override;
@@ -32,9 +24,6 @@ namespace Nyanners::Core {
 			void set_window_size(const DataTypes::Vector2 newWindowSize) override;
 		private:
 			sf::Window* currentWindow;
-
-			std::map<char, Character> textCharacters;
-			void generateCharacters();
 			void handle_error(const std::shared_ptr<Instances::Instance>& instanceWhereItHappened);
 		};
 }

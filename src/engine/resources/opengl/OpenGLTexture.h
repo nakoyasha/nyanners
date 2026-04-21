@@ -10,7 +10,13 @@ namespace Nyanners::Resources::OpenGL {
 		~OpenGLTexture();
 
 		void load_from_file(const std::filesystem::path &path) override;
-		void upload_buffer(int internalFormat, int externalFormat, int width, int height, const void *imageBuffer) const override;
+		void upload_buffer(
+		  int internalFormat,
+		  int externalFormat,
+		  int width,
+		  int height,
+		  void *imageBuffer
+		) override;
 		void set_mipmap_enabled(const bool newState) override;
 		void use() override;
 		void unuse() override;

@@ -89,10 +89,10 @@ Skybox::Skybox() : Instance("Skybox") {
 		 1.0f, -1.0f,  1.0f
 	});
 
-	this->mesh->vertexBuffer->use();
+	this->mesh->bind();
 	glEnableVertexAttribArray(0);
 	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(float) * 3, nullptr);
-	this->mesh->vertexBuffer->release();
+	this->mesh->unbind();
 
 	glBindVertexArray(0);
 }

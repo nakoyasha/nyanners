@@ -5,7 +5,7 @@
 #include <filesystem>
 
 namespace Nyanners::Instances {
-  class MeshPart : public Instance, public Drawable {
+  class MeshPart : virtual public Instance, public Drawable {
   public:
     void draw() override;
     MeshPart();

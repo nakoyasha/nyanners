@@ -22,12 +22,13 @@ add_library(Nyanners
         Application.cpp
         core/Logger.h
         core/Logger.cpp
-        data/UserdataTags.h
+        scripting/data/UserdataTags.h
         instances/basic/SignalBase.h
         instances/basic/Signal.h
         instances/basic/WorldObject.h
         instances/basic/WorldObject.cpp
         instances/datatypes/Color3.h
+        instances/datatypes/UDim2.cpp
         instances/drawable/Drawable.h
         instances/drawable/Drawable.cpp
         instances/drawable/MeshPart.h
@@ -97,6 +98,19 @@ add_library(Nyanners
         resources/opengl/OpenGLMaterial.h
         core/rendering/Renderer.cpp
         instances/datatypes/Vector.h
+        scripting/LibInstance.cpp
+        scripting/LibInstance.h
+        scripting/reflections/DataTypes.h
+        scripting/reflections/DataTypes.cpp
+        scripting/LibDatatype.cpp
+        scripting/LibDatatype.h
+        instances/services/ConsoleService.cpp
+        instances/services/ConsoleService.h
+        instances/services/TextService.cpp
+        instances/services/TextService.h
+        utils/glCheck.h
+        instances/debug/FrameCounter.cpp
+        instances/debug/FrameCounter.h
 )
 
 add_library(
@@ -118,7 +132,7 @@ add_library(
 set_property(TARGET Nyanners PROPERTY INTERPROCEDURAL_GENERATION TRUE)
 
 target_include_directories(Nyanners.ThirdParty.Glad PUBLIC third_party/glad/include)
-target_include_directories(Nyanners.ThirdParty PUBLIC third_party/dear-imgui third_party/dear-imgui/misc/cpp/ third_party/dear-imgui/backends/ third_party/stb/)
+target_include_directories(Nyanners.ThirdParty PUBLIC third_party/dear-imgui third_party/dear-imgui/misc/cpp/ third_party/dear-imgui/backends/ third_party/stb/ third_party/glText/)
 target_include_directories(Nyanners PRIVATE third_party/glm/glm)
 
 target_link_options(Nyanners PRIVATE -static-libgcc -static-libstdc++)

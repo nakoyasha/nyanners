@@ -62,7 +62,6 @@ namespace Nyanners::Instances {
 
             for (auto luaConnection : luaConnections) {
                 int refId = luaConnection.referenceId;
-
                 // Logger::log(std::format("{} function id", refId));
 
                 // get the lua function
@@ -82,9 +81,9 @@ namespace Nyanners::Instances {
                         const char* errorMessage = lua_tostring(luaConnection.context, -1);
 
                         if (errorMessage != nullptr) {
-                            Core::Logger::log(std::format("got result {} while calling signal", errorMessage));
+                            Core::Logger::log_no_format(Core::Error, std::format("[Lua] {}", errorMessage));
                         } else {
-                            Core::Logger::log(std::format("unknown lua exception while processing signal {}", this->name));
+                            Core::Logger::log_error(std::format("Script ran away while processing signal {}", this->name));
                         }
 
                     }

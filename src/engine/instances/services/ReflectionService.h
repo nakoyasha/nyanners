@@ -57,6 +57,7 @@ struct ReflectionInstance
   std::shared_ptr<Nyanners::Instances::Instance> pointer;
   ReflectionClass* descriptor;
 };
+;
 
 namespace Nyanners::Services {
   class ReflectionService : public Instances::Instance {
@@ -72,10 +73,33 @@ namespace Nyanners::Services {
   	static ReflectionClass* get_descriptor(const std::string className);
   	static std::vector<ReflectionProperty> get_properties(const std::shared_ptr<Instance>& instance);
     static void register_reflections();
+
+  	template <typename T>
+  	static T* get_userdata_from_context(lua_State* context, int idx = 1, int userDataTag = 0) {
+  		auto *instance = static_cast<T*>(
+				lua_touserdatatagged(context, idx, userDataTag)
+			);
+
+  		return instance;
+  	};
+
+  	template <typename T>
+  	static void create_userdata(lua_State* context, T* data, const int userDataTag) {
+  		auto *selfUser = static_cast<T*>(lua_newuserdatatagged(
+				context, sizeof(T), userDataTag
+			));
+
+  		new (selfUser) T(*data);
+  	}
   private:
     static int instance_index(lua_State* context, const ReflectionInstance* instance);
   	static int handle_property(lua_State* context, std::string_view propertyName,const ReflectionInstance* instance, const ReflectionClass& descriptor);
-  	static int handle_new_value(lua_State* context, std::string_view propertyName,const ReflectionInstance* instance, const ReflectionClass& descriptor);
+  	static bool handle_new_value(
+		  lua_State *context,
+		  std::string_view propertyName,
+		  const ReflectionInstance *instance,
+		  const ReflectionClass &descriptor
+		);
     static int instance_new_index(lua_State* context, const ReflectionInstance* instance);
   };
 

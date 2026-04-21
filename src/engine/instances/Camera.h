@@ -3,6 +3,8 @@
 #include "instances/Instance.h"
 #include <glm/gtc/matrix_transform.hpp>
 
+#include "datatypes/Vector.h"
+
 namespace Nyanners::Instances {
 	class Camera : public Instance {
 	public:
@@ -20,6 +22,7 @@ namespace Nyanners::Instances {
 		glm::mat4 projection;
 	private:
 		void calculate_projection();
+		Nyanners::DataTypes::Vector2 lastSize {0,0};
 		// Camera state
 		glm::vec3 cameraPos   = { 0.0f, 0.0f, 3.0f };
 		glm::vec3 cameraFront = { 0.0f, 0.0f, -1.0f };

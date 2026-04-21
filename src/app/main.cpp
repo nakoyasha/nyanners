@@ -2,9 +2,11 @@
 #include "core/Logger.h"
 #include "debug/CommandBar.h"
 #include "debug/ExplorerPanel.h"
+#include "debug/OutputPanel.h"
 #include "debug/ViewportPanel.h"
 #include "instances/Script.h"
 #include "instances/debug/DebugUIService.h"
+#include "instances/debug/FrameCounter.h"
 #include "instances/drawable/MeshPart.h"
 #include "instances/drawable/TextLabel.h"
 #include "instances/services/EngineService.h"
@@ -19,179 +21,184 @@ using namespace Nyanners;
 using namespace Nyanners::Services;
 
 class TestApplication : public Application {
-	public:
-	std::shared_ptr<Instances::Camera> camera;
-	Resources::FrameBuffer* framebuffer;
+public:
+    std::shared_ptr<Instances::Camera> camera;
+    Resources::FrameBuffer *framebuffer;
 
-	TestApplication() : Application({1280, 720}, "TestApp") {
-		m_Instance = this;
+    TestApplication() : Application({1280, 720}, "TestApp") {
+        m_Instance = this;
 
-		this->runService = currentModel->get_service<Services::RunService>("RunService");
-		this->renderService = currentModel->get_service<Services::RenderingService>("RenderingService");
-		this->world = currentModel->get_service<Services::World>("World");
-		this->uiService = currentModel->get_service<Services::UIService>("UIService");
-		this->debugUI = currentModel->get_service<Services::DebugUIService>("DebugUIService");
-		this->camera = std::make_shared<Instances::Camera>();
+        this->runService = currentModel->get_service<Services::RunService>("RunService");
+        this->renderService = currentModel->get_service<Services::RenderingService>("RenderingService");
+        this->world = currentModel->get_service<Services::World>("World");
+        this->uiService = currentModel->get_service<Services::UIService>("UIService");
+        this->debugUI = currentModel->get_service<Services::DebugUIService>("DebugUIService");
+        this->camera = std::make_shared<Instances::Camera>();
 
-		renderService->add_child(camera);
-	}
+        renderService->add_child(camera);
+    }
 
-	void start() override;
-	void on_draw() const override;
-	void on_update() override;
+    void start() override;
+
+    void on_draw() const override;
+
+    void on_update() override;
+
 private:
-	std::shared_ptr<RunService> runService;
-	std::shared_ptr<RenderingService> renderService;
-	std::shared_ptr<World> world;
-	std::shared_ptr<UIService> uiService;
-	std::shared_ptr<DebugUIService> debugUI;
-
+    std::shared_ptr<RunService> runService;
+    std::shared_ptr<RenderingService> renderService;
+    std::shared_ptr<World> world;
+    std::shared_ptr<UIService> uiService;
+    std::shared_ptr<DebugUIService> debugUI;
 };
 
 void TestApplication::start() {
-	renderService->renderer->set_current_camera(camera);
-	while (renderService->is_window_open()) {
-		this->on_update();
-		this->on_draw();
-	}
+    renderService->renderer->set_current_camera(camera);
+    while (renderService->is_window_open()) {
+        this->on_update();
+        this->on_draw();
+    }
 }
 
 void TestApplication::on_draw() const {
-	renderService->start_frame();
+    renderService->start_frame();
 
-	// ^ start_frame might involve the user closing the window
-	// therefore we stop here
-	if (!renderService->is_window_open()) {
-		return;
-	}
+    // ^ start_frame might involve the user closing the window
+    // therefore we stop here
+    if (!renderService->is_window_open()) {
+        return;
+    }
 
-	debugUI->draw_imgui();
+    renderService->unbind_framebuffer();
+    debugUI->draw_imgui();
 
-	renderService->bind_framebuffer(framebuffer);
-	RenderingService::renderer->render(uiService);
-	RenderingService::renderer->render(world);
-	renderService->unbind_framebuffer();
+    renderService->bind_framebuffer(framebuffer);
+    RenderingService::renderer->render(uiService);
+    RenderingService::renderer->render(world);
 
-	renderService->end_frame();
+    renderService->end_frame();
 }
 
 void TestApplication::on_update() {
-	runService->tick();
+    runService->tick();
 }
 
 int main() {
-  auto* app = new TestApplication();
+    auto *app = new TestApplication();
 
-  const auto model = app->currentModel;
-  const auto engineService = model->find_first_child<EngineService>("EngineService");
+    const auto model = app->currentModel;
+    const auto engineService = model->find_first_child<EngineService>("EngineService");
 
-  if (engineService == nullptr) {
-    EngineService::panic("Could not find EngineService??");
-  }
+    if (engineService == nullptr) {
+        EngineService::panic("Could not find EngineService??");
+    }
 
-  auto script = std::make_shared<Instances::Script>();
+    auto script = std::make_shared<Instances::Script>();
 
-  try {
-    auto source = IOService::read_file("assets/autorun.luau");
-    Core::Logger::log(source);
-    script->name = "autorun";
-    script->set_source(source);
-    script->initialize_script();
-  } catch (std::runtime_error& e) {
-    EngineService::panic(std::format("Failed to run autorun.luau: {}", e.what()));
-  }
+    try {
+        auto source = IOService::read_file("assets/autorun.luau");
+        Core::Logger::log(source);
+        script->name = "autorun";
+        script->set_source(source);
+        script->initialize_script();
+    } catch (std::runtime_error &e) {
+        EngineService::panic(std::format("Failed to run autorun.luau: {}", e.what()));
+    }
 
-  const auto renderingService = app->currentModel->get_service<Services::RenderingService>("RenderingService");
-  const auto runService = app->currentModel->get_service<Services::RunService>("RunService");
-  const auto uiService = app->currentModel->get_service<Services::UIService>("UIService");
-  const auto world = app->currentModel->get_service<Services::World>("World");
-	const auto debugUI = app->currentModel->get_service<Services::DebugUIService>("DebugUIService");
+    const auto renderingService = app->currentModel->get_service<Services::RenderingService>("RenderingService");
+    const auto runService = app->currentModel->get_service<Services::RunService>("RunService");
+    const auto uiService = app->currentModel->get_service<Services::UIService>("UIService");
+    const auto world = app->currentModel->get_service<Services::World>("World");
+    const auto debugUI = app->currentModel->get_service<Services::DebugUIService>("DebugUIService");
 
-  renderingService->initialize();
-	app->framebuffer = new Nyanners::Resources::FrameBuffer(1280, 720);
+    renderingService->initialize();
+    app->framebuffer = new Nyanners::Resources::FrameBuffer(1280, 720);
 
-  auto label = std::make_shared<Instances::TextLabel>();
-  auto mesh = std::make_shared<Instances::MeshPart>();
-	auto meshTwo = std::make_shared<Instances::MeshPart>();
-	auto skybox = std::make_shared<Instances::Skybox>();
+    auto label = std::make_shared<Instances::TextLabel>();
+    auto frameCounter = std::make_shared<Debug::FrameCounter>();
+    auto mesh = std::make_shared<Instances::MeshPart>();
+    auto meshTwo = std::make_shared<Instances::MeshPart>();
+    auto skybox = std::make_shared<Instances::Skybox>();
 
-  // mesh->transform = glm::translate(mesh->transform, glm::vec3(0.0f, 5.0f, 0.0f));
-  auto debugWindow = std::make_shared<TestApp::Panels::ExplorerPanel>();
-	auto viewport = std::make_shared<TestApp::Panels::ViewportPanel>(app->framebuffer);
-	auto commandBar = std::make_shared<TestApp::Panels::CommandBar>();
 
-	debugUI->add_child(viewport);
-  debugUI->add_child(debugWindow);
-	debugUI->add_child(commandBar);
+    // mesh->transform = glm::translate(mesh->transform, glm::vec3(0.0f, 5.0f, 0.0f));
+    auto debugWindow = std::make_shared<TestApp::Panels::ExplorerPanel>();
+    auto viewport = std::make_shared<TestApp::Panels::ViewportPanel>(app->framebuffer);
+    auto commandBar = std::make_shared<TestApp::Panels::CommandBar>();
+    auto output = std::make_shared<TestApp::Panels::OutputPanel>();
 
-	mesh->set_vertices({
-		-0.5f, -0.5f, 0.0f, 0.0f,
-		0.5f, -0.5f, 1.0f, 0.0f,
-		0.5f, 0.5f, 1.0f, 1.0f,
-		-0.5f, 0.5f, 0.0f, 1.0f
-	});
+    debugUI->add_child(viewport);
+    debugUI->add_child(debugWindow);
+    debugUI->add_child(commandBar);
+    debugUI->add_child(output);
 
-	mesh->name = "ena";
-	meshTwo->name = "saa anyo";
+    mesh->set_vertices({
+        -0.5f, -0.5f, 0.0f, 0.0f,
+        0.5f, -0.5f, 1.0f, 0.0f,
+        0.5f, 0.5f, 1.0f, 1.0f,
+        -0.5f, 0.5f, 0.0f, 1.0f
+    });
 
-	// 0 and 2 are duplicates; therefore it can be optimized down here:
-	mesh->set_indexes({0, 1, 2, 2, 3, 0});
-	// mesh->set_color({187, 221, 34});
+    mesh->name = "ena";
+    meshTwo->name = "saa anyo";
 
-	meshTwo->set_vertices({
-		-0.5f, -0.5f, 0.0f, 0.0f,
-		0.5f, -0.5f, 1.0f, 0.0f,
-		0.5f, 0.5f, 1.0f, 1.0f,
-		-0.5f, 0.5f, 0.0f, 1.0f
-	});
+    // 0 and 2 are duplicates; therefore it can be optimized down here:
+    mesh->set_indexes({0, 1, 2, 2, 3, 0});
+    mesh->set_color({255, 255, 255, 255});
 
-	// 0 and 2 are duplicates; therefore it can be optimized down here:
-	meshTwo->set_indexes({0, 1, 2, 2, 3, 0});
-	meshTwo->set_color({187, 221, 34});
+    meshTwo->set_vertices({
+        -0.5f, -0.5f, 0.0f, 0.0f,
+        0.5f, -0.5f, 1.0f, 0.0f,
+        0.5f, 0.5f, 1.0f, 1.0f,
+        -0.5f, 0.5f, 0.0f, 1.0f
+    });
 
-	mesh->set_position(glm::vec3(0.0f, 0.0f, 0.0f));
-	meshTwo->set_position(glm::vec3(0.0f, 2.0f, 0.0f));
+    // 0 and 2 are duplicates; therefore it can be optimized down here:
+    meshTwo->set_indexes({0, 1, 2, 2, 3, 0});
+    meshTwo->set_color({255, 255, 255, 255});
 
-	mesh->material->set_texture("assets/textures/enanui.png");
-	meshTwo->material->set_texture("assets/textures/saa_anyo.png");
-	// meshTwo->texture->set_mipmap_enabled(false);
+    mesh->set_position(glm::vec3(0.0f, 0.0f, 0.0f));
+    meshTwo->set_position(glm::vec3(0.0f, 2.0f, 0.0f));
 
-	// debugWindow->onImmediateRender->connect([renderingService, meshTwo]() {
-		// static float newPosition[3] = {meshTwo->position.x, meshTwo->position.y, meshTwo->position.z};
-		// static glm::vec3 cameraView = glm::vec3(renderingService->view[3]);
-		// static glm::vec3 camRot = glm::vec3(0.0f); // pitch, yaw, roll
-		//
-		// if (ImGui::SliderFloat3("Position", newPosition, -24, 24)) {
-		// 	meshTwo->set_position({
-		// 			newPosition[0],
-		// 			newPosition[1],
-		// 			newPosition[2]
-		// 	});
-		// };
-		//
-		// if (ImGui::SliderFloat3("Camera View", &cameraView.x, -1024, 1024)) {
-		// 	renderingService->view[3][0] = cameraView[0];
-		// }
+    mesh->material->set_texture("assets/textures/enanui.png");
+    meshTwo->material->set_texture("assets/textures/saa_anyo.png");
+    // meshTwo->texture->set_mipmap_enabled(false);
 
-	// });
+    // debugWindow->onImmediateRender->connect([renderingService, meshTwo]() {
+    // static float newPosition[3] = {meshTwo->position.x, meshTwo->position.y, meshTwo->position.z};
+    // static glm::vec3 cameraView = glm::vec3(renderingService->view[3]);
+    // static glm::vec3 camRot = glm::vec3(0.0f); // pitch, yaw, roll
+    //
+    // if (ImGui::SliderFloat3("Position", newPosition, -24, 24)) {
+    // 	meshTwo->set_position({
+    // 			newPosition[0],
+    // 			newPosition[1],
+    // 			newPosition[2]
+    // 	});
+    // };
+    //
+    // if (ImGui::SliderFloat3("Camera View", &cameraView.x, -1024, 1024)) {
+    // 	renderingService->view[3][0] = cameraView[0];
+    // }
 
-	world->add_child(skybox);
-	world->add_child(meshTwo);
-  world->add_child(mesh);
+    // });
 
-  // const sf::Font font("C:/Windows/Fonts/arial.ttf");
-  // sf::Text text(font, "Hello SFML", 50);
+    world->add_child(skybox);
+    world->add_child(meshTwo);
+    world->add_child(mesh);
+    world->add_child(label);
+    world->add_child(frameCounter);
 
-  script->run_script();
+    script->run_script();
 
-  Core::Logger::log(std::format("Running Test App"));
-  app->start();
+    Core::Logger::log(std::format("Running Test App"));
+    app->start();
 
-  // while (runService->isRunning == true && renderingService->is_window_open())
-  // {
-  //   renderingService->render(label);
-  // }
+    // while (runService->isRunning == true && renderingService->is_window_open())
+    // {
+    //   renderingService->render(label);
+    // }
 
-  delete app;
-  return 0;
+    delete app;
+    return 0;
 }

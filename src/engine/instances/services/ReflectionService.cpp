@@ -10,7 +10,10 @@
 #include "instances/DataModel.h"
 #include "instances/basic/Signal.h"
 #include "scripting/data/UserdataTags.h"
+#include "scripting/reflections/DataTypes.h"
 #include <ranges>
+
+#include "instances/drawable/TextLabel.h"
 
 using namespace Nyanners::Services;
 std::map<std::string, ReflectionClass> ReflectionService::classes;
@@ -23,6 +26,7 @@ ReflectionService::get_instance_from_context(lua_State *context, const int id) {
 
 	return instance;
 }
+
 ReflectionClass *
 ReflectionService::get_descriptor(const std::string className) {
 	const auto descriptor = classes.find(className);
@@ -43,9 +47,20 @@ ReflectionService::get_properties(const std::shared_ptr<Instance> &instance) {
 		return defaultDescriptor->second.properties;
 	} else {
 		std::vector<ReflectionProperty> newProperties;
+		std::vector<ReflectionClass*> tree;
+		auto tempDescriptor = get_descriptor(descriptor->second.base);
 
-		for (const auto &property : defaultDescriptor->second.properties) {
-			newProperties.push_back(property);
+		while (tempDescriptor != nullptr) {
+			tree.push_back(tempDescriptor);
+			tempDescriptor = get_descriptor(tempDescriptor->base);
+		}
+
+		std::reverse(tree.begin(), tree.end());
+
+		for (const auto& parent : tree) {
+			for (const auto &property : parent->properties) {
+				newProperties.push_back(property);
+			}
 		}
 
 		for (const auto &property : descriptor->second.properties) {
@@ -197,7 +212,7 @@ int ReflectionService::handle_property(
 
 	return 0;
 }
-int ReflectionService::handle_new_value(
+bool ReflectionService::handle_new_value(
   lua_State *context,
   std::string_view propertyName,
   const ReflectionInstance *instance,
@@ -206,6 +221,7 @@ int ReflectionService::handle_new_value(
 	for (const auto &property : descriptor.properties) {
 		if (property.name == propertyName) {
 			property.set(instance->pointer.get(), context);
+			return true;
 			break;
 		}
 	}
@@ -214,7 +230,7 @@ int ReflectionService::handle_new_value(
 		if (property.name == propertyName) {
 			if (property.readOnly == true) {
 				luaL_error(context, "Cannot modify a read-only property");
-				return 0;
+				return false;
 			}
 
 			property.set(instance->pointer.get(), context);
@@ -222,7 +238,7 @@ int ReflectionService::handle_new_value(
 		}
 	}
 
-	return 0;
+	return false;
 }
 
 int ReflectionService::instance_index(
@@ -238,7 +254,7 @@ int ReflectionService::instance_index(
 		throw std::runtime_error("Instance pointer is null");
 	}
 
-	ReflectionClass *descriptor = get_descriptor(instance->descriptor->className);
+	ReflectionClass *descriptor = instance->descriptor;
 
 	while (descriptor != nullptr) {
 		int result = handle_property(context, propertyName, instance, *descriptor);
@@ -277,14 +293,12 @@ int ReflectionService::instance_new_index(
 		throw std::runtime_error("Instance pointer is null");
 	}
 
-	ReflectionClass *descriptor = get_descriptor(instance->descriptor->className);
+	ReflectionClass *descriptor = instance->descriptor;
 
 	while (descriptor != nullptr) {
-		int result = handle_new_value(context, propertyName, instance, *descriptor);
-
-		if (result != 0) {
-			return result;
-		}
+		if (handle_new_value(context, propertyName, instance, *descriptor)) {
+			return 0;
+		};
 
 		if (!descriptor->base.empty()) {
 			descriptor = get_descriptor(descriptor->base);
@@ -394,6 +408,7 @@ void ReflectionService::register_reflections() {
 	        }}
 	   }}
 	);
+
 	create_reflection(
 	  {.className = "DataModel",
 	   .base = "Instance",
@@ -432,6 +447,38 @@ void ReflectionService::register_reflections() {
 	   .isService = true,
 	   .constructor = []() { return std::make_shared<UIService>(); },
 	   .properties = {}}
+	);
+
+	create_reflection(
+	  {.className = "RunService",
+	   .base = "Instance",
+	   .isService = true,
+	   .constructor =
+	     []() {
+		     throw std::runtime_error("Cannot create an instance of RunService");
+		     return nullptr;
+	     },
+	   .properties = {
+	     {.name = "PreRender",
+	      .type = ReflectionPropertyType::Instance,
+	      .get =
+	        [](const Instance *instance, lua_State *context) {
+		        const auto *runService = dynamic_cast<const RunService *>(instance);
+		        reflect_class(context, runService->preRender);
+
+		        return 1;
+	        }},
+	     {
+	       .name = "OnExit",
+	       .type = ReflectionPropertyType::Instance,
+	       .get = [](const Instance *instance, lua_State *context) {
+		       const auto *runService = dynamic_cast<const RunService *>(instance);
+		       reflect_class(context, runService->onStop);
+
+		       return 1;
+	       },
+	     }
+	   }}
 	);
 
 	create_reflection(
@@ -499,26 +546,28 @@ void ReflectionService::register_reflections() {
 	);
 
 	create_reflection(
-	  {.className = "TextLabel",
+	  {
+	  	.className = "TextLabel",
+	  	.base = "Drawable",
 	   .isService = false,
 	   .properties = {
 	     {.name = "Text",
 	      .type = ReflectionPropertyType::String,
 	      .get =
 	        [](const Instance *instance, lua_State *context) {
-		        // const auto *label =
-		        //   dynamic_cast<const Instances::TextLabel *>(instance);
-		        // lua_pushstring(context, label->getText().c_str());
-		        lua_pushstring(context, "WIP");
+		        const auto *label =
+		        dynamic_cast<const Instances::TextLabel *>(instance);
+
+		        lua_pushstring(context, label->text.c_str());
 
 		        return 1;
 	        },
 	      .set =
 	        [](Instance *instance, lua_State *context) {
-		        // auto *label = dynamic_cast<Instances::TextLabel *>(instance);
-		        // const std::string text = luaL_checkstring(context, -1);
-		        //
-		        // label->setText(text);
+		        auto *label = dynamic_cast<Instances::TextLabel *>(instance);
+		        const std::string text = luaL_checkstring(context, -1);
+
+		        label->set_text(text);
 	        }}
 	   }}
 	);
@@ -547,4 +596,99 @@ void ReflectionService::register_reflections() {
 	create_reflection(
 	  {.className = "World", .isService = true, .properties = {}, .methods = {}}
 	);
+
+	auto drawableReflection = create_reflection(
+	  {.className = "Drawable",
+	   .base = "Instance",
+	   .isService = false,
+	   .properties =
+	     {{.name = "Color",
+	       .readOnly = false,
+	       .type = ReflectionPropertyType::UserData,
+	       .get =
+	         [](const Instance *instance, lua_State *context) {
+		         auto *drawable =
+		           dynamic_cast<const Instances::Drawable *>(instance);
+
+		         Scripting::Reflection::push_color3(
+		           context, *drawable->material->color
+		         );
+		         return 1;
+	         },
+	       .set =
+	         [](Instance *instance, lua_State *context) {
+		         // Core::Logger::log(
+		         //   std::format("type at idx 1 {}", luaL_typename(context, 1))
+		         // );
+		         // Core::Logger::log(
+		         //   std::format("type at idx 2 {}", luaL_typename(context, 2))
+		         // );
+		         //
+		         // Core::Logger::log(
+		         //   std::format("type at idx -1 {}", luaL_typename(context, -1))
+		         // );
+		         // Core::Logger::log(
+		         //   std::format("type at idx -2 {}", luaL_typename(context, -2))
+		         // );
+		         auto *drawable = dynamic_cast<Instances::Drawable *>(instance);
+		         auto *color3 =
+		           get_userdata_from_context<DataTypes::Color3>(context, -1, 0x05);
+
+		         if (color3 == nullptr) {
+			         throw std::runtime_error("Color3 is nullptr");
+		         }
+
+		         drawable->material->set_color(color3);
+
+		         return 1;
+	         }},
+	      {.name = "Position",
+	       .readOnly = false,
+	       .type = ReflectionPropertyType::UserData,
+	       .get =
+	         [](const Instance *instance, lua_State *context) {
+		         auto *drawable =
+		           dynamic_cast<const Instances::Drawable *>(instance);
+
+		         Scripting::Reflection::push_vector3(context, *drawable->position);
+		         return 1;
+	         },
+	       .set =
+	         [](Instance *instance, lua_State *context) {
+		        //  Core::Logger::log(
+		        //    std::format("type at idx 1 {}", luaL_typename(context, 1))
+		        //  );
+		        //  Core::Logger::log(
+		        //    std::format("type at idx 2 {}", luaL_typename(context, 2))
+		        //  );
+	         //
+		        //  Core::Logger::log(
+		        //    std::format("type at idx -1 {}", luaL_typename(context, -1))
+		        //  );
+		        //  Core::Logger::log(
+		        //    std::format("type at idx -2 {}", luaL_typename(context, -2))
+		        //  );
+		         auto *drawable = dynamic_cast<Instances::Drawable *>(instance);
+		         auto *position =
+		           get_userdata_from_context<glm::vec3>(context, -1, 0x06);
+
+		         if (position == nullptr) {
+			         throw std::runtime_error("Vector3 is nullptr");
+		         }
+
+		         drawable->set_position(*position);
+
+		         return 1;
+	         }}},
+	   .methods = {}}
+	);
+
+	create_reflection({
+	  .className = "MeshPart",
+	  .base = "Drawable",
+	  .isService = false,
+	  .properties = {},
+	  .methods = {},
+	});
+
 }

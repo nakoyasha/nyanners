@@ -1,6 +1,8 @@
 #include "Shader.h"
-#include "instances/services/RenderingService.h"
 
+#include "gtc/type_ptr.hpp"
+#include "instances/services/RenderingService.h"
+#include "utils/glCheck.h"
 
 using namespace Nyanners::Resources;
 
@@ -30,22 +32,21 @@ void Shader::setInt(const std::string &name, const int value) const {
 void Shader::setFloat(const std::string &name, const float value) const {
 	glUniform1f(glGetUniformLocation(shaderId, name.c_str()), value);
 }
+
 void Shader::setMatrix(const std::string &name, const glm::mat4 &value) const {
-	glUniformMatrix4fv(
-	  glGetUniformLocation(shaderId, name.c_str()), 1, GL_FALSE, &value[0][0]
-	);
+	GL_CHECK(glUniformMatrix4fv(glGetUniformLocation(shaderId, name.c_str()), 1, GL_FALSE, glm::value_ptr(value)));
 }
 
 void Shader::setColor(
   const std::string &name, const Nyanners::DataTypes::Color3 value
 ) const {
-	glUniform4f(
+	GL_CHECK(glUniform4f(
 	  glGetUniformLocation(shaderId, name.c_str()),
 	  value.r / 255.0f,
 	  value.g / 255.0f,
 	  value.b / 255.0f,
 	  value.alpha / 255.0f
-	);
+	));
 }
 
 Shader::~Shader() {
@@ -54,13 +55,13 @@ Shader::~Shader() {
 }
 
 void Shader::use() const {
-	if (shaderId == 0xDEADBEEF) {
+	if (shaderId == 0xDEADBEEF || shaderId >= 50000) {
 		throw std::runtime_error("Cannot use shader while unloaded");
 	}
 
-	glUseProgram(this->shaderId);
+	GL_CHECK(glUseProgram(this->shaderId));
 }
 
 void Shader::release() const {
-	glUseProgram(0);
+	GL_CHECK(glUseProgram(0));
 }

@@ -13,5 +13,7 @@ namespace Nyanners::Resources::OpenGL {
 
 		void bind() const override;
 		void unbind() const override;
+	private:
+		unsigned int vertexArrayId;
 	};
 }

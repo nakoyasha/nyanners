@@ -22,16 +22,18 @@ namespace Nyanners::Resources {
 		  int externalFormat,
 		  int width,
 		  int height,
-		  const void *imageBuffer
-		) const = 0;
+		  void *imageBuffer
+		) = 0;
 
 		virtual void set_mipmap_enabled(const bool newState) = 0;
 		virtual void use() = 0;
 		virtual void* get_texture_handle() const = 0;
 		virtual void unuse() = 0;
 
-		static Texture* create(const TextureType type);
-		static Texture* create(const TextureType type, const std::filesystem::path& path);
+		static std::shared_ptr<Texture> create(const TextureType type);
+		static std::shared_ptr<Texture> create(const TextureType type, const std::filesystem::path &path);
+		// static Texture* create(const TextureType type);
+		// static Texture* create(const TextureType type, const std::filesystem::path& path);
 	protected:
 		void load_file_into_buffer(const std::filesystem::path& path);
 	private:

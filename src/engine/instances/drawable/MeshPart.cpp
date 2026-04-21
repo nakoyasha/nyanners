@@ -92,7 +92,7 @@ void MeshPart::set_vertices(const DataTypes::Vertices &newVertices) const {
 	glBindVertexArray(vertexArrayID);
 
 	this->mesh->set_vertices(newVertices);
-	this->mesh->vertexBuffer->use();
+	this->mesh->bind();
 
 	glEnableVertexAttribArray(0);
 	glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, sizeof(float) * 4, nullptr);
@@ -100,7 +100,7 @@ void MeshPart::set_vertices(const DataTypes::Vertices &newVertices) const {
 	glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, sizeof(float) * 4, (void*)(sizeof(float) * 2));
 
 	glBindVertexArray(0);
-	this->mesh->vertexBuffer->release();
+	this->mesh->unbind();
 }
 
 void MeshPart::set_indexes(const std::vector<unsigned>& indexes) {

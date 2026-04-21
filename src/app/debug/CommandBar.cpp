@@ -23,5 +23,13 @@ void CommandBar::draw() {
 	};
 	ImGui::PopItemWidth();
 
+	ImGui::Begin("Test Suite");
+	std::string test = "DataModel.World.ena.Color = Color3.new(255, 0, 0, 255)";
+	if (ImGui::Button("Run Set Color Test")) {
+		script->set_source(test);
+		script->run_script();
+	};
+	ImGui::End();
+
 	ImGui::End();
 }

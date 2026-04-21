@@ -1,35 +1,43 @@
 #pragma once
-#include "Drawable.h"
+
+#include "MeshPart.h"
 #include "core/Logger.h"
-#include "instances/Instance.h"
-// #include "SFML/Graphics/Font.hpp"
-// #include "SFML/Graphics/Text.hpp"
+#include "freetype/freetype.h"
+#include "instances/datatypes/UDim2.h"
+
+namespace Nyanners::DataTypes {
+  struct Character {
+    std::shared_ptr<Resources::Texture> texture;
+    glm::ivec2 size;
+    glm::ivec2 bearing;
+    long advance; // next glyph offset
+  };
+}
 
 namespace Nyanners::Instances {
-  class TextLabel : public Instance, public Drawable {
+  class TextLabel : virtual public Instance, public Drawable {
   public:
-    std::string text;
+    std::string text = "hello world";
+    DataTypes::UDim2 uiPosition;
 
-    // TextLabel() : Instance("TextLabel"), font("C:/Windows/Fonts/arial.ttf"), label(font)
-    // {
-      // this->label.setCharacterSize(50);
-      // this->label.setString("hi!");
-    // };
-		TextLabel() : Instance("TextLabel") {};
-
-    bool isLegacy() override {
-      return true;
-    }
-
+		TextLabel();
     void draw() override;
-    // void setText(const std::string& newText);
-    //
-    // std::string getText() const;
-    //
-    // void setFont(const sf::Font& newFont);
+    void update(const float deltaTime) override;
 
+    void set_text(const std::string& newText);
+    void set_position(const glm::vec3 &newPosition) override;
   private:
-    // sf::Text label;
-    // sf::Font font;
+    glm::mat4 projection = glm::ortho(0.0f, 800.0f, 0.0f, 600.0f);
+    FT_Library ft;
+    std::map<char, DataTypes::Character> characters;
+    float scale = 1;
+
+    // TODO: Abstract this away into a "Font" resource
+    FT_Face fontFace;
+    int fontHeight = 48;
+    int fontWidth = 0;
+
+    std::vector<Resources::Mesh> meshes;
+    void generate_character(unsigned char vChar);
   };
 }
