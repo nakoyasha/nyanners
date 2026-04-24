@@ -39,9 +39,7 @@ public:
     }
 
     void start() override;
-
     void on_draw() const override;
-
     void on_update() override;
 
 private:
@@ -53,10 +51,14 @@ private:
 };
 
 void TestApplication::start() {
-    renderService->renderer->set_current_camera(camera);
+    Nyanners::Services::RenderingService::renderer->set_current_camera(camera);
+		RenderingService::renderer->set_depth_test(Core::Rendering::Always);
+		RenderingService::renderer->disable_depth_buffer();
+
     while (renderService->is_window_open()) {
-        this->on_update();
+    		// imgui render
         this->on_draw();
+        this->on_update();
     }
 }
 
@@ -68,18 +70,31 @@ void TestApplication::on_draw() const {
     if (!renderService->is_window_open()) {
         return;
     }
+		debugUI->draw_imgui();
 
-    renderService->unbind_framebuffer();
-    debugUI->draw_imgui();
-
-    renderService->bind_framebuffer(framebuffer);
-    RenderingService::renderer->render(uiService);
+		renderService->bind_framebuffer(framebuffer);
+		// projection has to be recalculated here, otherwise it'd look bad
+		RenderingService::renderer->calculate_projection(framebuffer->size);
+		RenderingService::renderer->clear();
+		// RenderingService::renderer->use_framebuffer();
     RenderingService::renderer->render(world);
+    // RenderingService::renderer->release_framebuffer();
+    RenderingService::renderer->render(uiService);
+		renderService->unbind_framebuffer();
 
     renderService->end_frame();
 }
 
 void TestApplication::on_update() {
+    while (const auto event = renderService->window->pollEvent()) {
+        if (!event.has_value()) {
+            continue;
+        }
+
+        renderService->handle_window_event(event);
+    		EngineService::handle_input(&event.value());
+    }
+
     runService->tick();
 }
 
@@ -97,7 +112,6 @@ int main() {
 
     try {
         auto source = IOService::read_file("assets/autorun.luau");
-        Core::Logger::log(source);
         script->name = "autorun";
         script->set_source(source);
         script->initialize_script();
@@ -114,18 +128,16 @@ int main() {
     renderingService->initialize();
     app->framebuffer = new Nyanners::Resources::FrameBuffer(1280, 720);
 
-    auto label = std::make_shared<Instances::TextLabel>();
-    auto frameCounter = std::make_shared<Debug::FrameCounter>();
-    auto mesh = std::make_shared<Instances::MeshPart>();
-    auto meshTwo = std::make_shared<Instances::MeshPart>();
-    auto skybox = std::make_shared<Instances::Skybox>();
+    const auto label = std::make_shared<Instances::TextLabel>();
+    const auto frameCounter = std::make_shared<Debug::FrameCounter>();
+    const auto mesh = std::make_shared<Instances::MeshPart>();
+    const auto meshTwo = std::make_shared<Instances::MeshPart>();
+    const auto skybox = std::make_shared<Instances::Skybox>();
 
-
-    // mesh->transform = glm::translate(mesh->transform, glm::vec3(0.0f, 5.0f, 0.0f));
-    auto debugWindow = std::make_shared<TestApp::Panels::ExplorerPanel>();
-    auto viewport = std::make_shared<TestApp::Panels::ViewportPanel>(app->framebuffer);
-    auto commandBar = std::make_shared<TestApp::Panels::CommandBar>();
-    auto output = std::make_shared<TestApp::Panels::OutputPanel>();
+    const auto debugWindow = std::make_shared<TestApp::Panels::ExplorerPanel>();
+    const auto viewport = std::make_shared<TestApp::Panels::ViewportPanel>(app->framebuffer);
+    const auto commandBar = std::make_shared<TestApp::Panels::CommandBar>();
+     const auto output = std::make_shared<TestApp::Panels::OutputPanel>();
 
     debugUI->add_child(viewport);
     debugUI->add_child(debugWindow);
@@ -162,26 +174,6 @@ int main() {
 
     mesh->material->set_texture("assets/textures/enanui.png");
     meshTwo->material->set_texture("assets/textures/saa_anyo.png");
-    // meshTwo->texture->set_mipmap_enabled(false);
-
-    // debugWindow->onImmediateRender->connect([renderingService, meshTwo]() {
-    // static float newPosition[3] = {meshTwo->position.x, meshTwo->position.y, meshTwo->position.z};
-    // static glm::vec3 cameraView = glm::vec3(renderingService->view[3]);
-    // static glm::vec3 camRot = glm::vec3(0.0f); // pitch, yaw, roll
-    //
-    // if (ImGui::SliderFloat3("Position", newPosition, -24, 24)) {
-    // 	meshTwo->set_position({
-    // 			newPosition[0],
-    // 			newPosition[1],
-    // 			newPosition[2]
-    // 	});
-    // };
-    //
-    // if (ImGui::SliderFloat3("Camera View", &cameraView.x, -1024, 1024)) {
-    // 	renderingService->view[3][0] = cameraView[0];
-    // }
-
-    // });
 
     world->add_child(skybox);
     world->add_child(meshTwo);
@@ -194,11 +186,7 @@ int main() {
     Core::Logger::log(std::format("Running Test App"));
     app->start();
 
-    // while (runService->isRunning == true && renderingService->is_window_open())
-    // {
-    //   renderingService->render(label);
-    // }
-
     delete app;
     return 0;
 }
+

@@ -36,7 +36,7 @@ void OpenGLMesh::set_vertices(const DataTypes::Vertices &newVertices) {
 		GL_ARRAY_BUFFER,
 		static_cast<GLsizeiptr>(newVertices.size()  * sizeof(float)),
 		newVertices.data(),
-		GL_DYNAMIC_DRAW
+		GL_STATIC_DRAW
 	));
 
 	vertexCount = static_cast<int>(newVertices.size());

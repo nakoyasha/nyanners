@@ -12,7 +12,7 @@ namespace Nyanners::Resources {
 			~FrameBuffer();
 			GLuint get_texture_id();
 
-			void use();
+			void use() const;
 			void release();
 			void resize(const int width, const int height);
 		private:
@@ -20,5 +20,8 @@ namespace Nyanners::Resources {
 			GLuint renderBufferId;
 			GLuint depthBufferId;
 			std::shared_ptr<Resources::Texture> framebufferTexture;
+
+			void construct_framebuffer(const int width, const int height);
+			void check_status();
 		};
 }

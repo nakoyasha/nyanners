@@ -18,10 +18,10 @@ namespace Nyanners::Instances {
 		);
 
 		void update(const float deltaTime) override;
+		void calculate_projection(const DataTypes::Vector2& size);
 
 		glm::mat4 projection;
 	private:
-		void calculate_projection();
 		Nyanners::DataTypes::Vector2 lastSize {0,0};
 		// Camera state
 		glm::vec3 cameraPos   = { 0.0f, 0.0f, 3.0f };

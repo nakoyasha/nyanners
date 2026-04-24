@@ -37,23 +37,45 @@ TextLabel::TextLabel() : Instance("TextLabel") {
 }
 
 void TextLabel::draw() {
+		// make sure the label can render
+		Services::RenderingService::renderer->set_depth_test(Core::Rendering::DepthCheckLevel::Always);
+		Services::RenderingService::renderer->disable_depth_buffer();
+
     // NOTE: this is all mostly taken from learn opengl
     this->material->use();
-    this->material->shader->setMatrix("uProjection", projection);
+    this->material->shader->setMatrix("uProjection", Services::RenderingService::renderer->projection2D);
 
     float globalPositionX = position->x;
     float globalPositionY = position->y;
 
-    for (char iterator : text)
+    int renderedGlyph = 0;
+
+    for (std::string::const_iterator iterator = text.begin(); iterator != text.end(); ++iterator)
     {
-        const auto result = characters.find(iterator);
+        if (renderedGlyph >= maxVisibleGlyph && maxVisibleGlyph != -1) {
+            break;
+        }
+
+        const auto result = characters.find(*iterator);
 
         if (result == characters.end()) {
-            Core::Logger::log(std::format("ERROR: Unknown character {}, will not render!!", iterator));
+            Core::Logger::log(std::format("ERROR: Unknown character {}, will not render!!", *iterator));
             continue;
         }
 
         const auto character = result->second;
+
+        // taken from https://youtu.be/S0PyZKX4lyI, very good watch
+        if (*iterator == '\n') {
+            globalPositionY -= (character.size.y * lineHeight) * scale;
+            globalPositionX = position->x;
+            continue;
+        }
+
+        if (*iterator == ' ') {
+            globalPositionX += (character.advance >> 6) * scale;
+            continue;
+        }
 
         float xPosition = globalPositionX + character.bearing.x * scale;
         float yPosition = globalPositionY - (character.size.y - character.bearing.y) * scale;
@@ -70,10 +92,12 @@ void TextLabel::draw() {
             xPosition,              yPosition,                  0.0f, 1.0f,
             xPosition + glyphWidth, yPosition,                  1.0f, 1.0f,
 
-            xPosition,              yPosition + glyphHeight,    0.0f, 0.0f,
+            // xPosition,              yPosition + glyphHeight,    0.0f, 0.0f,
             xPosition + glyphWidth, yPosition,                  1.0f, 1.0f,
             xPosition + glyphWidth, yPosition + glyphHeight,    1.0f, 0.0f
         });
+
+        mesh->set_indexes({0, 1, 2, 0, 3, 4});
 
         glEnableVertexAttribArray(0);
         glVertexAttribPointer(0, 4, GL_FLOAT, GL_FALSE, 4 * sizeof(float), 0);
@@ -81,15 +105,17 @@ void TextLabel::draw() {
 
         // now advance cursors for next glyph (note that advance is number of 1/64 pixels)
         globalPositionX += (character.advance >> 6) * scale; // bitshift by 6 to get value in pixels (2^6 = 64)
+        renderedGlyph += 1;
     }
 
     this->material->release();
+
+		// reset
+		Services::RenderingService::renderer->enable_depth_buffer();
+		Services::RenderingService::renderer->set_previous_depth_test();
 }
 
 void TextLabel::update(const float deltaTime) {
-    auto windowSize = Services::RenderingService::renderer->get_window_size();
-    projection = glm::ortho(0.0f, static_cast<float>(windowSize.x), 0.0f, static_cast<float>(windowSize.y), 1.0f, 0.0f);
-
     Instance::update(deltaTime);
     uiPosition.recomputeSize();
 }

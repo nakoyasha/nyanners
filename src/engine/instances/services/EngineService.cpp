@@ -12,3 +12,14 @@ void EngineService::panic(const std::string_view &panicMessage) {
   Core::Logger::log(std::format("PANIC! From {}\n {}", location.file_name(), panicMessage));
   std::terminate();
 }
+
+Nyanners::Instances::Signal<Nyanners::DataTypes::Vector2> EngineService::onWindowResized;
+Nyanners::Instances::Signal<const sf::Event*> EngineService::onInternalEvent;
+
+void EngineService::handle_input(const sf::Event *event) {
+  onInternalEvent.fire(event);
+
+  if (const auto *resizedEvent = event->getIf<sf::Event::Resized>()) {
+    onWindowResized.fire({resizedEvent->size.x, resizedEvent->size.y});
+  }
+}

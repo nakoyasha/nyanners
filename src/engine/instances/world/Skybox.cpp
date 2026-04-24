@@ -98,14 +98,17 @@ Skybox::Skybox() : Instance("Skybox") {
 }
 
 void Skybox::draw() {
-	glDepthMask(GL_FALSE);
-	glDepthFunc(GL_LEQUAL);
+	// glDepthFunc(GL_LEQUAL);
+	Services::RenderingService::renderer->set_depth_test(Core::Rendering::LessThanAndEqual);
+	Services::RenderingService::renderer->disable_depth_buffer();
 
 	this->material->use();
 	glBindVertexArray(vertexArrayID);
 	Services::RenderingService::renderer->render_mesh(this->mesh);
 	glBindVertexArray(0);
 
-	glDepthFunc(GL_LESS);
-	glDepthMask(GL_TRUE);
+	// glDepthFunc(GL_LESS);
+	// glDepthMask(GL_TRUE);
+	Services::RenderingService::renderer->set_previous_depth_test();
+	Services::RenderingService::renderer->enable_depth_buffer();
 }

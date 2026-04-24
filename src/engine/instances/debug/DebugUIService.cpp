@@ -12,9 +12,10 @@ DebugUIService::~DebugUIService() {
 	ImGui::DestroyContext();
 }
 
-void DebugUIService::draw_imgui() {
+void DebugUIService::draw_imgui() const {
 	ImGuiIO &io = ImGui::GetIO();
 	const auto size = RenderingService::renderer->get_window_size();
+
 	io.DisplaySize =
 	  ImVec2(static_cast<float>(size.x), static_cast<float>(size.y));
 	ImGui::NewFrame();
@@ -32,14 +33,15 @@ void DebugUIService::draw_imgui() {
 
 		drawable->draw();
 	}
+
+	ImGui::Render();
 }
 
 void DebugUIService::on_frame_end() {
-	ImGui::Render();
 	ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
 }
 
-static ImGuiKey toImGuiKey(sf::Keyboard::Key key) {
+static ImGuiKey toImGuiKey(const sf::Keyboard::Key key) {
 	switch (key) {
 		case sf::Keyboard::Key::Tab:
 			return ImGuiKey_Tab;
@@ -146,7 +148,6 @@ void DebugUIService::handle_event(
 		io.AddKeyEvent(ImGuiKey_LeftSuper, keyPressed->system);
 
 	} else if (const auto *keyReleased = event->getIf<sf::Event::KeyReleased>()) {
-
 		ImGuiKey imguiKey = toImGuiKey(keyReleased->code);
 		if (imguiKey != ImGuiKey_None) {
 			io.AddKeyEvent(imguiKey, false);

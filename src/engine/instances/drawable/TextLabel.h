@@ -19,6 +19,7 @@ namespace Nyanners::Instances {
   public:
     std::string text = "hello world";
     DataTypes::UDim2 uiPosition;
+    int maxVisibleGlyph = -1;
 
 		TextLabel();
     void draw() override;
@@ -27,17 +28,17 @@ namespace Nyanners::Instances {
     void set_text(const std::string& newText);
     void set_position(const glm::vec3 &newPosition) override;
   private:
-    glm::mat4 projection = glm::ortho(0.0f, 800.0f, 0.0f, 600.0f);
     FT_Library ft;
     std::map<char, DataTypes::Character> characters;
     float scale = 1;
+    float lineHeight = 1.3;
 
     // TODO: Abstract this away into a "Font" resource
     FT_Face fontFace;
     int fontHeight = 48;
     int fontWidth = 0;
 
-    std::vector<Resources::Mesh> meshes;
+    DataTypes::Vertices vertices;
     void generate_character(unsigned char vChar);
   };
 }

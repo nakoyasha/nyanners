@@ -8,24 +8,46 @@
 #include "instances/datatypes/Vector.h"
 #include "resources/FrameBuffer.h"
 
+namespace Nyanners::Core::Rendering {
+	enum DepthCheckLevel {
+		Always = 0,
+		Never = 1,
+		Equal = 2,
+		Less = 3,
+		Greater = 4,
+		LessThanAndEqual = 5,
+		GreaterThanOrEqual = 6,
+		NotEqual = 7,
+	};
+}
+
 namespace Nyanners::Core {
+
 	class Renderer {
 	public:
 		virtual ~Renderer() = default;
-		Resources::FrameBuffer* framebuffer;
+		Resources::FrameBuffer* framebuffer = nullptr;
 		std::shared_ptr<Instances::Camera> camera;
+		glm::mat4 projection2D = glm::ortho(0.0f, 800.0f, 0.0f, 600.0f);
 
 		virtual void initialize() = 0;
 		virtual void start_frame() = 0;
+		virtual void clear() = 0;
 		virtual void render(const std::shared_ptr<Instances::Instance> &instanceToRender) = 0;
 		virtual void set_framerate_cap(const unsigned int framerate) = 0;
-		virtual void bind_framebuffer(Resources::FrameBuffer* newFrameBuffer) = 0;
 		virtual void set_current_camera(std::shared_ptr<Instances::Camera> newCamera) {
 			camera = std::move(newCamera);
 		}
+		virtual void bind_framebuffer(Resources::FrameBuffer* newFrameBuffer) = 0;
+		virtual void calculate_projection(const DataTypes::Vector2& size) = 0;
 		virtual void unbind_framebuffer() = 0;
 		virtual void render_mesh(const Resources::Mesh* mesh) = 0;
 		virtual void render_text(const std::string &text, float x, float y, const DataTypes::Color3 &color) = 0;
+		virtual void set_depth_test(const Rendering::DepthCheckLevel&) = 0;
+		virtual void set_previous_depth_test() = 0;
+		virtual void enable_depth_buffer() = 0;
+		virtual void disable_depth_buffer() = 0;
+
 		virtual void handle_event(const sf::Event* event) = 0;
 		virtual void end_frame() = 0;
 		virtual void shutdown() = 0;

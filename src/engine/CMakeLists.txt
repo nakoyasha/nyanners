@@ -16,7 +16,6 @@ add_subdirectory(third_party/glm EXCLUDE_FROM_ALL)
 add_subdirectory(third_party/fast_obj EXCLUDE_FROM_ALL)
 add_subdirectory(third_party/freetype EXCLUDE_FROM_ALL)
 
-
 add_library(Nyanners
         Application.h
         Application.cpp
@@ -111,6 +110,7 @@ add_library(Nyanners
         utils/glCheck.h
         instances/debug/FrameCounter.cpp
         instances/debug/FrameCounter.h
+        scripting/reflections/ReflectionTypes.h
 )
 
 add_library(

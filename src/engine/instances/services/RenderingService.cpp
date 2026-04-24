@@ -42,7 +42,7 @@ RenderingService::RenderingService(
 		);
 	}
 
-	window->setFramerateLimit(3000);
+	window->setFramerateLimit(5000);
 
 	// glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 4);
 	// glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 6);
@@ -57,6 +57,7 @@ RenderingService::RenderingService(
 
 	renderer = Core::Renderer::create(window);
 }
+
 void RenderingService::initialize() {
 	renderer->initialize();
 }
@@ -66,11 +67,6 @@ void RenderingService::start_frame() {
 	const auto currentFPS = 1.0f / timeSinceLastFrame;
 
 	fps = currentFPS;
-
-	while (const auto event = window->pollEvent()) {
-		this->handle_window_event(event);
-	}
-
 	renderer->start_frame();
 }
 

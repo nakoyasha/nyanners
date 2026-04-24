@@ -1,15 +1,15 @@
 #include "Camera.h"
 #include "Application.h"
+#include "core/Logger.h"
 #include "services/RenderingService.h"
 
 using namespace Nyanners::Instances;
 
 Camera::Camera() : Instance("Camera") {
-    this->calculate_projection();
+    // this->calculate_projection();
 }
 
 void Camera::update(const float deltaTime) {
-    this->calculate_projection();
     float velocity = moveSpeed * deltaTime;
 
     if (sf::Keyboard::isKeyPressed(sf::Keyboard::Key::W))
@@ -31,13 +31,12 @@ void Camera::update(const float deltaTime) {
     Instance::update(deltaTime);
 }
 
-void Camera::calculate_projection() {
-    const auto size = Services::RenderingService::renderer->get_window_size();
-
-    if (lastSize.x == size.x || lastSize.y == size.y) {
+void Camera::calculate_projection(const DataTypes::Vector2& size) {
+    if (lastSize.x == size.x && lastSize.y == size.y) {
         return;
     }
 
+		Core::Logger::log(std::format("Camera size updated to {},{}", size.x, size.y));
     projection = glm::perspective(
         glm::radians(45.0f),
         static_cast<float>(size.x) / static_cast<float>(size.y),

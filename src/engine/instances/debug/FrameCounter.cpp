@@ -12,11 +12,11 @@ FrameCounter::FrameCounter() : Instance("FrameCounter") {
     renderService = Application::instance()->currentModel->get_service<Services::RenderingService>("RenderingService");
 }
 
-void FrameCounter::update(const float deltaTime) {
+void FrameCounter::draw() {
     const auto fps = renderService->fps;
     const auto windowSize = renderService->renderer->get_window_size();
     this->set_text(std::format("FPS: {}", fps));
-    this->set_position({0, windowSize.y / 1.1, 0});
+    this->set_position({0, windowSize.y - 120, 0});
 
-    TextLabel::update(deltaTime);
+    TextLabel::draw();
 }

@@ -42,6 +42,6 @@ namespace Nyanners::Services
     private:
     		static void handle_error(const std::shared_ptr<Instance> whereItHappened);
         sf::Clock fpsClock;
-    		bool inFocus = false;
+    		bool inFocus = true;
     };
 }

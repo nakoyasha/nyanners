@@ -42,7 +42,7 @@ void OpenGLRenderer::initialize() {
     glEnable(GL_BLEND);
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
     glEnable(GL_DEPTH_TEST);
-    glDepthMask(GL_TRUE);
+		set_depth_test(Core::Rendering::Less);
 
     ImGui::CreateContext();
     ImGui::StyleColorsDark();
@@ -57,16 +57,19 @@ void OpenGLRenderer::initialize() {
 }
 
 void OpenGLRenderer::start_frame() {
-    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+		clear();
+}
+
+void OpenGLRenderer::clear() {
+	GL_CHECK(glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT));
 }
 
 void OpenGLRenderer::render(
     const std::shared_ptr<Instances::Instance> &instanceToRender
 ) {
-    if (framebuffer != nullptr) {
-        glDisable(GL_DEPTH_TEST);
-        framebuffer->use();
-    }
+		// if (framebuffer != nullptr) {
+		// 	this->framebuffer->use();
+		// }
 
     // we can't render without a camera
     if (camera == nullptr) {
@@ -87,10 +90,9 @@ void OpenGLRenderer::render(
         handle_error(instanceToRender);
     }
 
-    if (framebuffer != nullptr) {
-        framebuffer->release();
-        glEnable(GL_DEPTH_TEST);
-    }
+	// if (framebuffer != nullptr) {
+	// 	this->framebuffer->release();
+	// }
 }
 
 void OpenGLRenderer::set_framerate_cap(const unsigned int framerate) {
@@ -102,16 +104,27 @@ void OpenGLRenderer::bind_framebuffer(Resources::FrameBuffer *newFrameBuffer) {
     }
 
     this->framebuffer = newFrameBuffer;
-    const auto size = this->get_window_size();
-    glViewport(0, 0, size.x, size.y);
+		newFrameBuffer->use();
+    // const auto size = this->get_window_size();
+    GL_CHECK(glViewport(0, 0, newFrameBuffer->size.x, newFrameBuffer->size.y));
 }
 
 void OpenGLRenderer::unbind_framebuffer() {
     if (this->framebuffer != nullptr) {
         this->framebuffer->release();
         this->framebuffer = nullptr;
-        delete this->framebuffer;
+        // delete this->framebuffer;
     }
+
+		const auto size = this->get_window_size();
+		GL_CHECK(glViewport(0, 0, size.x, size.y));
+}
+
+void OpenGLRenderer::calculate_projection(const DataTypes::Vector2 &size) {
+	camera->calculate_projection(framebuffer->size);
+
+	// TODO: make a child Camera class for ortographic? maybe put this into LayerCollector?
+	projection2D = glm::ortho(0.0f, static_cast<float>(size.x), 0.0f, static_cast<float>(size.y), 1.0f, 0.0f);
 }
 
 void OpenGLRenderer::render_mesh(const Resources::Mesh *mesh) {
@@ -132,6 +145,52 @@ void OpenGLRenderer::render_text(const std::string &text, float x, float y, cons
 }
 
 void OpenGLRenderer::handle_event(const sf::Event *event) {
+}
+void OpenGLRenderer::set_depth_test(const Rendering::DepthCheckLevel& level) {
+	auto currentLevel = this->lastDepthLevel;
+	this->lastDepthLevel = currentLevel;
+
+	switch (level) {
+		case Rendering::DepthCheckLevel::Always:
+			GL_CHECK(glDepthFunc(GL_ALWAYS));
+			break;
+		case Rendering::DepthCheckLevel::Never:
+			GL_CHECK(glDepthFunc(GL_NEVER));
+			break;
+		case Rendering::DepthCheckLevel::Less:
+			GL_CHECK(glDepthFunc(GL_LESS));
+			break;
+		case Rendering::DepthCheckLevel::Greater:
+			GL_CHECK(glDepthFunc(GL_GREATER));
+			break;
+		case Rendering::DepthCheckLevel::Equal:
+			GL_CHECK(glDepthFunc(GL_EQUAL));
+			break;
+		case Rendering::GreaterThanOrEqual:
+			GL_CHECK(glDepthFunc(GL_GEQUAL));
+			break;
+		case Rendering::LessThanAndEqual:
+			GL_CHECK(glDepthFunc(GL_LEQUAL));
+			break;
+		case Rendering::NotEqual:
+			GL_CHECK(glDepthFunc(GL_NOTEQUAL));
+			break;
+		default:
+			GL_CHECK(glDepthFunc(GL_ALWAYS));
+			break;
+	}
+}
+
+void OpenGLRenderer::set_previous_depth_test() {
+	set_depth_test(this->lastDepthLevel);
+}
+
+void OpenGLRenderer::enable_depth_buffer() {
+	glDepthMask(GL_TRUE);
+}
+
+void OpenGLRenderer::disable_depth_buffer() {
+	glDepthMask(GL_FALSE);
 }
 
 void OpenGLRenderer::end_frame() {
