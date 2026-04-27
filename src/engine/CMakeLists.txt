@@ -111,6 +111,8 @@ add_library(Nyanners
         instances/debug/FrameCounter.cpp
         instances/debug/FrameCounter.h
         scripting/reflections/ReflectionTypes.h
+        instances/services/user/InputService.cpp
+        instances/services/user/InputService.h
 )
 
 add_library(
