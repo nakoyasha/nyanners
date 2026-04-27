@@ -14,14 +14,14 @@ OpenGLTexture::OpenGLTexture(const TextureType type) {
 	}
 
 	GL_CHECK(glGenTextures(1, &textureId));
-	GL_CHECK(glBindTexture(textureType, textureId));
+	OpenGLTexture::use();
 
-	GL_CHECK(glTexParameteri(textureType, GL_TEXTURE_MAG_FILTER, GL_LINEAR));
-	GL_CHECK(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR));
-	GL_CHECK(glTexParameteri(textureType, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE));
-	GL_CHECK(glTexParameteri(textureType, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE));
+	OpenGLTexture::set_texture_parameter(MagnificationFilter, Linear);
+	OpenGLTexture::set_texture_parameter(MinificationFilter, Linear);
+	OpenGLTexture::set_texture_parameter(TextureFilterParameter::TextureWrapCoordinateS, ClampToEdge);
+	OpenGLTexture::set_texture_parameter(TextureFilterParameter::TextureWrapCoordinateT, ClampToEdge);
 
-	GL_CHECK(glBindTexture(textureType, 0));
+	OpenGLTexture::unuse();
 }
 
 OpenGLTexture::OpenGLTexture(const TextureType type, const std::filesystem::path &path) : OpenGLTexture(type) {
@@ -63,6 +63,44 @@ void OpenGLTexture::set_mipmap_enabled(const bool newState) {
 	}
 
 	useMipmaps = newState;
+}
+
+
+int getOpenGLWrapMode(const TextureWrapMode& mode) {
+	switch (mode) {
+		case TextureWrapMode::Linear:
+			return GL_LINEAR;
+		case TextureWrapMode::Nearest:
+			return GL_NEAREST;
+		case TextureWrapMode::ClampToEdge:
+			return GL_CLAMP_TO_EDGE;
+		default:
+			return GL_LINEAR;
+	}
+}
+
+int getOpenGLFilterParameter(const TextureFilterParameter& parameter) {
+	switch (parameter) {
+		case TextureFilterParameter::TextureWrapCoordinateT:
+			return GL_TEXTURE_WRAP_T;
+		case TextureFilterParameter::TextureWrapCoordinateS:
+			return GL_TEXTURE_WRAP_S;
+		case TextureFilterParameter::MinificationFilter:
+			return GL_TEXTURE_MIN_FILTER;
+		case TextureFilterParameter::MagnificationFilter:
+			return GL_TEXTURE_MAG_FILTER;
+		default:
+			throw std::invalid_argument("Cannot find a compatible OpenGL filter parameter");
+	}
+}
+
+void OpenGLTexture::set_texture_parameter(
+  const TextureFilterParameter &parameter, const TextureWrapMode &wrapMode
+) {
+	auto glParameter = getOpenGLFilterParameter(parameter);
+	auto glWrap = getOpenGLWrapMode(wrapMode);
+
+	GL_CHECK(glTexParameteri(textureType, glParameter, glWrap));
 }
 
 void OpenGLTexture::use() {
