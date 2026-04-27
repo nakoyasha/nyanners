@@ -43,7 +43,9 @@ void TextLabel::draw() {
 
     // NOTE: this is all mostly taken from learn opengl
     this->material->use();
-    this->material->shader->setMatrix("uProjection", Services::RenderingService::renderer->projection2D);
+
+		this->material->shader->setMatrix("uProjection", Services::RenderingService::renderer->projection2D);
+		this->material->shader->setBool("uUseScreenSpace", !useWorldSpace);
 
     float globalPositionX = position->x;
     float globalPositionY = position->y;
@@ -101,6 +103,7 @@ void TextLabel::draw() {
 
         glEnableVertexAttribArray(0);
         glVertexAttribPointer(0, 4, GL_FLOAT, GL_FALSE, 4 * sizeof(float), 0);
+    		this->material->use();
         Services::RenderingService::renderer->render_mesh(mesh);
 
         // now advance cursors for next glyph (note that advance is number of 1/64 pixels)
@@ -148,11 +151,11 @@ void TextLabel::generate_character(unsigned char vChar) {
         fontFace->glyph->bitmap.rows,
         fontFace->glyph->bitmap.buffer
         );
-    // TODO: abstract this too, somehow
-    GL_CHECK(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE));
-    GL_CHECK(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE));
-    GL_CHECK(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR));
-    GL_CHECK(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR));
+
+		texture->set_texture_parameter(TextureWrapCoordinateT, ClampToEdge);
+		texture->set_texture_parameter(TextureWrapCoordinateS, ClampToEdge);
+		texture->set_texture_parameter(MinificationFilter, Linear);
+		texture->set_texture_parameter(MagnificationFilter, Linear);
 
     DataTypes::Character character = {
         texture,

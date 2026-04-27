@@ -20,6 +20,7 @@ namespace Nyanners::Instances {
     std::string text = "hello world";
     DataTypes::UDim2 uiPosition;
     int maxVisibleGlyph = -1;
+  	bool useWorldSpace = false;
 
 		TextLabel();
     void draw() override;
