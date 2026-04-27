@@ -1,11 +1,11 @@
 #include "Application.h"
 #include "core/Logger.h"
 #include "instances/debug/DebugUIService.h"
-#include "instances/drawable/TextLabel.h"
 #include "instances/services/EngineService.h"
 #include "instances/services/RenderingService.h"
 #include "instances/services/RunService.h"
 #include "instances/services/SelectionService.h"
+#include "instances/services/user/InputService.h"
 #include "instances/services/UIService.h"
 #include "instances/world/World.h"
 
@@ -24,6 +24,7 @@ Nyanners::Application::Application(const DataTypes::Vector2 size, const std::str
 	model->add_child(std::make_shared<Services::DebugUIService>());
   model->add_child(std::make_shared<Services::UIService>());
   model->add_child(std::make_shared<Services::World>());
+	model->add_child(std::make_shared<Services::InputService>());
 
   Services::ReflectionService::register_reflections();
 
