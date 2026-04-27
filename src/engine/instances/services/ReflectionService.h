@@ -2,6 +2,7 @@
 #include "lua.h"
 #include "lualib.h"
 #include "instances/Instance.h"
+#include "scripting/reflections/ReflectionTypes.h"
 #include <functional>
 #include <map>
 #include <variant>
@@ -22,11 +23,14 @@ enum ReflectionPropertyType
 using ReflectionGetter = std::function<int(const Nyanners::Instances::Instance*, lua_State*)>;
 using ReflectionSetter = std::function<void(Nyanners::Instances::Instance*, lua_State*)>;
 using ReflectionConstructor = std::function<std::shared_ptr<Nyanners::Instances::Instance>()>;
+using InstanceFlags = std::array<Nyanners::Scripting::Reflection::ReflectionInstanceFlags, 3>;
+using PropertyFlags = std::array<Nyanners::Scripting::Reflection::ReflectionPropertyFlags, 3>;
 
 struct ReflectionProperty {
   const std::string name;
   const bool readOnly = false;
   const ReflectionPropertyType type = ReflectionPropertyType::Unknown;
+	const PropertyFlags flags;
 
   const ReflectionGetter get;
   const ReflectionSetter set;
@@ -45,7 +49,7 @@ struct ReflectionMethod {
 struct ReflectionClass {
   const std::string className = "Instance";
   const std::string base = "Instance";
-  const bool isService = false;
+	const InstanceFlags flags;
 
   const ReflectionConstructor constructor;
   std::vector<ReflectionProperty> properties;
@@ -66,7 +70,8 @@ namespace Nyanners::Services {
     ReflectionService() : Instance("ReflectionService") {};
 
     static void reflect_class(lua_State* context, const std::shared_ptr<Instance>& instance);
-    static ReflectionClass create_reflection(const ReflectionClass& descriptor);
+    static ReflectionClass &
+		create_reflection(const ReflectionClass &descriptor);
   	static void add_property(ReflectionClass& descriptor, const ReflectionProperty& property);
   	static void add_method(ReflectionClass& descriptor, const ReflectionMethod& method);
     static ReflectionInstance* get_instance_from_context(lua_State* context, const int id);

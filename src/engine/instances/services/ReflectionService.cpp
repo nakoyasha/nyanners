@@ -13,6 +13,7 @@
 #include "scripting/data/UserdataTags.h"
 #include "scripting/reflections/DataTypes.h"
 #include "scripting/reflections/ReflectionTypes.h"
+#include <algorithm>
 #include <ranges>
 
 using namespace Nyanners::Services;
@@ -140,7 +141,7 @@ void ReflectionService::reflect_class(
 	lua_setmetatable(context, -2);
 }
 
-ReflectionClass
+ReflectionClass &
 ReflectionService::create_reflection(const ReflectionClass &descriptor) {
 	auto existingClass = classes.find(descriptor.className);
 
@@ -148,9 +149,11 @@ ReflectionService::create_reflection(const ReflectionClass &descriptor) {
 		return existingClass->second;
 	}
 
-	classes.insert(std::make_pair(descriptor.className, descriptor));
+	const auto reflectionClass = std::make_pair(descriptor.className, descriptor);
 
-	return descriptor;
+	const auto [iterator, _] = classes.emplace(reflectionClass);
+
+	return iterator->second;
 }
 void ReflectionService::add_property(
   ReflectionClass &descriptor, const ReflectionProperty &property
@@ -228,9 +231,8 @@ bool ReflectionService::handle_new_value(
 
 	for (const auto &property : descriptor.properties) {
 		if (property.name == propertyName) {
-			if (property.readOnly == true) {
+			if (std::ranges::contains(property.flags, Scripting::Reflection::ReflectionPropertyFlags::ReadOnly)) {
 				luaL_error(context, "Cannot modify a read-only property");
-				return false;
 			}
 
 			property.set(instance->pointer.get(), context);
@@ -318,7 +320,7 @@ void ReflectionService::register_reflections() {
 	create_reflection(
 		{.className = "Instance",
 		 .base = "<<root>>",
-		 .isService = false,
+			.flags = {Scripting::Reflection::Service},
 		 .constructor =
 			 []() {
 				 throw std::runtime_error("Instance is not a creatable object");
@@ -412,7 +414,7 @@ void ReflectionService::register_reflections() {
 	create_reflection(
 		{.className = "DataModel",
 		 .base = "Instance",
-		 .isService = true,
+			.flags = {Scripting::Reflection::Service},
 		 .constructor =
 			 []() {
 				 throw std::runtime_error(
@@ -444,7 +446,7 @@ void ReflectionService::register_reflections() {
 	create_reflection(
 		{.className = "UIService",
 		 .base = "Instance",
-		 .isService = true,
+			.flags = {Scripting::Reflection::Service},
 		 .constructor = []() { return std::make_shared<UIService>(); },
 		 .properties = {}}
 	);
@@ -452,7 +454,7 @@ void ReflectionService::register_reflections() {
 	create_reflection(
 		{.className = "RunService",
 		 .base = "Instance",
-		 .isService = true,
+			.flags = {Scripting::Reflection::Service},
 		 .constructor =
 			 []() {
 				 throw std::runtime_error("Cannot create an instance of RunService");
@@ -484,7 +486,7 @@ void ReflectionService::register_reflections() {
 	create_reflection(
 		{.className = "RenderingService",
 		 .base = "Instance",
-		 .isService = true,
+			.flags = {Scripting::Reflection::Service},
 		 .constructor =
 			 []() {
 				 throw std::runtime_error(
@@ -494,8 +496,8 @@ void ReflectionService::register_reflections() {
 			 },
 		 .properties = {
 			 {.name = "fps",
-				.readOnly = true,
 				.type = ReflectionPropertyType::Number,
+				.flags = {Scripting::Reflection::ReflectionPropertyFlags::ReadOnly},
 				.get = [](const Instance *instance, lua_State *context) {
 					const auto render = static_cast<const RenderingService *>(instance);
 					lua_pushnumber(context, render->fps);
@@ -507,7 +509,7 @@ void ReflectionService::register_reflections() {
 	create_reflection(
 		{.className = "IOService",
 		 .base = "Instance",
-		 .isService = true,
+			.flags = {Scripting::Reflection::Service},
 		 .constructor = []() { return std::make_shared<IOService>(); },
 		 .methods = {
 			 {.name = "read_file",
@@ -531,7 +533,7 @@ void ReflectionService::register_reflections() {
 
 	create_reflection(
 		{.className = "EngineService",
-		 .isService = true,
+			.flags = {Scripting::Reflection::Service},
 		 .constructor = []() { return std::make_shared<EngineService>(); },
 		 .properties = {},
 		 .methods = {
@@ -549,7 +551,7 @@ void ReflectionService::register_reflections() {
 		{
 			.className = "TextLabel",
 			.base = "Drawable",
-		 .isService = false,
+			.flags = {},
 		 .properties = {
 			 {.name = "Text",
 				.type = ReflectionPropertyType::String,
@@ -592,8 +594,9 @@ void ReflectionService::register_reflections() {
 	);
 
 	create_reflection(
-		{.className = "Signal",
-		 .isService = false,
+		{
+			.className = "Signal",
+			.flags = {},
 		 .methods = {
 			 {.name = "Connect",
 				.method =
@@ -613,16 +616,20 @@ void ReflectionService::register_reflections() {
 	);
 
 	create_reflection(
-		{.className = "World", .isService = true, .properties = {}, .methods = {}}
+		{
+			.className = "World",
+			.flags = {Scripting::Reflection::ReflectionInstanceFlags::Service},
+			.properties = {},
+			.methods = {}
+		}
 	);
 
 	auto drawableReflection = create_reflection(
 		{.className = "Drawable",
 		 .base = "Instance",
-		 .isService = false,
+			.flags = {},
 		 .properties =
 			 {{.name = "Color",
-				 .readOnly = false,
 				 .type = ReflectionPropertyType::UserData,
 				 .get =
 					 [](const Instance *instance, lua_State *context) {
@@ -630,8 +637,8 @@ void ReflectionService::register_reflections() {
 							 dynamic_cast<const Instances::Drawable *>(instance);
 
 						 Scripting::Reflection::push_color3(
-							 context, *drawable->material->color
-						 );
+		           context, *drawable->material->color
+		         );
 						 return 1;
 					 },
 				 .set =
@@ -662,7 +669,6 @@ void ReflectionService::register_reflections() {
 						 return 1;
 					 }},
 				{.name = "Position",
-				 .readOnly = false,
 				 .type = ReflectionPropertyType::UserData,
 				 .get =
 					 [](const Instance *instance, lua_State *context) {
@@ -692,18 +698,29 @@ void ReflectionService::register_reflections() {
 	create_reflection({
 		.className = "MeshPart",
 		.base = "Drawable",
-		.isService = false,
+		.flags = {},
 		.properties = {},
 		.methods = {},
 	});
 
-	create_reflection({
-		.className = "FrameCounter",
-		.base = "Drawable",
-		.isService = false,
-		.properties = {},
-		.methods = {},
-	});
+	// auto& frameCounter = create_reflection({
+	// 	.className = "FrameCounter",
+	// 	.base = "Drawable",
+	// 	.isService = false,
+	// 	.properties = {},
+	// 	.methods = {},
+	// });
+	//
+	// add_property(frameCounter, {
+	// 	.name = "<invalid>",
+	// 	.readOnly = true,
+	// 	.type = String,
+	// 	.get =
+	// 		[](const Instance *instance, lua_State *context) {
+	// 			lua_pushstring(context, "hi");
+	// 			return 1;
+	// 		},
+	// });
 
 
 	// auto* instance = create_reflection("FrameCounter",
