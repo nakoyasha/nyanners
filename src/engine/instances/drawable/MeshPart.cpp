@@ -26,54 +26,40 @@ void MeshPart::update(const float deltaTime) {
 };
 
 void MeshPart::draw() {
-	glBindVertexArray(vertexArrayID);
 	this->material->use();
 	Services::RenderingService::renderer->render_mesh(this->mesh);
 	this->material->release();
-	glBindVertexArray(0);
 }
 
 void MeshPart::load_from_obj_file(const std::filesystem::path &path) {
-	fastObjMesh *mesh = fast_obj_read(path.string().c_str());
+	fastObjMesh *objMesh = fast_obj_read(path.string().c_str());
 
-	if (mesh == nullptr) {
+	if (objMesh == nullptr) {
 		Core::Logger::log(std::format("Loading of mesh {} failed", path.string()));
 		return;
 	}
 
-	glBindVertexArray(vertexArrayID);
-
 	std::vector<float> newVertices;
-	newVertices.reserve(mesh->index_count * 3);
+	newVertices.reserve(objMesh->index_count * 3);
+	std::vector<unsigned int> newIndices;
 
 	unsigned int indexOffset = 0;
 
-	for (unsigned int f = 0; f < mesh->face_count; ++f) {
-		unsigned int fv = mesh->face_vertices[f];
+	for (unsigned int faceIndex = 0; faceIndex < objMesh->face_count; ++faceIndex) {
+		const unsigned int face = objMesh->face_vertices[faceIndex];
 
-		// Expect triangles
-		if (fv != 3) {
-			// handle error or triangulate
-			continue;
-		}
-
-		for (unsigned int v = 0; v < 3; ++v) {
-			const fastObjIndex &idx = mesh->indices[indexOffset + v];
-			const float *p = &mesh->positions[idx.p * 3];
+		for (unsigned int vertexIndex = 0; vertexIndex < 3; ++vertexIndex) {
+			const fastObjIndex& idx = objMesh->indices[indexOffset + vertexIndex];
+			const float* p = &objMesh->positions[idx.p * 3];
 
 			// position
 			newVertices.push_back(p[0]);
 			newVertices.push_back(p[1]);
 			newVertices.push_back(p[2]);
 
-			// color
-			// newVertices.push_back(1.0f);
-			// newVertices.push_back(1.0f);
-			// newVertices.push_back(1.0f);
-			//
-			// // texcoord
+			// uv
 			if (idx.t != -1) {
-				const float *t = &mesh->texcoords[idx.t * 2];
+				const float* t = &objMesh->texcoords[idx.t * 2];
 				newVertices.push_back(t[0]);
 				newVertices.push_back(1.0f - t[1]); // OBJ V flip
 			} else {
@@ -82,24 +68,34 @@ void MeshPart::load_from_obj_file(const std::filesystem::path &path) {
 			}
 		}
 
-		indexOffset += fv;
+		indexOffset += face;
 	}
 
 	this->set_vertices(newVertices);
+	this->mesh->bind();
+
+	// TODO: abstract
+	glEnableVertexAttribArray(0);
+	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(float) * 5, nullptr);
+	glEnableVertexAttribArray(1);
+	glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, sizeof(float) * 5, (void*)(sizeof(float) * 3));
+	this->mesh->unbind();
+
+	fast_obj_destroy(objMesh);
 }
 
 void MeshPart::set_vertices(const DataTypes::Vertices &newVertices) const {
-	glBindVertexArray(vertexArrayID);
+	// glBindVertexArray(vertexArrayID);
 
-	this->mesh->set_vertices(newVertices);
 	this->mesh->bind();
+	this->mesh->set_vertices(newVertices);
 
 	glEnableVertexAttribArray(0);
 	glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, sizeof(float) * 4, nullptr);
 	glEnableVertexAttribArray(1);
 	glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, sizeof(float) * 4, (void*)(sizeof(float) * 2));
 
-	glBindVertexArray(0);
+	// glBindVertexArray(0);
 	this->mesh->unbind();
 }
 
