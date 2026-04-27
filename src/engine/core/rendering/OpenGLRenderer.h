@@ -12,14 +12,10 @@ namespace Nyanners::Core {
 			void start_frame() override;
 			void clear() override;
 			void render(const std::shared_ptr<Instances::Instance> &instanceToRender) override;
-			void set_framerate_cap(const unsigned int framerate) override;
 			void bind_framebuffer(Resources::FrameBuffer* newFrameBuffer) override;
 			void unbind_framebuffer() override;
-			// void use_framebuffer() override;
-			// void release_framebuffer() override;
-			void calculate_projection(const DataTypes::Vector2& size);
+			void calculate_projection(const DataTypes::Vector2& size) override;
 			void render_mesh(const Resources::Mesh* mesh) override;
-			void render_text(const std::string &text, float x, float y, const DataTypes::Color3 &color) override;
 			void handle_event(const sf::Event* event) override;
 			void set_depth_test(const Rendering::DepthCheckLevel& level) override;
 			void set_previous_depth_test() override;
