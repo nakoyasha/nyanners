@@ -11,6 +11,7 @@ OpenGLMaterial::OpenGLMaterial() {
 
 	shader->use();
 	shader->setInt("uTexture", 0);
+	shader->setBool("uTextureSet", false);
 }
 
 void OpenGLMaterial::use() {
@@ -35,10 +36,15 @@ void OpenGLMaterial::set_texture(std::shared_ptr<Resources::Texture> newTexture)
 	texture->unuse();
 	texture = newTexture;
 	texture->use();
+
+	shader->use();
+	shader->setBool("uTextureSet", true);
 }
 
 void OpenGLMaterial::set_texture(const std::filesystem::path &newTexturePath) {
 	texture->load_from_file(newTexturePath);
+	shader->use();
+	shader->setBool("uTextureSet", true);
 }
 
 void OpenGLMaterial::set_shader(Resources::Shader *newShader) {
