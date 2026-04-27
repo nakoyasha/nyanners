@@ -182,14 +182,16 @@ void ExplorerPanel::draw() {
 							};
 
 							if (ImGui::ColorEdit4("##ColorPicker", color_float)) {
-								auto newColor = std::make_unique<Nyanners::DataTypes::Color3>(
-										static_cast<int>(std::round(color_float[0] * 255.0f)),
-										static_cast<int>(std::round(color_float[1] * 255.0f)),
-										static_cast<int>(std::round(color_float[2] * 255.0f)),
-										static_cast<int>(std::round(color_float[3] * 255.0f))
+								Nyanners::DataTypes::Color3 newColor(
+										static_cast<int>(color_float[0] * 255.0f),
+										static_cast<int>(color_float[1] * 255.0f),
+										static_cast<int>(color_float[2] * 255.0f),
+										static_cast<int>(color_float[3] * 255.0f)
 								);
 
-								Nyanners::Scripting::Reflection::push_color3(script->context, *newColor);
+								Nyanners::Scripting::Reflection::push_color3(
+								  script->context, newColor
+								);
 								property.set(selection.get(), script->context);
 								Nyanners::Core::Logger::log(std::format("{},{},{}.{}", color3->r, color3->g, color3->b, color3->alpha));
 							}
