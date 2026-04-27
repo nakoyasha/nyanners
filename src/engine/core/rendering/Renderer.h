@@ -34,7 +34,6 @@ namespace Nyanners::Core {
 		virtual void start_frame() = 0;
 		virtual void clear() = 0;
 		virtual void render(const std::shared_ptr<Instances::Instance> &instanceToRender) = 0;
-		virtual void set_framerate_cap(const unsigned int framerate) = 0;
 		virtual void set_current_camera(std::shared_ptr<Instances::Camera> newCamera) {
 			camera = std::move(newCamera);
 		}
@@ -42,7 +41,6 @@ namespace Nyanners::Core {
 		virtual void calculate_projection(const DataTypes::Vector2& size) = 0;
 		virtual void unbind_framebuffer() = 0;
 		virtual void render_mesh(const Resources::Mesh* mesh) = 0;
-		virtual void render_text(const std::string &text, float x, float y, const DataTypes::Color3 &color) = 0;
 		virtual void set_depth_test(const Rendering::DepthCheckLevel&) = 0;
 		virtual void set_previous_depth_test() = 0;
 		virtual void enable_depth_buffer() = 0;
