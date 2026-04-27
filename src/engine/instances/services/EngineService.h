@@ -15,6 +15,6 @@ namespace Nyanners::Services {
     static Instances::Signal<DataTypes::Vector2> onWindowResized;
     static Instances::Signal<const sf::Event*> onInternalEvent;
 
-    static void handle_input(const sf::Event* event);
+    static void handle_event(const sf::Event* event);
   };
 }

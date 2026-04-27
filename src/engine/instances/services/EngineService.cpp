@@ -16,7 +16,7 @@ void EngineService::panic(const std::string_view &panicMessage) {
 Nyanners::Instances::Signal<Nyanners::DataTypes::Vector2> EngineService::onWindowResized;
 Nyanners::Instances::Signal<const sf::Event*> EngineService::onInternalEvent;
 
-void EngineService::handle_input(const sf::Event *event) {
+void EngineService::handle_event(const sf::Event *event) {
   onInternalEvent.fire(event);
 
   if (const auto *resizedEvent = event->getIf<sf::Event::Resized>()) {
