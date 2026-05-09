@@ -4,8 +4,7 @@
 
 using namespace Nyanners::Instances;
 
-Drawable::Drawable() : transform(1.0f), indexCount(0) {
-	position = new glm::vec3();
+Drawable::Drawable() : Transformable(), indexCount(0) {
 	glGenVertexArrays(1, &vertexArrayID);
 	glBindVertexArray(vertexArrayID);
 
@@ -23,14 +22,7 @@ Drawable::~Drawable() {
 	glDeleteBuffers(1, &vertexArrayID);
 }
 
-void Drawable::set_position(const glm::vec3 &newPosition) {
-	this->position = new glm::vec3(newPosition);
-	this->transform = glm::translate(glm::mat4(1.0f), newPosition);
-}
 
-void Drawable::set_scale(const glm::vec3 &newScale) {
-	this->transform = glm::scale(transform, newScale);
-}
 
 void Drawable::set_color(const DataTypes::Color3 newColor) {
 	glBindVertexArray(vertexArrayID);

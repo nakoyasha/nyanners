@@ -6,10 +6,11 @@
 #include "datatypes/Vector.h"
 
 namespace Nyanners::Instances {
-	class Camera : public Instance {
+	class Camera : public Instance, public Transformable {
 	public:
 		Camera();
 		unsigned int fov = 80;
+		bool useDebugMovement = true;
 
 		glm::mat4 view = glm::lookAt(
 		  glm::vec3(4, 5, 3), // Camera is at (4,3,3), in World Space
@@ -18,13 +19,14 @@ namespace Nyanners::Instances {
 		);
 
 		void update(const float deltaTime) override;
-		void calculate_projection(const DataTypes::Vector2& size);
+		void set_fov(unsigned int newFov);
+		void calculate_projection(const DataTypes::Vector2 &size, bool forceRecalculate);
+		void set_position(const glm::vec3 &newPosition) override;
 
 		glm::mat4 projection;
 	private:
 		Nyanners::DataTypes::Vector2 lastSize {0,0};
 		// Camera state
-		glm::vec3 cameraPos   = { 0.0f, 0.0f, 3.0f };
 		glm::vec3 cameraFront = { 0.0f, 0.0f, -1.0f };
 		glm::vec3 cameraUp    = { 0.0f, 1.0f, 0.0f };
 

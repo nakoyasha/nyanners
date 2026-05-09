@@ -5,66 +5,89 @@
 
 using namespace Nyanners::Instances;
 
+namespace Nyanners::Scripting {
+
+}
+
 Camera::Camera() : Instance("Camera") {
-	// this->calculate_projection();
 }
 
 void Camera::update(const float deltaTime) {
-	float velocity = moveSpeed * deltaTime;
+	if (!active) {
+		return;
+	}
 
-	if (sf::Keyboard::isKeyPressed(sf::Keyboard::Key::Up))
-		pitch += 90.0f * deltaTime;
-	if (sf::Keyboard::isKeyPressed(sf::Keyboard::Key::Down))
-		pitch -= 90.0f * deltaTime;
-	if (sf::Keyboard::isKeyPressed(sf::Keyboard::Key::Left))
-		yaw -= 90.0f * deltaTime;
-	if (sf::Keyboard::isKeyPressed(sf::Keyboard::Key::Right))
-		yaw += 90.0f * deltaTime;
+	glm::vec3 cameraPos = {position->x, position->y, position->z};
+	if (useDebugMovement) {
+		float velocity = moveSpeed * deltaTime;
 
-	yaw = std::clamp(yaw, -180.0f, 180.0f);
-	pitch = std::clamp(pitch, -180.0f, 180.0f);
+		if (sf::Keyboard::isKeyPressed(sf::Keyboard::Key::Up))
+			pitch += 90.0f * deltaTime;
+		if (sf::Keyboard::isKeyPressed(sf::Keyboard::Key::Down))
+			pitch -= 90.0f * deltaTime;
+		if (sf::Keyboard::isKeyPressed(sf::Keyboard::Key::Left))
+			yaw -= 90.0f * deltaTime;
+		if (sf::Keyboard::isKeyPressed(sf::Keyboard::Key::Right))
+			yaw += 90.0f * deltaTime;
 
-	cameraFront = glm::normalize(
-	  glm::vec3(
-	    std::cos(glm::radians(yaw)) * std::cos(glm::radians(pitch)),
-	    std::sin(glm::radians(pitch)),
-	    std::sin(glm::radians(yaw) * std::cos(glm::radians(pitch)))
-	  )
-	);
+		yaw = std::clamp(yaw, -180.0f, 180.0f);
+		pitch = std::clamp(pitch, -180.0f, 180.0f);
 
-	if (sf::Keyboard::isKeyPressed(sf::Keyboard::Key::W))
-		cameraPos += cameraFront * velocity;
-	if (sf::Keyboard::isKeyPressed(sf::Keyboard::Key::S))
-		cameraPos -= cameraFront * velocity;
-	if (sf::Keyboard::isKeyPressed(sf::Keyboard::Key::E))
-		cameraPos += cameraUp * velocity;
-	if (sf::Keyboard::isKeyPressed(sf::Keyboard::Key::Q))
-		cameraPos -= cameraUp * velocity;
+		cameraFront = glm::normalize(
+		  glm::vec3(
+		    std::cos(glm::radians(yaw)) * std::cos(glm::radians(pitch)),
+		    std::sin(glm::radians(pitch)),
+		    std::sin(glm::radians(yaw) * std::cos(glm::radians(pitch)))
+		  )
+		);
 
-	if (sf::Keyboard::isKeyPressed(sf::Keyboard::Key::A))
-		cameraPos -= glm::normalize(glm::cross(cameraFront, cameraUp)) * velocity;
-	if (sf::Keyboard::isKeyPressed(sf::Keyboard::Key::D))
-		cameraPos += glm::normalize(glm::cross(cameraFront, cameraUp)) * velocity;
+		if (sf::Keyboard::isKeyPressed(sf::Keyboard::Key::W))
+			cameraPos += cameraFront * velocity;
+		if (sf::Keyboard::isKeyPressed(sf::Keyboard::Key::S))
+			cameraPos -= cameraFront * velocity;
+		if (sf::Keyboard::isKeyPressed(sf::Keyboard::Key::E))
+			cameraPos += cameraUp * velocity;
+		if (sf::Keyboard::isKeyPressed(sf::Keyboard::Key::Q))
+			cameraPos -= cameraUp * velocity;
 
-	// rebuild view
-	view = glm::lookAt(cameraPos, cameraPos + cameraFront, cameraUp);
-	Instance::update(deltaTime);
+		if (sf::Keyboard::isKeyPressed(sf::Keyboard::Key::A))
+			cameraPos -= glm::normalize(glm::cross(cameraFront, cameraUp)) * velocity;
+		if (sf::Keyboard::isKeyPressed(sf::Keyboard::Key::D))
+			cameraPos += glm::normalize(glm::cross(cameraFront, cameraUp)) * velocity;
+
+		// rebuild view
+		view = glm::lookAt(cameraPos, cameraPos + cameraFront, cameraUp);
+		position = new glm::vec3(cameraPos.x, cameraPos.y, cameraPos.z);
+		Instance::update(deltaTime);
+	}
 }
 
-void Camera::calculate_projection(const DataTypes::Vector2 &size) {
-	if (lastSize.x == size.x && lastSize.y == size.y) {
-		return;
+void Camera::set_fov(unsigned int newFov) {
+	fov = newFov;
+	calculate_projection(lastSize, true);
+}
+
+void Camera::calculate_projection(const DataTypes::Vector2 &size, bool forceRecalculate = false) {
+	if (forceRecalculate != true) {
+		if (lastSize.x == size.x && lastSize.y == size.y) {
+			return;
+		}
 	}
 
 	Core::Logger::log(
 	  std::format("Camera size updated to {},{}", size.x, size.y)
 	);
 	projection = glm::perspective(
-	  glm::radians(45.0f),
+	  glm::radians(static_cast<float>(fov)),
 	  static_cast<float>(size.x) / static_cast<float>(size.y),
 	  0.1f,
-	  100.0f
+	  800000.0f
 	);
 
 	lastSize = size;
+}
+
+void Camera::set_position(const glm::vec3 &newPosition) {
+	view = glm::lookAt(newPosition, newPosition + cameraFront, cameraUp);
+	Transformable::set_position(newPosition);
 }
