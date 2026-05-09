@@ -1,17 +1,15 @@
 #pragma once
 
 #include "MeshPart.h"
-#include "core/Logger.h"
-#include "freetype/freetype.h"
 #include "instances/datatypes/UDim2.h"
+#include "resources/Font.h"
 
 namespace Nyanners::DataTypes {
-  struct Character {
-    std::shared_ptr<Resources::Texture> texture;
-    glm::ivec2 size;
-    glm::ivec2 bearing;
-    long advance; // next glyph offset
-  };
+	struct CalculatedGlyph {
+		Character character;
+		glm::vec2 position;
+		glm::vec2 size;
+	};
 }
 
 namespace Nyanners::Instances {
@@ -23,23 +21,22 @@ namespace Nyanners::Instances {
   	bool useWorldSpace = false;
 
 		TextLabel();
+  	~TextLabel();
     void draw() override;
     void update(const float deltaTime) override;
 
     void set_text(const std::string& newText);
     void set_position(const glm::vec3 &newPosition) override;
   private:
-    FT_Library ft;
-    std::map<char, DataTypes::Character> characters;
+    // TODO: Abstract this away into a "Font" resource
+  	Resources::Font* font;
+  	std::vector<DataTypes::CalculatedGlyph> glyphs;
+
     float scale = 1;
     float lineHeight = 1.3;
 
-    // TODO: Abstract this away into a "Font" resource
-    FT_Face fontFace;
-    int fontHeight = 48;
-    int fontWidth = 0;
 
     DataTypes::Vertices vertices;
-    void generate_character(unsigned char vChar);
+  	void calculate_text(const std::string& text);
   };
 }
