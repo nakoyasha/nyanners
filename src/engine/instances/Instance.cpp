@@ -49,7 +49,7 @@ void Instance::update(const float deltaTime)
 void Instance::set_active(const bool newActiveState) {
   this->active = newActiveState;
 
-  for (const auto& child : this->children) {
-    child->set_active(false);
-  }
+  // for (const auto& child : this->children) {
+    // child->set_active(false);
+//
 }

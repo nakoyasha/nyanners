@@ -28,6 +28,12 @@ namespace Nyanners::Instances {
   	std::vector<std::shared_ptr<Drawable>> renderableChildren;
 
     virtual void add_child(const std::shared_ptr<Instance>& child);
+  	template <typename... Children>
+		void add_child(const std::shared_ptr<Instance>& child, const Children&... children)
+  	{
+  		add_child(child);
+  		(add_child(children), ...);
+  	}
     virtual void remove_child(const std::shared_ptr<Instance> &child);
 
     virtual void update(const float deltaTime);
