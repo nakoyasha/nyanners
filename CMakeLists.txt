@@ -12,7 +12,9 @@ add_executable(Nyanners.App src/app/main.cpp
         src/app/debug/CommandBar.cpp
         src/app/debug/CommandBar.h
         src/app/debug/OutputPanel.cpp
-        src/app/debug/OutputPanel.h)
+        src/app/debug/OutputPanel.h
+        src/app/debug/MainMenubar.cpp
+        src/app/debug/MainMenubar.h)
 target_link_libraries(Nyanners.App PUBLIC Nyanners)
 link_libraries(Nyanners.App Nyanners)
 

@@ -24,8 +24,6 @@ add_library(Nyanners
         scripting/data/UserdataTags.h
         instances/basic/SignalBase.h
         instances/basic/Signal.h
-        instances/basic/WorldObject.h
-        instances/basic/WorldObject.cpp
         instances/datatypes/Color3.h
         instances/datatypes/UDim2.cpp
         instances/drawable/Drawable.h
@@ -113,6 +111,11 @@ add_library(Nyanners
         scripting/reflections/ReflectionTypes.h
         instances/services/user/InputService.cpp
         instances/services/user/InputService.h
+        resources/Font.cpp
+        resources/Font.h
+        instances/basic/Transformable.h
+        instances/container/BasicContainers.h
+        instances/container/BasicContainers.cpp
 )
 
 add_library(

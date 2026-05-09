@@ -2,6 +2,7 @@
 #include "core/Logger.h"
 #include "debug/CommandBar.h"
 #include "debug/ExplorerPanel.h"
+#include "debug/MainMenubar.h"
 #include "debug/OutputPanel.h"
 #include "debug/ViewportPanel.h"
 #include "instances/Script.h"
@@ -24,7 +25,9 @@ using namespace Nyanners::Services;
 class TestApplication : public Application {
 public:
 	std::shared_ptr<Instances::Camera> camera;
+	std::shared_ptr<Instances::Camera> cameraTwo;
 	Resources::FrameBuffer *framebuffer;
+	Resources::FrameBuffer *secondaryFramebuffer;
 
 	TestApplication() : Application({1280, 720}, "TestApp") {
 		m_Instance = this;
@@ -39,8 +42,11 @@ public:
 		this->debugUI =
 		  currentModel->get_service<Services::DebugUIService>("DebugUIService");
 		this->camera = std::make_shared<Instances::Camera>();
+		this->cameraTwo = std::make_shared<Instances::Camera>();
+		cameraTwo->useDebugMovement = false;
 
 		renderService->add_child(camera);
+		renderService->add_child(cameraTwo);
 	}
 
 	void start() override;
@@ -53,12 +59,16 @@ private:
 	std::shared_ptr<World> world;
 	std::shared_ptr<UIService> uiService;
 	std::shared_ptr<DebugUIService> debugUI;
+	Resources::Material* mizuMaterial;
 };
 
 void TestApplication::start() {
 	RenderingService::renderer->set_current_camera(camera);
 	RenderingService::renderer->set_depth_test(Core::Rendering::Always);
 	RenderingService::renderer->disable_depth_buffer();
+	mizuMaterial = Resources::Material::create();
+	mizuMaterial->set_color(new DataTypes::Color3({255, 255, 255, 255}));
+	mizuMaterial->set_texture("assets/textures/mizuzu.png");
 
 	InputService::onInput.connect([](const Input::InputEvent& event) {
 		if (event.key == Input::KeyCode::F8) {
@@ -87,14 +97,18 @@ void TestApplication::on_draw() const {
 	}
 	debugUI->draw_imgui();
 
-	renderService->bind_framebuffer(framebuffer);
+	framebuffer->clear();
+	RenderingService::renderer->render_from(world, nullptr, framebuffer);
+	RenderingService::renderer->render_from(uiService, nullptr, framebuffer);
 
-	// projection has to be recalculated here, otherwise it'd look bad
-	RenderingService::renderer->calculate_projection(framebuffer->size);
-	RenderingService::renderer->clear();
-	RenderingService::renderer->render(world);
-	RenderingService::renderer->render(uiService);
-	renderService->unbind_framebuffer();
+	// re-render again into a secondary framebuffer using the 2nd camera
+	RenderingService::renderer->disable_depth_buffer();
+
+	secondaryFramebuffer->clear();
+	RenderingService::renderer->render_from(world, cameraTwo, secondaryFramebuffer);
+	RenderingService::renderer->render_from(uiService, cameraTwo, secondaryFramebuffer);
+
+	RenderingService::renderer->enable_depth_buffer();
 
 	renderService->end_frame();
 }
@@ -152,32 +166,23 @@ int main() {
 	const auto debugUI =
 	  app->currentModel->get_service<DebugUIService>("DebugUIService");
 
-	renderingService->initialize();
 	app->framebuffer = new Resources::FrameBuffer(1280, 720);
+	app->secondaryFramebuffer = new Resources::FrameBuffer(1280, 720);
 
-	const auto label = std::make_shared<Instances::TextLabel>();
-	const auto worldLabel = std::make_shared<Instances::TextLabel>();
-	worldLabel->name = "in-world label";
-	worldLabel->useWorldSpace = true;
-	worldLabel->set_text("i exist in the world!");
-	const auto frameCounter = std::make_shared<Debug::FrameCounter>();
+	// const auto label = std::make_shared<Instances::TextLabel>();
+	// label->set_text("hi! \n do new lines work?");
+	// const auto frameCounter = std::make_shared<Debug::FrameCounter>();
 	const auto mesh = std::make_shared<Instances::MeshPart>();
 	const auto meshTwo = std::make_shared<Instances::MeshPart>();
 	const auto teapot = std::make_shared<Instances::MeshPart>();
-	// teapot->load_from_obj_file("assets/models/teapot.obj");
-	// world->add_child(teapot);
-	const auto skybox = std::make_shared<Instances::Skybox>();
 
-	const auto debugWindow = std::make_shared<TestApp::Panels::ExplorerPanel>();
-	const auto viewport =
-	  std::make_shared<TestApp::Panels::ViewportPanel>(app->framebuffer);
-	const auto commandBar = std::make_shared<TestApp::Panels::CommandBar>();
-	const auto output = std::make_shared<TestApp::Panels::OutputPanel>();
+	world->add_child(std::make_shared<Instances::Skybox>());
 
-	debugUI->add_child(viewport);
-	debugUI->add_child(debugWindow);
-	debugUI->add_child(commandBar);
-	debugUI->add_child(output);
+	debugUI->add_child(std::make_shared<TestApp::Panels::ExplorerPanel>());
+	debugUI->add_child(std::make_shared<TestApp::Panels::ViewportPanel>(app->framebuffer));
+	debugUI->add_child(std::make_shared<TestApp::Panels::CommandBar>());
+	debugUI->add_child(std::make_shared<TestApp::Panels::OutputPanel>());
+	debugUI->add_child(std::make_shared<TestApp::Panels::MainMenubar>());
 
 	mesh->set_vertices(
 	  {-0.5f,
@@ -205,24 +210,12 @@ int main() {
 	mesh->set_indexes({0, 1, 2, 2, 3, 0});
 	mesh->set_color({255, 255, 255, 255});
 
-	meshTwo->set_vertices(
-	  {-0.5f,
-	   -0.5f,
-	   0.0f,
-	   0.0f,
-	   0.5f,
-	   -0.5f,
-	   1.0f,
-	   0.0f,
-	   0.5f,
-	   0.5f,
-	   1.0f,
-	   1.0f,
-	   -0.5f,
-	   0.5f,
-	   0.0f,
-	   1.0f}
-	);
+	meshTwo->set_vertices({
+	  	-0.5f, -0.5f, 0.0f, 0.0f,
+	    0.5f,-0.5f, 1.0f, 0.0f,
+	   0.5f, 0.5f, 1.0f, 1.0f,
+	   -0.5f, 0.5f,0.0f, 1.0f
+	  });
 
 	// 0 and 2 are duplicates; therefore it can be optimized down here:
 	meshTwo->set_indexes({0, 1, 2, 2, 3, 0});
@@ -231,20 +224,14 @@ int main() {
 	mesh->set_position(glm::vec3(0.0f, 0.0f, 0.0f));
 	meshTwo->set_position(glm::vec3(0.0f, 2.0f, 0.0f));
 
+	world->add_child(mesh, meshTwo);
 	mesh->material->set_texture("assets/textures/enanui.png");
-	meshTwo->material->set_texture("assets/textures/saa_anyo.png");
+	meshTwo->material->set_texture(app->secondaryFramebuffer->framebufferTexture);
 
-	world->add_child(skybox);
-	world->add_child(meshTwo);
-	world->add_child(mesh);
-	uiService->add_child(label);
-	uiService->add_child(frameCounter);
-
-	world->add_child(worldLabel);
-
+	// uiService->add_child(label, frameCounter);
 	script->run_script();
 
-	Core::Logger::log(std::format("Running Test App"));
+	Core::Logger::log("Running Test App");
 	app->start();
 
 	delete app;
