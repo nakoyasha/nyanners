@@ -16,6 +16,8 @@ FrameBuffer::FrameBuffer(const int width, const int height) {
 	}
 
 	framebufferTexture = Resources::Texture::create(TextureType::Texture2D);
+	framebufferTexture->debugIdentifier = "FBTexture";
+
 	GL_CHECK(glGenFramebuffers(1, &framebufferId));
 	GL_CHECK(glBindFramebuffer(GL_FRAMEBUFFER, framebufferId));
 
@@ -27,6 +29,7 @@ FrameBuffer::FrameBuffer(const int width, const int height) {
 	GL_CHECK(glBindRenderbuffer(GL_RENDERBUFFER, renderBufferId));
 	GL_CHECK(glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH24_STENCIL8, normalizedWidth, normalizedHeight));
 	GL_CHECK(glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_STENCIL_ATTACHMENT, GL_RENDERBUFFER, renderBufferId));
+	GL_CHECK(glViewport(0, 0, normalizedWidth, normalizedHeight));
 
 	check_status();
 
@@ -48,6 +51,12 @@ void FrameBuffer::use() const {
 
 void FrameBuffer::release() {
 	GL_CHECK(glBindFramebuffer(GL_FRAMEBUFFER, 0));
+}
+
+void FrameBuffer::clear() {
+	this->use();
+	GL_CHECK(glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT));
+	this->release();
 }
 
 GLuint FrameBuffer::get_texture_id() {
@@ -78,12 +87,7 @@ void FrameBuffer::resize(const int width, const int height) {
 	Core::Logger::log(std::format("Resizing framebuffer to {},{}", normalizedWidth, normalizedHeight));
 
 	this->use();
-	this->framebufferTexture->unuse();
-	this->framebufferTexture.reset();
-
-	framebufferTexture = Texture::create(TextureType::Texture2D);
 	framebufferTexture->use();
-
 	framebufferTexture->upload_buffer(GL_RGB, GL_RGB, normalizedWidth, normalizedHeight, nullptr);
 
 	GL_CHECK(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR));
@@ -95,6 +99,7 @@ void FrameBuffer::resize(const int width, const int height) {
 	GL_CHECK(glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_STENCIL_ATTACHMENT, GL_RENDERBUFFER, renderBufferId));
 
 	check_status();
+	GL_CHECK(glViewport(0, 0, normalizedWidth, normalizedHeight));
 
 	this->framebufferTexture->unuse();
 	GL_CHECK(glBindRenderbuffer(GL_RENDERBUFFER, 0));

@@ -6,6 +6,7 @@
 namespace Nyanners::Resources {
 		class FrameBuffer {
 		public:
+			std::shared_ptr<Resources::Texture> framebufferTexture;
 			DataTypes::Vector2 size = DataTypes::Vector2({0, 0});
 
 			FrameBuffer(const int width, const int height);
@@ -14,12 +15,12 @@ namespace Nyanners::Resources {
 
 			void use() const;
 			void release();
+			void clear();
 			void resize(const int width, const int height);
 		private:
 			GLuint framebufferId;
 			GLuint renderBufferId;
 			GLuint depthBufferId;
-			std::shared_ptr<Resources::Texture> framebufferTexture;
 
 			void construct_framebuffer(const int width, const int height);
 			void check_status();

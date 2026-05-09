@@ -1,13 +1,14 @@
 //
 #include "OpenGLTexture.h"
 #include "utils/glCheck.h"
+#include <cmath>
 
 using namespace Nyanners::Resources::OpenGL;
 
-OpenGLTexture::OpenGLTexture(const TextureType type) {
-	if (type == TextureType::Texture2D) {
+OpenGLTexture::OpenGLTexture(const TextureType type, std::source_location location) {
+	if (type == Texture2D) {
 		textureType = GL_TEXTURE_2D;
-	} else if (type == TextureType::Cubemap) {
+	} else if (type == Cubemap) {
 		textureType = GL_TEXTURE_CUBE_MAP;
 	} else {
 		throw std::runtime_error("Failed creating texture: Unsupported TextureType");
@@ -18,10 +19,13 @@ OpenGLTexture::OpenGLTexture(const TextureType type) {
 
 	OpenGLTexture::set_texture_parameter(MagnificationFilter, Linear);
 	OpenGLTexture::set_texture_parameter(MinificationFilter, Linear);
-	OpenGLTexture::set_texture_parameter(TextureFilterParameter::TextureWrapCoordinateS, ClampToEdge);
-	OpenGLTexture::set_texture_parameter(TextureFilterParameter::TextureWrapCoordinateT, ClampToEdge);
+	OpenGLTexture::set_texture_parameter(TextureWrapCoordinateS, ClampToEdge);
+	OpenGLTexture::set_texture_parameter(TextureWrapCoordinateT, ClampToEdge);
 
 	OpenGLTexture::unuse();
+
+	const std::filesystem::path full_path(location.file_name());
+	debugIdentifier = std::format("{}", full_path.filename().string());
 }
 
 OpenGLTexture::OpenGLTexture(const TextureType type, const std::filesystem::path &path) : OpenGLTexture(type) {
@@ -35,11 +39,13 @@ OpenGLTexture::~OpenGLTexture() {
 void OpenGLTexture::load_from_file(const std::filesystem::path &path) {
 	this->use();
 	this->load_file_into_buffer(path);
+	debugIdentifier = path.string();
+
 	this->upload_buffer(
 	  GL_RGBA8,
 	  GL_RGBA,
-	  static_cast<int>(width),
-	  static_cast<int>(height),
+	  width,
+	  height,
 	  textureBuffer
 	);
 	this->unuse();
@@ -51,7 +57,7 @@ void OpenGLTexture::upload_buffer(const int internalFormat, const int externalFo
 	this->width = width;
 	this->height = height;
 
-	GL_CHECK(glTexImage2D(textureType, 0, internalFormat, width, height, 0, externalFormat, GL_UNSIGNED_BYTE, imageBuffer));
+	GL_CHECK(glTexImage2D(textureType, 0, internalFormat, this->width, this->height, 0, externalFormat, GL_UNSIGNED_BYTE, imageBuffer));
 }
 
 void OpenGLTexture::set_mipmap_enabled(const bool newState) {
@@ -65,14 +71,13 @@ void OpenGLTexture::set_mipmap_enabled(const bool newState) {
 	useMipmaps = newState;
 }
 
-
 int getOpenGLWrapMode(const TextureWrapMode& mode) {
 	switch (mode) {
-		case TextureWrapMode::Linear:
+		case Linear:
 			return GL_LINEAR;
-		case TextureWrapMode::Nearest:
+		case Nearest:
 			return GL_NEAREST;
-		case TextureWrapMode::ClampToEdge:
+		case ClampToEdge:
 			return GL_CLAMP_TO_EDGE;
 		default:
 			return GL_LINEAR;
@@ -81,13 +86,13 @@ int getOpenGLWrapMode(const TextureWrapMode& mode) {
 
 int getOpenGLFilterParameter(const TextureFilterParameter& parameter) {
 	switch (parameter) {
-		case TextureFilterParameter::TextureWrapCoordinateT:
+		case TextureWrapCoordinateT:
 			return GL_TEXTURE_WRAP_T;
-		case TextureFilterParameter::TextureWrapCoordinateS:
+		case TextureWrapCoordinateS:
 			return GL_TEXTURE_WRAP_S;
-		case TextureFilterParameter::MinificationFilter:
+		case MinificationFilter:
 			return GL_TEXTURE_MIN_FILTER;
-		case TextureFilterParameter::MagnificationFilter:
+		case MagnificationFilter:
 			return GL_TEXTURE_MAG_FILTER;
 		default:
 			throw std::invalid_argument("Cannot find a compatible OpenGL filter parameter");

@@ -5,7 +5,7 @@
 namespace Nyanners::Resources::OpenGL {
 	class OpenGLTexture : public Texture {
 	public:
-		OpenGLTexture(const TextureType type);
+		OpenGLTexture(const TextureType type, std::source_location location = std::source_location::current());
 		OpenGLTexture(const TextureType type, const std::filesystem::path &path);
 		~OpenGLTexture();
 
