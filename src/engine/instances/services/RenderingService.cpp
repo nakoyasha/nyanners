@@ -14,9 +14,11 @@ using namespace Nyanners::Services;
 
 Nyanners::Resources::Shader RenderingService::defaultShader;
 std::unique_ptr<Nyanners::Core::Renderer> RenderingService::renderer;
+std::vector<std::shared_ptr<Nyanners::Resources::Texture>> RenderingService::textures;
+Nyanners::Rendering::RenderingBackend RenderingService::backend;
 
 RenderingService::RenderingService(
-  const DataTypes::Vector2 size, const std::optional<std::string> &windowTitle
+  const DataTypes::Vector2 size, const std::optional<std::string> &windowTitle, Rendering::RenderingBackend withBackend
 ) : Instance("RenderingService") {
 	sf::ContextSettings settings;
 	settings.depthBits = 24;
@@ -42,31 +44,19 @@ RenderingService::RenderingService(
 		);
 	}
 
-	window->setFramerateLimit(5000);
-
-	// glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 4);
-	// glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 6);
-	// glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
-	// window = glfwCreateWindow(size.x, size.y, windowTitle->c_str(), nullptr, nullptr);
-
-	// if (!window) {
-		// glfwTerminate();
-		// Core::Logger::log("RenderingService could not acquire a window");
-		// return;
-	// }
+	window->setFramerateLimit(120);
+	backend = withBackend;
 
 	renderer = Core::Renderer::create(window);
-}
-
-void RenderingService::initialize() {
 	renderer->initialize();
 }
 
 void RenderingService::start_frame() {
 	const auto timeSinceLastFrame = fpsClock.restart().asSeconds();
-	const auto currentFPS = 1.0f / timeSinceLastFrame;
+	const int currentFPS = std::floor(1.0f / timeSinceLastFrame);
 
 	fps = currentFPS;
+	frameTime = timeSinceLastFrame;
 	renderer->start_frame();
 }
 
@@ -138,6 +128,17 @@ void RenderingService::handle_window_event(
 bool RenderingService::is_window_open() const {
 	return window->isOpen();
 }
+void RenderingService::add_texture(
+  const std::shared_ptr<Resources::Texture> &texture
+) {
+	textures.push_back(texture);
+}
+
+void RenderingService::remove_texture(
+  const std::shared_ptr<Resources::Texture> &texture
+) {
+	std::erase(textures, texture);
+}
 
 GLuint RenderingService::compile_shader(
   const int shaderType, const std::filesystem::path &path
@@ -195,6 +196,8 @@ RenderingService::compile_program(const GLuint vertex, const GLuint fragment) {
 		glGetProgramInfoLog(program, infoLength, nullptr, &ProgramErrorMessage[0]);
 
 		Core::Logger::log(&ProgramErrorMessage[0]);
+
+		return -1;
 	}
 
 	glDetachShader(program, vertex);

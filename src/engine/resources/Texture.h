@@ -1,5 +1,6 @@
 #pragma once
 #include <filesystem>
+#include <source_location>
 
 enum TextureType {
 	Texture2D = 0,
@@ -34,14 +35,14 @@ enum TextureFilterParameter {
 };
 
 namespace Nyanners::Resources {
-	class Texture {
+	class Texture : public std::enable_shared_from_this<Texture> {
 	public:
 		virtual ~Texture() = default;
 
 		int height {};
 		int width {};
 		void  *textureBuffer {};
-
+		std::string debugIdentifier = "texture";
 		virtual void load_from_file(const std::filesystem::path& path) = 0;
 
 		virtual void upload_buffer(
@@ -61,8 +62,6 @@ namespace Nyanners::Resources {
 
 		static std::shared_ptr<Texture> create(const TextureType type);
 		static std::shared_ptr<Texture> create(const TextureType type, const std::filesystem::path &path);
-		// static Texture* create(const TextureType type);
-		// static Texture* create(const TextureType type, const std::filesystem::path& path);
 	protected:
 		void load_file_into_buffer(const std::filesystem::path& path);
 	private:

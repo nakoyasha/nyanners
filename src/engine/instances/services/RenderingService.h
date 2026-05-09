@@ -1,11 +1,17 @@
 #pragma once
 #include "core/rendering/Renderer.h"
-#include "instances/Camera.h"
 #include "instances/Instance.h"
 #include "instances/datatypes/Vector.h"
 #include "resources/FrameBuffer.h"
 #include "resources/Shader.h"
 #include <filesystem>
+
+namespace Nyanners::Rendering {
+	enum class RenderingBackend {
+		OpenGL = 0,
+		// TODO: vulkan? idk
+	};
+}
 
 namespace Nyanners::Services
 {
@@ -13,15 +19,17 @@ namespace Nyanners::Services
     {
         public:
         static Resources::Shader defaultShader;
+    		static Rendering::RenderingBackend backend;
+    		static std::vector<std::shared_ptr<Resources::Texture>> textures;
+
     		sf::Window* window;
     		static std::unique_ptr<Core::Renderer> renderer;
 
         float deltaTime = 0.0f;
+    		float frameTime = 0.0f;
         int fps = 0.0f;
 
-        RenderingService(DataTypes::Vector2, const std::optional<std::string> &windowTitle);
-
-        void initialize();
+        RenderingService(DataTypes::Vector2, const std::optional<std::string> &windowTitle, Rendering::RenderingBackend withBackend = Rendering::RenderingBackend::OpenGL);
 
         void set_window_title(const std::string& newWindowTitle) const;
         void set_fps_limit(const unsigned int limit);
@@ -30,6 +38,9 @@ namespace Nyanners::Services
     		void unbind_framebuffer();
         void handle_window_event(const std::optional<sf::Event> &event);
 		    bool is_window_open() const;
+
+    		static void add_texture(const std::shared_ptr<Resources::Texture>& texture);
+    		static void remove_texture(const std::shared_ptr<Resources::Texture>& texture);
 
         // shaders
         static GLuint compile_shader(const int shaderType = GL_VERTEX_SHADER, const std::filesystem::path &path = "assets/shaders/vertex.glsl");
