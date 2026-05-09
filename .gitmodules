@@ -16,10 +16,6 @@
 [submodule "src/engine/third_party/glText"]
 	path = src/engine/third_party/glText
 	url = https://github.com/vallentin/glText
-[submodule "src/engine/third_party/dear-imgui"]
-	path = src/engine/third_party/dear-imgui
-	url = https://github.com/ocornut/imgui/
-	branch = external/win98
 [submodule "src/engine/third_party/imgui-sfml"]
 	path = src/engine/third_party/imgui-sfml
 	url = https://github.com/SFML/imgui-sfml
@@ -29,3 +25,7 @@
 [submodule "src/engine/third_party/freetype"]
 	path = src/engine/third_party/freetype
 	url = https://gitlab.freedesktop.org/freetype/freetype
+[submodule "src/engine/third_party/dear-imgui"]
+	path = src/engine/third_party/dear-imgui
+	url = https://github.com/ocornut/imgui.git
+	branch = docking
