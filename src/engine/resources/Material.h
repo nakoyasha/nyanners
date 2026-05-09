@@ -23,5 +23,7 @@ namespace Nyanners::Resources {
 		virtual ~Material() = default;
 
 		static Material* create();
+	private:
+		bool shaderCompiled = false;
 	};
 }

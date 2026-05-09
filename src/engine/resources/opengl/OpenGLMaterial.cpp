@@ -42,6 +42,7 @@ void OpenGLMaterial::set_texture(std::shared_ptr<Resources::Texture> newTexture)
 }
 
 void OpenGLMaterial::set_texture(const std::filesystem::path &newTexturePath) {
+	texture->use();
 	texture->load_from_file(newTexturePath);
 	shader->use();
 	shader->setBool("uTextureSet", true);

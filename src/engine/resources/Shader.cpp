@@ -10,15 +10,11 @@ void Shader::load_from_file(
   const std::filesystem::path &vertexPath,
   const std::filesystem::path &fragmentPath
 ) {
-	const auto vertexShader =
-	  Services::RenderingService::compile_shader(GL_VERTEX_SHADER, vertexPath);
-	const auto fragmentShader = Services::RenderingService::compile_shader(
-	  GL_FRAGMENT_SHADER, fragmentPath
-	);
+	this->vertexPath = vertexPath;
+	this->fragmentPath = fragmentPath;
 
-	const auto programId =
-	  Services::RenderingService::compile_program(vertexShader, fragmentShader);
-	shaderId = programId;
+	// !! shader requires re-compilation !!
+	shaderCompiled = false;
 }
 
 void Shader::setBool(const std::string &name, const bool value) const {
@@ -38,7 +34,7 @@ void Shader::setMatrix(const std::string &name, const glm::mat4 &value) const {
 }
 
 void Shader::setColor(
-  const std::string &name, const Nyanners::DataTypes::Color3 value
+  const std::string &name, const DataTypes::Color3 value
 ) const {
 	GL_CHECK(glUniform4f(
 	  glGetUniformLocation(shaderId, name.c_str()),
@@ -54,14 +50,41 @@ Shader::~Shader() {
 	shaderId = 0xDEADBEEF;
 }
 
-void Shader::use() const {
+void Shader::use() {
+	if (!shaderCompiled) {
+		compile();
+	}
+
 	if (shaderId == 0xDEADBEEF || shaderId >= 50000) {
 		throw std::runtime_error("Cannot use shader while unloaded");
 	}
+
 
 	GL_CHECK(glUseProgram(this->shaderId));
 }
 
 void Shader::release() const {
 	GL_CHECK(glUseProgram(0));
+}
+
+void Shader::compile() {
+	if (shaderCompiled) {
+		return;
+	}
+
+	const auto vertexShader = Services::RenderingService::compile_shader(GL_VERTEX_SHADER, this->vertexPath);
+	const auto fragmentShader = Services::RenderingService::compile_shader(GL_FRAGMENT_SHADER, this->fragmentPath);
+
+	const auto programId =
+		Services::RenderingService::compile_program(vertexShader, fragmentShader);
+
+	if (programId == -1) {
+		throw std::runtime_error("Shader compilation failed");
+	}
+
+	Core::Logger::log(std::format("Compiled and loaded {}, {} with id {}", vertexPath.string(), fragmentPath.string(), programId));
+	name = std::format("{}-{}", vertexPath.string(), fragmentPath.string());
+
+	shaderId = programId;
+	shaderCompiled = true;
 }

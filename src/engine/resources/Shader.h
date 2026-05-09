@@ -10,8 +10,11 @@ namespace Nyanners::Resources {
     Shader() = default;
     ~Shader();
 
-    void use() const;
+  	std::string name = "shader";
+
+    void use();
   	void release() const;
+  	void compile();
     void load_from_file(
       const std::filesystem::path &vertexPath,
       const std::filesystem::path &fragmentPath
@@ -25,5 +28,9 @@ namespace Nyanners::Resources {
 
   private:
     GLuint shaderId = 0xDEADBEEF;
+  	std::filesystem::path vertexPath;
+  	std::filesystem::path fragmentPath;
+
+  	bool shaderCompiled = false;
   };
 }
