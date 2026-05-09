@@ -10,59 +10,70 @@
 using namespace Nyanners::Core;
 
 OpenGLRenderer::OpenGLRenderer(sf::Window *window) {
-    currentWindow = window;
+	currentWindow = window;
+	// TODO: move initialization to constructor
 }
 
 OpenGLRenderer::~OpenGLRenderer() {
-    OpenGLRenderer::shutdown();
+	OpenGLRenderer::shutdown();
 }
 
 void OpenGLRenderer::initialize() {
-    if (!currentWindow->setActive(true)) {
-        throw std::runtime_error("OpenGL initialization failed");
-    };
+	if (!currentWindow->setActive(true)) {
+		throw std::runtime_error("OpenGL initialization failed");
+	};
 
-    if (!gladLoadGLLoader(
-        reinterpret_cast<GLADloadproc>(sf::Context::getFunction)
-    )) {
-        throw std::runtime_error("Failed to initialize GLAD");
-    }
+	if (!gladLoadGLLoader(
+	      reinterpret_cast<GLADloadproc>(sf::Context::getFunction)
+	    )) {
+		throw std::runtime_error("Failed to initialize GLAD");
+	}
 
-    const GLubyte *version = glGetString(GL_VERSION);
-    const GLubyte *profile = glGetString(GL_RENDERER);
+	const GLubyte *version = glGetString(GL_VERSION);
+	const GLubyte *profile = glGetString(GL_RENDERER);
 
-    Core::Logger::log(
-        std::format(
-            "initializing OpenGL {} on {}",
-            reinterpret_cast<const char *>(version),
-            reinterpret_cast<const char *>(profile)
-        )
-    );
+	Core::Logger::log(
+	  std::format(
+	    "initializing OpenGL {} on {}",
+	    reinterpret_cast<const char *>(version),
+	    reinterpret_cast<const char *>(profile)
+	  )
+	);
 
+	ImGui::CreateContext();
+	ImGui::StyleColorsDark();
 
-    ImGui::CreateContext();
-    ImGui::StyleColorsDark();
+	if (!ImGui_ImplOpenGL3_Init("#version 330")) {
+		throw std::runtime_error("Failed to initialize ImGui");
+	};
 
-    if (!ImGui_ImplOpenGL3_Init("#version 330")) {
-        throw std::runtime_error("Failed to initialize ImGui");
-    };
+	glEnable(GL_BLEND);
+	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+	glEnable(GL_DEPTH_TEST);
 
-    ImGuiIO &io = ImGui::GetIO();
-    io.ConfigFlags |= ImGuiConfigFlags_DockingEnable;
-    io.ConfigFlags |= ImGuiConfigFlags_ViewportsEnable;
+	glEnable(GL_CULL_FACE);
+	glCullFace(GL_BACK);
 
-    glEnable(GL_BLEND);
-    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-    glEnable(GL_DEPTH_TEST);
+	set_depth_test(Core::Rendering::Less);
+	quadMesh = Resources::Mesh::create();
+	quadMesh->bind();
+	quadMesh->set_vertices({
+		-0.5f, -0.5f, 0.0f, 0.0f,
+		0.5f,-0.5f, 1.0f, 0.0f,
+		0.5f, 0.5f, 1.0f, 1.0f,
+		-0.5f, 0.5f,0.0f, 1.0f
+	});
 
-		glEnable(GL_CULL_FACE);
-		glCullFace(GL_BACK);
-
-		set_depth_test(Core::Rendering::Less);
+	quadMesh->set_indexes({0, 1, 2, 2, 3, 0});
+	glEnableVertexAttribArray(0);
+	glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, sizeof(float) * 4, nullptr);
+	glEnableVertexAttribArray(1);
+	glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, sizeof(float) * 4, (void*)(sizeof(float) * 2));
+	quadMesh->unbind();
 }
 
 void OpenGLRenderer::start_frame() {
-		clear();
+	clear();
 }
 
 void OpenGLRenderer::clear() {
@@ -70,72 +81,189 @@ void OpenGLRenderer::clear() {
 }
 
 void OpenGLRenderer::render(
-    const std::shared_ptr<Instances::Instance> &instanceToRender
+  const std::shared_ptr<Instances::Instance> &instanceToRender
 ) {
-    // we can't render without a camera
-    if (camera == nullptr) {
-        return;
-    }
+	// we can't render without a camera
+	if (camera == nullptr) {
+		return;
+	}
 
-    for (const auto &child: instanceToRender->renderableChildren) {
-        child->material->shader->use();
-        child->material->shader->setMatrix("uModel", child->transform);
-        child->material->shader->setMatrix("uView", camera->view);
-        child->material->shader->setMatrix("uProjection", camera->projection);
+	for (const auto &child : instanceToRender->renderableChildren) {
+		child->material->shader->use();
+		child->material->shader->setMatrix("uModel", child->transform);
+		child->material->shader->setMatrix("uView", camera->view);
+		child->material->shader->setMatrix("uProjection", camera->projection);
 
-        child->draw();
-        handle_error(instanceToRender);
-    }
+		child->draw();
+		handle_error(instanceToRender);
+	}
+}
+void OpenGLRenderer::render_from(
+  const std::shared_ptr<Instances::Instance> &root,
+  std::shared_ptr<Instances::Camera> camera,
+  Resources::FrameBuffer *framebuffer
+) {
+	if (root->active == false) {
+		return;
+	}
+
+
+	std::shared_ptr<Instances::Camera> activeCamera = nullptr;
+
+	if (camera != nullptr) {
+		activeCamera = camera;
+	} else {
+		activeCamera = this->camera;
+	}
+
+	bind_framebuffer(framebuffer);
+	calculate_projection(framebuffer->size, activeCamera);
+
+	for (const auto &child : root->renderableChildren) {
+		// TODO: optimize this somehow. idk a better way to do this
+		if (std::dynamic_pointer_cast<Instances::Instance>(child)->active == false) {
+			continue;
+		}
+
+		child->material->shader->use();
+		child->material->shader->setMatrix("uModel", child->transform);
+		child->material->shader->setMatrix("uView", activeCamera->view);
+		child->material->shader->setMatrix("uProjection", activeCamera->projection);
+
+		child->draw();
+		handle_error(root);
+	}
+
+	unbind_framebuffer();
 }
 
 void OpenGLRenderer::bind_framebuffer(Resources::FrameBuffer *newFrameBuffer) {
-    if (this->framebuffer != nullptr) {
-        this->unbind_framebuffer();
-    }
+	if (this->framebuffer != nullptr) {
+		this->unbind_framebuffer();
+	}
 
-    this->framebuffer = newFrameBuffer;
-		newFrameBuffer->use();
-    GL_CHECK(glViewport(0, 0, newFrameBuffer->size.x, newFrameBuffer->size.y));
+	this->framebuffer = newFrameBuffer;
+	newFrameBuffer->use();
+	GL_CHECK(glViewport(0, 0, newFrameBuffer->size.x, newFrameBuffer->size.y));
 }
 
 void OpenGLRenderer::unbind_framebuffer() {
-    if (this->framebuffer != nullptr) {
-        this->framebuffer->release();
-        this->framebuffer = nullptr;
-    }
+	if (this->framebuffer != nullptr) {
+		this->framebuffer->release();
+		this->framebuffer = nullptr;
+	}
 
-		const auto size = this->get_window_size();
-		GL_CHECK(glViewport(0, 0, size.x, size.y));
+	const auto size = this->get_window_size();
+	GL_CHECK(glViewport(0, 0, size.x, size.y));
 }
 
-void OpenGLRenderer::calculate_projection(const DataTypes::Vector2 &size) {
-	camera->calculate_projection(framebuffer->size);
+void OpenGLRenderer::calculate_projection(const DataTypes::Vector2 &size, const std::shared_ptr<Instances::Camera> camera) {
+	camera->calculate_projection(size, false);
 
 	// TODO: make a child Camera class for ortographic? maybe put this into LayerCollector?
-	projection2D = glm::ortho(0.0f, static_cast<float>(size.x), 0.0f, static_cast<float>(size.y), 1.0f, 0.0f);
+	projection2D = glm::ortho(
+	  0.0f,
+	  static_cast<float>(size.x),
+	  0.0f,
+	  static_cast<float>(size.y),
+	  1.0f,
+	  0.0f
+	);
+}
+
+void OpenGLRenderer::set_renderer_feature(Rendering::RendererFeature feature, bool enabled) {
+	if (enabled) {
+		switch (feature) {
+			case Rendering::RendererFeature::FaceCulling:
+				glEnable(GL_CULL_FACE);
+				break;
+			case Rendering::RendererFeature::DepthTesting:
+				glEnable(GL_DEPTH_TEST);;
+				break;
+			case Rendering::RendererFeature::Blending:
+				glEnable(GL_BLEND);
+				break;
+			default:
+				throw std::runtime_error("set_renderer_feature on unknown feature");
+		}
+	} else {
+		switch (feature) {
+			case Rendering::RendererFeature::FaceCulling:
+				glDisable(GL_CULL_FACE);
+				break;
+			case Rendering::RendererFeature::DepthTesting:
+				glDisable(GL_DEPTH_TEST);;
+				break;
+			case Rendering::RendererFeature::Blending:
+				glDisable(GL_BLEND);
+				break;
+			default:
+				throw std::runtime_error("set_renderer_feature on unknown feature");
+		}
+	}
+
 }
 
 void OpenGLRenderer::render_mesh(const Resources::Mesh *mesh) {
-    mesh->bind();
+	mesh->bind();
 
-    if (mesh->indexCount == 0) {
-        GL_CHECK(glDrawArrays(GL_TRIANGLES, 0, static_cast<GLint>(mesh->vertexCount)));
-    } else {
-        GL_CHECK(glDrawElements(
-            GL_TRIANGLES, static_cast<int>(mesh->indexCount), GL_UNSIGNED_INT, nullptr
-        ));
-    }
+	if (mesh->indexCount == 0) {
+		GL_CHECK(
+		  glDrawArrays(GL_TRIANGLES, 0, static_cast<GLint>(mesh->vertexCount))
+		);
+	} else {
+		GL_CHECK(glDrawElements(
+		  GL_TRIANGLES, static_cast<int>(mesh->indexCount), GL_UNSIGNED_INT, nullptr
+		));
+	}
 
-    mesh->unbind();
+	mesh->unbind();
+}
+void OpenGLRenderer::render_quad(
+  Resources::Material *material,
+  const glm::vec2 &position,
+  const glm::vec2 &size
+) {
+	const auto transform = glm::translate(glm::mat4(1.0f), glm::vec3(position.x, position.y, 0.0f));
+
+	material->use();
+	material->shader->setMatrix("uModel", glm::scale(transform, glm::vec3(size.x, size.y, 0.0f)));
+	material->shader->setMatrix("uView", camera->view);
+	material->shader->setMatrix("uProjection", camera->projection);
+	material->shader->setBool("uScreenSpace", true);
+
+	quadMesh->bind();
+	render_mesh(quadMesh);
+	quadMesh->unbind();
+	material->release();
+}
+
+void OpenGLRenderer::render_quad(
+  Resources::Material *material,
+  const glm::vec3 &position,
+  const glm::vec2 &size
+) {
+	const auto transform = glm::translate(glm::mat4(1.0f), position);
+
+	material->use();
+	material->shader->setMatrix("uModel", glm::scale(transform, glm::vec3(size.x, size.y, 0.0f)));
+	material->shader->setMatrix("uView", camera->view);
+	material->shader->setMatrix("uProjection", camera->projection);
+	material->shader->setBool("uScreenSpace", false);
+
+	quadMesh->bind();
+	render_mesh(quadMesh);
+	quadMesh->unbind();
+	material->release();
 }
 
 void OpenGLRenderer::handle_event(const sf::Event *event) {
-	if (const auto* resized = event->getIf<sf::Event::Resized>()) {
-		calculate_projection({resized->size.x, resized->size.y});
+	if (const auto *resized = event->getIf<sf::Event::Resized>()) {
+		calculate_projection({resized->size.x, resized->size.y}, camera);
 	}
 }
 
-void OpenGLRenderer::set_depth_test(const Rendering::DepthCheckLevel& level) {
+void OpenGLRenderer::set_depth_test(const Rendering::DepthCheckLevel &level) {
 	auto currentLevel = this->lastDepthLevel;
 	this->lastDepthLevel = currentLevel;
 
@@ -183,36 +311,36 @@ void OpenGLRenderer::disable_depth_buffer() {
 }
 
 void OpenGLRenderer::end_frame() {
-    currentWindow->display();
+	currentWindow->display();
 }
 
 void OpenGLRenderer::shutdown() {
-    currentWindow->close();
+	currentWindow->close();
 }
 
 Nyanners::DataTypes::Vector2 OpenGLRenderer::get_window_size() {
-    if (this->framebuffer != nullptr) {
-        return this->framebuffer->size;
-    }
+	if (this->framebuffer != nullptr) {
+		return this->framebuffer->size;
+	}
 
-    const auto size = this->currentWindow->getSize();
-    return {size.x, size.y};
+	const auto size = this->currentWindow->getSize();
+	return {size.x, size.y};
 }
 
 void OpenGLRenderer::set_window_size(const DataTypes::Vector2 newWindowSize) {
-    this->currentWindow->setSize({newWindowSize.x, newWindowSize.y});
+	this->currentWindow->setSize({newWindowSize.x, newWindowSize.y});
 }
 
 void OpenGLRenderer::handle_error(
-    const std::shared_ptr<Instances::Instance> &instanceWhereItHappened
+  const std::shared_ptr<Instances::Instance> &instanceWhereItHappened
 ) {
-    while (const auto error = glGetError()) {
-        Core::Logger::log(
-            std::format(
-                "Driver threw {} while rendering {}",
-                glErrorToString(error),
-                instanceWhereItHappened->name
-            )
-        );
-    }
+	while (const auto error = glGetError()) {
+		Core::Logger::log(
+		  std::format(
+		    "Driver threw {} while rendering {}",
+		    glErrorToString(error),
+		    instanceWhereItHappened->name
+		  )
+		);
+	}
 }

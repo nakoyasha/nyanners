@@ -12,10 +12,14 @@ namespace Nyanners::Core {
 			void start_frame() override;
 			void clear() override;
 			void render(const std::shared_ptr<Instances::Instance> &instanceToRender) override;
+			void render_from(const std::shared_ptr<Instances::Instance> &root, std::shared_ptr<Instances::Camera> camera, Resources::FrameBuffer* framebuffer) override;
 			void bind_framebuffer(Resources::FrameBuffer* newFrameBuffer) override;
 			void unbind_framebuffer() override;
-			void calculate_projection(const DataTypes::Vector2& size) override;
+			void calculate_projection(const DataTypes::Vector2& size, std::shared_ptr<Instances::Camera> camera) override;
+			void set_renderer_feature(Rendering::RendererFeature feature, bool enabled);
 			void render_mesh(const Resources::Mesh* mesh) override;
+			void render_quad(Resources::Material* material, const glm::vec2& position, const glm::vec2& size) override;
+			void render_quad(Resources::Material* material, const glm::vec3& position, const glm::vec2& size) override;
 			void handle_event(const sf::Event* event) override;
 			void set_depth_test(const Rendering::DepthCheckLevel& level) override;
 			void set_previous_depth_test() override;
@@ -31,5 +35,6 @@ namespace Nyanners::Core {
 			sf::Window* currentWindow;
 			Rendering::DepthCheckLevel lastDepthLevel = Rendering::Less;
 			void handle_error(const std::shared_ptr<Instances::Instance>& instanceWhereItHappened);
+			Resources::Mesh* quadMesh;
 		};
 }
