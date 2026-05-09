@@ -76,7 +76,7 @@ void MeshPart::load_from_obj_file(const std::filesystem::path &path) {
 
 	// TODO: abstract
 	glEnableVertexAttribArray(0);
-	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(float) * 5, nullptr);
+	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE,  sizeof(float) * 5, nullptr);
 	glEnableVertexAttribArray(1);
 	glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, sizeof(float) * 5, (void*)(sizeof(float) * 3));
 	this->mesh->unbind();
