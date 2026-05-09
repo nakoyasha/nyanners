@@ -45,48 +45,54 @@ Skybox::Skybox() : Instance("Skybox") {
 
 	glBindVertexArray(vertexArrayID);
 
+	// notice of ai-generated code:
+	// yeah i couldn't be bothered here either to be honest. then again
+	// counting duplicate vertices isn't exactly fun so i think it's fair
 	this->mesh->set_vertices({
-		-1.0f,  1.0f, -1.0f,
-		-1.0f, -1.0f, -1.0f,
-		 1.0f, -1.0f, -1.0f,
-		 1.0f, -1.0f, -1.0f,
-		 1.0f,  1.0f, -1.0f,
-		-1.0f,  1.0f, -1.0f,
+			// front
+			-1.0f, -1.0f,  1.0f,
+			 1.0f, -1.0f,  1.0f,
+			 1.0f,  1.0f,  1.0f,
+			-1.0f,  1.0f,  1.0f,
 
-		-1.0f, -1.0f,  1.0f,
-		-1.0f, -1.0f, -1.0f,
-		-1.0f,  1.0f, -1.0f,
-		-1.0f,  1.0f, -1.0f,
-		-1.0f,  1.0f,  1.0f,
-		-1.0f, -1.0f,  1.0f,
+			// back
+			 1.0f, -1.0f, -1.0f,
+			-1.0f, -1.0f, -1.0f,
+			-1.0f,  1.0f, -1.0f,
+			 1.0f,  1.0f, -1.0f,
 
-		 1.0f, -1.0f, -1.0f,
-		 1.0f, -1.0f,  1.0f,
-		 1.0f,  1.0f,  1.0f,
-		 1.0f,  1.0f,  1.0f,
-		 1.0f,  1.0f, -1.0f,
-		 1.0f, -1.0f, -1.0f,
+			// left
+			-1.0f, -1.0f, -1.0f,
+			-1.0f, -1.0f,  1.0f,
+			-1.0f,  1.0f,  1.0f,
+			-1.0f,  1.0f, -1.0f,
 
-		-1.0f, -1.0f,  1.0f,
-		-1.0f,  1.0f,  1.0f,
-		 1.0f,  1.0f,  1.0f,
-		 1.0f,  1.0f,  1.0f,
-		 1.0f, -1.0f,  1.0f,
-		-1.0f, -1.0f,  1.0f,
+			// right
+			 1.0f, -1.0f,  1.0f,
+			 1.0f, -1.0f, -1.0f,
+			 1.0f,  1.0f, -1.0f,
+			 1.0f,  1.0f,  1.0f,
 
-		-1.0f,  1.0f, -1.0f,
-		 1.0f,  1.0f, -1.0f,
-		 1.0f,  1.0f,  1.0f,
-		 1.0f,  1.0f,  1.0f,
-		-1.0f,  1.0f,  1.0f,
-		-1.0f,  1.0f, -1.0f,
+			// top
+			-1.0f,  1.0f,  1.0f,
+			 1.0f,  1.0f,  1.0f,
+			 1.0f,  1.0f, -1.0f,
+			-1.0f,  1.0f, -1.0f,
 
-		-1.0f, -1.0f, -1.0f,
-		-1.0f, -1.0f,  1.0f,
-		 1.0f, -1.0f, -1.0f,
-		 1.0f, -1.0f, -1.0f,
-		-1.0f, -1.0f,  1.0f,
-		 1.0f, -1.0f,  1.0f
+			// bottom
+			-1.0f, -1.0f, -1.0f,
+			 1.0f, -1.0f, -1.0f,
+			 1.0f, -1.0f,  1.0f,
+			-1.0f, -1.0f,  1.0f
+	});
+
+	this->mesh->set_indexes({
+		 0,  1,  2,   2,  3,  0,   // front
+		 4,  5,  6,   6,  7,  4,   // back
+		 8,  9, 10,  10, 11,  8,   // left
+		12, 13, 14,  14, 15, 12,   // right
+		16, 17, 18,  18, 19, 16,   // top
+		20, 21, 22,  22, 23, 20    // bottom
 	});
 
 	this->mesh->bind();
@@ -101,6 +107,7 @@ void Skybox::draw() {
 	// glDepthFunc(GL_LEQUAL);
 	Services::RenderingService::renderer->set_depth_test(Core::Rendering::LessThanAndEqual);
 	Services::RenderingService::renderer->disable_depth_buffer();
+	glCullFace(GL_FRONT);
 
 	this->material->use();
 	glBindVertexArray(vertexArrayID);
@@ -109,6 +116,7 @@ void Skybox::draw() {
 
 	// glDepthFunc(GL_LESS);
 	// glDepthMask(GL_TRUE);
+	glCullFace(GL_BACK);
 	Services::RenderingService::renderer->set_previous_depth_test();
 	Services::RenderingService::renderer->enable_depth_buffer();
 }
