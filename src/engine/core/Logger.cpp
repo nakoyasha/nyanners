@@ -28,6 +28,13 @@ namespace Nyanners::Core {
 		log_internal(LogLevel::Error, output);
 	}
 
+	void Logger::log_debug(const std::string_view message, const std::source_location logLocation) {
+		const std::filesystem::path full_path(logLocation.file_name());
+		const std::string output = std::format("[{}:{}] {}", full_path.filename().string(), logLocation.line(), message);
+
+		log_internal(LogLevel::Debug, output);
+	}
+
 	std::string level_to_string(const LogLevel level) {
 		switch (level) {
 			case LogLevel::Info:
@@ -36,6 +43,8 @@ namespace Nyanners::Core {
 				return "Warning";
 			case LogLevel::Error:
 				return "Error";
+			case LogLevel::Debug:
+				return "Debug";
 		}
 		return "Unknown";
 	};

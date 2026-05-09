@@ -8,6 +8,7 @@ namespace Nyanners::Core {
     Info = 0,
     Warning = 1,
     Error = 2,
+  	Debug = 3,
   };
 
 class Logger {
@@ -18,6 +19,7 @@ public:
   static void log(const std::string_view message, const std::source_location = std::source_location::current());
   static void log_warning(const std::string_view message, const std::source_location = std::source_location::current());
   static void log_error(const std::string_view message, const std::source_location = std::source_location::current());
+	static void log_debug(const std::string_view message, const std::source_location = std::source_location::current());
   static void log_no_format(LogLevel level, const std::string_view message);
 
 private:
