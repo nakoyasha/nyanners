@@ -5,27 +5,42 @@ local UIService = DataModel:get_service("UIService")
 local World = DataModel:get_service("World")
 
 local start = os.clock()
+local label = UIService:find_first_child("TextLabel")
 
---local label = UIService:find_first_child("TextLabel")
---World.Active = false
--- local Ena = World.ena
-local Ena = World.TextLabel
+local blocks = {}
+
+local function makeBlock(position)
+	local mesh = Instance.new("MeshPart")
+	mesh:set_model("assets/models/teapot.obj")
+
+	mesh.Position = position
+	mesh.Color = Color3.new(
+		math.round(math.random(1, 255)),
+		math.round(math.random(1, 255)),
+		math.round(math.random(1, 255)),
+		255
+	)
+	mesh.Parent = World
+
+	table.insert(blocks, mesh)
+end
 
 function tick()
-    return os.clock() - start
+	return os.clock() - start
+end
+
+for x = 1, 16, 1 do
+	for z = 1, 16, 1 do
+		makeBlock(Vector3.new(x + 128, 0, z))
+	end
 end
 
 RunService.PreRender:Connect(function()
-    --label.Text = string.format("FPS: %d", RenderingService.fps)
-    local y = 25 + math.sin(tick()) * 10
-
-    if (y > 0) then
-        Ena.Position = Vector3.new(0, y, 0)
-    end
-
-    Ena.Color = Color3.new(155, math.sin(tick()) * 255, 155, 255)
+	for i, block in blocks do
+		block.Position = Vector3.new(block.Position.x, i + math.sin(tick()), block.Position.z)
+	end
 end)
 
 RunService.OnExit:Connect(function()
-    print("we're exiting now")
+	print("we're exiting now")
 end)
