@@ -53,11 +53,12 @@ void ExplorerPanel::render_instance(const std::shared_ptr<Instance> &instance) {
 
 	ImGui::SameLine();
 	ImGui::SetCursorPosX(ImGui::GetCursorPosX() - 8.0f);
-	// ImGui::SetCursorPosY(ImGui::GetCursorPosY() + 2.f); // not the faintest idea
-	if (instance->baseName == "World") {
 
+	const auto icon = classIcons.find(instance->baseName);
+
+	if (icon != classIcons.end()) {
 		ImGui::ImageWithBg(
-		  workspaceIcon->get_texture_handle(),
+		  icon->second->get_texture_handle(),
 		  ImVec2(16.f, 16.f),
 		  ImVec2(0.f, 1.f),
 		  ImVec2(1.f, 0.f),
@@ -66,12 +67,12 @@ void ExplorerPanel::render_instance(const std::shared_ptr<Instance> &instance) {
 		);
 	} else {
 		ImGui::ImageWithBg(
-		  unknownIcon->get_texture_handle(),
-		  ImVec2(16.f, 16.f),
-		  ImVec2(0.f, 1.f),
-		  ImVec2(1.f, 0.f),
-		  ImVec4(),
-		  instance->active ? ImVec4(1.f, 1.f, 1.f, 1.f) : ImVec4(.5f, .5f, .5f, 1.f)
+			classIcons.at("Unknown")->get_texture_handle(),
+			ImVec2(16.f, 16.f),
+			ImVec2(0.f, 1.f),
+			ImVec2(1.f, 0.f),
+			ImVec4(),
+			instance->active ? ImVec4(1.f, 1.f, 1.f, 1.f) : ImVec4(.5f, .5f, .5f, 1.f)
 		);
 	}
 
@@ -182,17 +183,14 @@ void ExplorerPanel::draw() {
 							};
 
 							if (ImGui::ColorEdit4("##ColorPicker", color_float)) {
-								Nyanners::DataTypes::Color3 newColor(
-										static_cast<int>(color_float[0] * 255.0f),
-										static_cast<int>(color_float[1] * 255.0f),
-										static_cast<int>(color_float[2] * 255.0f),
-										static_cast<int>(color_float[3] * 255.0f)
-								);
+								auto drawable = std::dynamic_pointer_cast<Drawable>(selection);
 
-								Nyanners::Scripting::Reflection::push_color3(
-								  script->context, newColor
-								);
-								property.set(selection.get(), script->context);
+								drawable->set_color({
+									static_cast<int>(color_float[0] * 255.0f),
+									static_cast<int>(color_float[1] * 255.0f),
+									static_cast<int>(color_float[2] * 255.0f),
+									static_cast<int>(color_float[3] * 255.0f)
+								});
 								Nyanners::Core::Logger::log(std::format("{},{},{}.{}", color3->r, color3->g, color3->b, color3->alpha));
 							}
 						}
@@ -202,9 +200,7 @@ void ExplorerPanel::draw() {
 						}
 					}
 
-					if (instance == nullptr || instance->pointer == nullptr) {
-					} else {
-					}
+
 				} else {
 					ImGui::Text(property.name.c_str());
 					ImGui::SameLine();
