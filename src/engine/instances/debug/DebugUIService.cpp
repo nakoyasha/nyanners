@@ -5,7 +5,106 @@
 
 using namespace Nyanners::Services;
 
-DebugUIService::DebugUIService() : Instance("DebugUIService") {}
+DebugUIService::DebugUIService() : Instance("DebugUIService") {
+	ImGuiIO &io = ImGui::GetIO();
+	// ImGui::StyleColorsLight();
+	io.ConfigFlags |= ImGuiConfigFlags_DockingEnable;
+	io.ConfigFlags |= ImGuiConfigFlags_ViewportsEnable;
+
+	ImGuiStyle &style = ImGui::GetStyle();
+	style.FrameBorderSize = 1.0f;
+	ImVec4 *colors = style.Colors;
+
+	// NOTICE OF AI-GENERATED CODE:
+	// i could not be bothered to do this part, sorry!
+
+	const ImVec4 accent =
+	  ImVec4(245.0f / 255.0f, 66.0f / 255.0f, 102.0f / 255.0f, 1.0f);
+	const ImVec4 accentHover = ImVec4(accent.x, accent.y, accent.z, 0.5f);
+	const ImVec4 accentActive = ImVec4(accent.x, accent.y, accent.z, 0.9f);
+	const ImVec4 accentDim = ImVec4(accent.x, accent.y, accent.z, 0.35f);
+	const ImVec4 accentDimSel = ImVec4(accent.x, accent.y, accent.z, 0.7f);
+
+	//
+	// Frames / Inputs
+	//
+	colors[ImGuiCol_FrameBg] = accentDim;
+	colors[ImGuiCol_FrameBgHovered] = accentHover;
+	colors[ImGuiCol_FrameBgActive] = accentActive;
+
+	colors[ImGuiCol_SliderGrab] = accent;
+	colors[ImGuiCol_SliderGrabActive] = accentActive;
+
+	//
+	// Buttons
+	//
+	colors[ImGuiCol_Button] = accentDim;
+	colors[ImGuiCol_ButtonHovered] = accentHover;
+	colors[ImGuiCol_ButtonActive] = accentActive;
+
+	//
+	// Headers (TreeNode, Selectable, CollapsingHeader)
+	//
+	colors[ImGuiCol_Header] = accentDim;
+	colors[ImGuiCol_HeaderHovered] = accentHover;
+	colors[ImGuiCol_HeaderActive] = accentActive;
+
+	//
+	// Tabs
+	//
+	colors[ImGuiCol_Tab] = accentDim;
+	colors[ImGuiCol_TabHovered] = accentHover;
+	colors[ImGuiCol_TabActive] = accentActive;
+	colors[ImGuiCol_TabSelected] = accentActive;
+	colors[ImGuiCol_TabSelectedOverline] = accent;
+
+	colors[ImGuiCol_TabDimmed] = accentDim;
+	colors[ImGuiCol_TabDimmedSelected] = accentDimSel;
+	colors[ImGuiCol_TabDimmedSelectedOverline] = accentDimSel;
+
+	//
+	// Title bars
+	//
+	colors[ImGuiCol_TitleBg] = accentDim;
+	colors[ImGuiCol_TitleBgActive] = accentActive;
+	colors[ImGuiCol_TitleBgCollapsed] = accentDim;
+
+	//
+	// Scrollbars
+	//
+	colors[ImGuiCol_ScrollbarGrab] = accentDim;
+	colors[ImGuiCol_ScrollbarGrabHovered] = accentHover;
+	colors[ImGuiCol_ScrollbarGrabActive] = accentActive;
+
+	//
+	// Check / Radio / Markers
+	//
+	colors[ImGuiCol_CheckMark] = accent;
+
+	//
+	// Text / Selection / Navigation
+	//
+	colors[ImGuiCol_TextLink] = accent;
+	colors[ImGuiCol_TextSelectedBg] = accentHover;
+	colors[ImGuiCol_NavHighlight] = accentHover;
+	colors[ImGuiCol_NavCursor] = accentActive;
+
+	//
+	// Resize / Drag / Separators
+	//
+	colors[ImGuiCol_ResizeGrip] = accentDim;
+	colors[ImGuiCol_ResizeGripHovered] = accentHover;
+	colors[ImGuiCol_ResizeGripActive] = accentActive;
+
+	colors[ImGuiCol_Separator] = accentDim;
+	colors[ImGuiCol_SeparatorHovered] = accentHover;
+	colors[ImGuiCol_SeparatorActive] = accentActive;
+
+	//
+	// Drag & Drop
+	//
+	colors[ImGuiCol_DragDropTarget] = accent;
+}
 
 DebugUIService::~DebugUIService() {
 	ImGui_ImplOpenGL3_Shutdown();
