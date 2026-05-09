@@ -60,19 +60,19 @@ int Nyanners::Scripting::Reflection::push_vector3(
 		luaL_Reg sRegs[] = {
 		  {"__index",
 		   [](lua_State *context) {
-			   Core::Logger::log(
-			     std::format("type at idx 1 {}", luaL_typename(context, 1))
-			   );
-			   Core::Logger::log(
-			     std::format("type at idx 2 {}", luaL_typename(context, 2))
-			   );
-
-			   Core::Logger::log(
-			     std::format("type at idx -1 {}", luaL_typename(context, -1))
-			   );
-			   Core::Logger::log(
-			     std::format("type at idx -2 {}", luaL_typename(context, -2))
-			   );
+			   // Core::Logger::log(
+			   //   std::format("type at idx 1 {}", luaL_typename(context, 1))
+			   // );
+			   // Core::Logger::log(
+			   //   std::format("type at idx 2 {}", luaL_typename(context, 2))
+			   // );
+			   //
+			   // Core::Logger::log(
+			   //   std::format("type at idx -1 {}", luaL_typename(context, -1))
+			   // );
+			   // Core::Logger::log(
+			   //   std::format("type at idx -2 {}", luaL_typename(context, -2))
+			   // );
 			   auto instance =
 			     Services::ReflectionService::get_userdata_from_context<glm::vec3>(
 			       context, 1, 0x06
