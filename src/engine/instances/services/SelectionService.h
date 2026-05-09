@@ -16,13 +16,9 @@ namespace Nyanners::Services {
 		};
 
 		std::shared_ptr<Instances::Instance> currentSelection;
+		void set_selection(const std::shared_ptr<Instances::Instance> newInstance);
 
-		void set_selection(const std::shared_ptr<Instances::Instance> newInstance) {
-			currentSelection = newInstance;
-			on_selection_changed->fire(currentSelection);
-		}
-
-		template<typename T>
+		template <typename T>
 		void get_selection() {
 			return std::dynamic_pointer_cast<T>(currentSelection);
 		}
