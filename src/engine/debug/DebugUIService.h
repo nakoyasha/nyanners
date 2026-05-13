@@ -2,11 +2,12 @@
 #include "SFML/Window/Event.hpp"
 #include "SFML/Window/Window.hpp"
 #include "instances/Instance.h"
-#include "instances/drawable/Drawable.h"
 
 namespace Nyanners::Services {
 	class DebugUIService : public Instances::Instance {
 	public:
+		static bool renderWindows;
+
 		DebugUIService();
 		~DebugUIService();
 

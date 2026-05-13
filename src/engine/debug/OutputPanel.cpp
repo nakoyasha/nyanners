@@ -1,7 +1,7 @@
 #include "OutputPanel.h"
 #include "imgui.h"
 
-using namespace TestApp::Panels;
+using namespace Nyanners::Debug::UI;
 
 void OutputPanel::draw() {
 	ImGui::Begin("Output");

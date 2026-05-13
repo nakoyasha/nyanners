@@ -2,7 +2,7 @@
 #include "imgui.h"
 #include "misc/cpp/imgui_stdlib.h"
 
-using namespace TestApp::Panels;
+using namespace Nyanners::Debug::UI;
 
 CommandBar::CommandBar() : Instance("CommandBarPanel") {
 	script = std::make_shared<Nyanners::Instances::Script>();

@@ -18,6 +18,8 @@ enum ReflectionPropertyType
   Boolean,
   Instance,
   Method,
+	Vector3,
+	Vector2,
   UserData,
 };
 
@@ -42,10 +44,12 @@ using PropertyFlags = std::array<Nyanners::Scripting::Reflection::ReflectionProp
 struct ReflectionProperty {
   const std::string name;
   const ReflectionPropertyType type = Unknown;
+	const std::string category = "Unknown";
 	const PropertyFlags flags;
 
   const ReflectionGetter get;
   const ReflectionSetter set;
+
 };
 
 using ReflectionMethodCallback = std::function<int(std::shared_ptr<Nyanners::Instances::Instance>, lua_State* context)>;

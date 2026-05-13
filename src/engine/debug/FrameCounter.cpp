@@ -3,9 +3,9 @@
 //
 
 #include "FrameCounter.h"
-
 #include "Application.h"
 #include "instances/services/RenderingService.h"
+
 using namespace Nyanners::Debug;
 
 FrameCounter::FrameCounter() : Instance("FrameCounter") {

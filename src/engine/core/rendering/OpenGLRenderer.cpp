@@ -89,26 +89,30 @@ void OpenGLRenderer::render(
 	}
 
 	for (const auto &child : instanceToRender->renderableChildren) {
-		child->material->shader->use();
-		child->material->shader->setMatrix("uModel", child->transform);
-		child->material->shader->setMatrix("uView", camera->view);
-		child->material->shader->setMatrix("uProjection", camera->projection);
+		if (auto drawable = child.lock()) {
+			if (std::dynamic_pointer_cast<Instances::Instance>(drawable)->active == false) {
+				continue;
+			}
 
-		child->draw();
-		handle_error(instanceToRender);
+			drawable->material->shader->use();
+			drawable->material->shader->setMatrix("uModel", drawable->get_transform());
+			drawable->material->shader->setMatrix("uView", camera->view);
+			drawable->material->shader->setMatrix("uProjection", camera->projection);
+
+			drawable->draw();
+		}
 	}
 }
 void OpenGLRenderer::render_from(
   const std::shared_ptr<Instances::Instance> &root,
-  std::shared_ptr<Instances::Camera> camera,
+  const std::shared_ptr<Instances::Camera> camera,
   Resources::FrameBuffer *framebuffer
 ) {
 	if (root->active == false) {
 		return;
 	}
 
-
-	std::shared_ptr<Instances::Camera> activeCamera = nullptr;
+	std::weak_ptr<Instances::Camera> activeCamera;
 
 	if (camera != nullptr) {
 		activeCamera = camera;
@@ -116,23 +120,43 @@ void OpenGLRenderer::render_from(
 		activeCamera = this->camera;
 	}
 
-	bind_framebuffer(framebuffer);
-	calculate_projection(framebuffer->size, activeCamera);
 
-	for (const auto &child : root->renderableChildren) {
-		// TODO: optimize this somehow. idk a better way to do this
-		if (std::dynamic_pointer_cast<Instances::Instance>(child)->active == false) {
-			continue;
+	if (auto cCam = activeCamera.lock(); framebuffer != nullptr) {
+		bind_framebuffer(framebuffer);
+
+		// resize as this will be a rendertarget
+		if (cCam == this->camera) {
+			cCam->resolution = framebuffer->size;
+		} else {
+			framebuffer->resize(cCam->resolution->x, cCam->resolution->y);
 		}
-
-		child->material->shader->use();
-		child->material->shader->setMatrix("uModel", child->transform);
-		child->material->shader->setMatrix("uView", activeCamera->view);
-		child->material->shader->setMatrix("uProjection", activeCamera->projection);
-
-		child->draw();
-		handle_error(root);
+	} else {
+		cCam->resolution = new DataTypes::Vector2(get_window_size());
 	}
+
+	if (const auto usedCamera = activeCamera.lock()) {
+		calculate_projection(get_window_size(), activeCamera.lock());
+
+		for (const auto &child : root->renderableChildren) {
+			// TODO: optimize this somehow. idk a better way to do this
+
+			if (auto drawable = child.lock()) {
+				if (std::dynamic_pointer_cast<Instances::Instance>(drawable)->active == false) {
+					continue;
+				}
+
+				drawable->material->shader->use();
+				drawable->material->shader->setMatrix("uModel", drawable->get_transform());
+				drawable->material->shader->setMatrix("uView", usedCamera->view);
+				drawable->material->shader->setMatrix("uProjection", usedCamera->projection);
+
+				drawable->draw();
+			}
+
+			handle_error(root);
+		}
+	}
+
 
 	unbind_framebuffer();
 }
@@ -144,7 +168,7 @@ void OpenGLRenderer::bind_framebuffer(Resources::FrameBuffer *newFrameBuffer) {
 
 	this->framebuffer = newFrameBuffer;
 	newFrameBuffer->use();
-	GL_CHECK(glViewport(0, 0, newFrameBuffer->size.x, newFrameBuffer->size.y));
+	GL_CHECK(glViewport(0, 0, newFrameBuffer->size->x, newFrameBuffer->size->y));
 }
 
 void OpenGLRenderer::unbind_framebuffer() {
@@ -320,7 +344,7 @@ void OpenGLRenderer::shutdown() {
 
 Nyanners::DataTypes::Vector2 OpenGLRenderer::get_window_size() {
 	if (this->framebuffer != nullptr) {
-		return this->framebuffer->size;
+		return *this->framebuffer->size;
 	}
 
 	const auto size = this->currentWindow->getSize();

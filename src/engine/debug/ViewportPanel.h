@@ -1,9 +1,9 @@
 #pragma once
-#include "instances/debug/DebugWindow.h"
+#include "DebugWindow.h"
 #include "instances/services/RenderingService.h"
 
-namespace TestApp::Panels {
-	class ViewportPanel : public Nyanners::Instances::DebugWindow {
+namespace Nyanners::Debug::UI {
+	class ViewportPanel : public Instances::DebugWindow {
 	public:
 		ViewportPanel(Nyanners::Resources::FrameBuffer* newFrameBuffer);
 		void draw() override;

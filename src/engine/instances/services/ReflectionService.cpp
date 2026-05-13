@@ -94,16 +94,23 @@ void ReflectionService::reflect_class(
 		}
 	}
 
-	auto *selfUser = lua_newuserdatadtor(context, sizeof(ReflectionInstance), [](void* ptr) {
-		auto instance = static_cast<ReflectionInstance*>(ptr);
-		Core::Logger::log_debug(std::format("Lua is clearing it's reference to instance {} of type {}", instance->pointer->name, instance->pointer->baseName));
-		instance->pointer.reset();
-		instance->~ReflectionInstance();
-	});
+	auto *selfUser =
+	  lua_newuserdatadtor(context, sizeof(ReflectionInstance), [](void *ptr) {
+		  auto instance = static_cast<ReflectionInstance *>(ptr);
+		  Core::Logger::log_debug(
+		    std::format(
+		      "Lua is clearing it's reference to instance {} of type {}",
+		      instance->pointer->name,
+		      instance->pointer->baseName
+		    )
+		  );
+		  instance->pointer.reset();
+		  instance->~ReflectionInstance();
+	  });
 
 	lua_setuserdatatag(context, -1, LUA_SCRIPT_INSTANCE_TAG);
 
-	new (selfUser) ReflectionInstance {
+	new (selfUser) ReflectionInstance{
 	  .pointer = instance,
 	  .descriptor = &descriptor->second,
 	};
@@ -259,11 +266,17 @@ int ReflectionService::instance_index(
 	const std::string propertyName = luaL_checkstring(context, -1);
 
 	if (instance == nullptr) {
-		throw std::runtime_error("Instance userdata is null");
+		Core::Logger::log_debug("ReflectionInstance has been set to null");
+		lua_pushnil(context);
+		return 0;
 	}
 
 	if (instance->pointer == nullptr) {
-		throw std::runtime_error("Instance pointer is null");
+		Core::Logger::log_debug(
+		  "Lua attempted to use Instance after it went on the path of destruction"
+		);
+		lua_pushnil(context);
+		return 0;
 	}
 
 	ReflectionClass *descriptor = instance->descriptor;
@@ -298,11 +311,17 @@ int ReflectionService::instance_new_index(
 	const std::string propertyName = luaL_checkstring(context, -2);
 
 	if (instance == nullptr) {
-		throw std::runtime_error("Instance userdata is null");
+		Core::Logger::log_debug("ReflectionInstance has been set to null");
+		lua_pushnil(context);
+		return 0;
 	}
 
 	if (instance->pointer == nullptr) {
-		throw std::runtime_error("Instance pointer is null");
+		Core::Logger::log_debug(
+		  "Lua attempted to use Instance after it went on the path of destruction"
+		);
+		lua_pushnil(context);
+		return 0;
 	}
 
 	ReflectionClass *descriptor = instance->descriptor;
@@ -327,7 +346,7 @@ int ReflectionService::instance_new_index(
 }
 
 void ReflectionService::register_reflections() {
-	auto& baseDescriptor = create_reflection(
+	auto &baseDescriptor = create_reflection(
 	  {.className = "Instance",
 	   .base = "<<root>>",
 	   .flags = {Scripting::Reflection::Service},
@@ -335,6 +354,7 @@ void ReflectionService::register_reflections() {
 	     {
 	       {.name = "Active",
 	        .type = ReflectionPropertyType::Boolean,
+	       	.category = "Data",
 	        .get =
 	          [](const Instance *instance, lua_State *context) {
 		          lua_pushboolean(context, instance->active);
@@ -348,6 +368,7 @@ void ReflectionService::register_reflections() {
 	          }},
 	       {.name = "Name",
 	        .type = ReflectionPropertyType::String,
+	       	.category = "Data",
 	        .get =
 	          [](const Instance *instance, lua_State *context) {
 		          lua_pushstring(context, instance->name.c_str());
@@ -361,6 +382,7 @@ void ReflectionService::register_reflections() {
 	          }},
 	       {.name = "ClassName",
 	        .type = ReflectionPropertyType::String,
+	       	.category = "Data",
 	        .get =
 	          [](const Instance *instance, lua_State *context) {
 		          lua_pushstring(context, instance->baseName.c_str());
@@ -373,14 +395,15 @@ void ReflectionService::register_reflections() {
 	          }},
 	       {.name = "Parent",
 	        .type = ReflectionPropertyType::String,
+	       	.category = "Data",
 	        .get =
 	          [](const Instance *instance, lua_State *context) {
-		          if (instance->parent == nullptr) {
+		          if (instance->parent.lock() == nullptr) {
 			          lua_pushnil(context);
 			          return 1;
 		          }
 
-		          reflect_class(context, instance->parent);
+		          reflect_class(context, instance->parent.lock());
 		          return 1;
 	          },
 	        .set =
@@ -388,8 +411,8 @@ void ReflectionService::register_reflections() {
 		          auto *newParent = get_instance_from_context(context, -1);
 
 		          if (newParent == nullptr) {
-			          if (instance->parent != nullptr) {
-				          instance->parent->remove_child(instance->shared_from_this());
+			          if (auto parent = instance->parent.lock()) {
+				          parent->remove_child(instance->shared_from_this());
 			          }
 		          } else {
 			          newParent->pointer->add_child(instance->shared_from_this());
@@ -416,50 +439,22 @@ void ReflectionService::register_reflections() {
 	   }}
 	);
 
-	add_method(baseDescriptor, {
-		.name = "Destroy",
-		.method = [](const std::shared_ptr<Instance> instance, lua_State* context) {
-			// TODO: lock the parent properly
-			std::shared_ptr<Instance> h = instance;
-			if (instance->parent != nullptr) {
-				instance->parent->remove_child(h);
-			}
-			instance->active = false;
+	add_method(
+	  baseDescriptor,
+	  {.name = "Destroy",
+	   .method =
+	     [](const std::shared_ptr<Instance> instance, lua_State *context) {
+		     auto reflectionInstance = get_instance_from_context(context, -1);
 
-			return 1;
-		}
-	});
+		     if (auto parent = instance->parent.lock()) {
+			     parent->remove_child(instance);
+		     }
 
-	create_reflection(
-	  {.className = "DataModel",
-	   .base = "Instance",
-	   .flags = {Scripting::Reflection::Service},
-	   .constructor =
-	     []() {
-		     throw std::runtime_error(
-		       "You can't make a DataModel, as it's a singleton."
-		     );
-		     return nullptr;
-	     },
-	   .methods = {{
-	     .name = "get_service",
-	     .method =
-	       [](const std::shared_ptr<Instance> instance, lua_State *context) {
-		       const std::string service = luaL_checkstring(context, -1);
-		       const auto foundService =
-		         Application::instance()->currentModel->get_service<Instance>(
-		           service
-		         );
+		     instance->active = false;
+		     reflectionInstance->pointer.reset();
 
-		       if (foundService == nullptr) {
-			       luaL_error(context, "Cannot create non-existent service");
-			       return 0;
-		       }
-
-		       Services::ReflectionService::reflect_class(context, foundService);
-		       return 1;
-	       },
-	   }}}
+		     return 1;
+	     }}
 	);
 
 	create_reflection(
@@ -559,7 +554,7 @@ void ReflectionService::register_reflections() {
 	   .methods = {
 	     {.name = "read_file",
 	      .method =
-	        [](const std::shared_ptr<Instance> instance, lua_State *context) {
+	        [](const std::shared_ptr<Instance> &instance, lua_State *context) {
 		        const std::string path = luaL_checkstring(context, -1);
 
 		        try {
@@ -584,7 +579,7 @@ void ReflectionService::register_reflections() {
 	   .methods = {
 	     {.name = "panic",
 	      .method =
-	        [](const std::shared_ptr<Instance> instance, lua_State *context) {
+	        [](const std::shared_ptr<Instance> &instance, lua_State *context) {
 		        const std::string message = luaL_checkstring(context, -1);
 		        EngineService::panic(message);
 		        return 0;
@@ -617,7 +612,7 @@ void ReflectionService::register_reflections() {
 	  {.className = "World", .flags = {Service}, .properties = {}, .methods = {}}
 	);
 
-	auto &descriptor = create_reflection(
+	auto &transformable = create_reflection(
 	  {.className = "Transformable",
 	   .flags = {Service},
 	   .properties = {},
@@ -625,9 +620,10 @@ void ReflectionService::register_reflections() {
 	);
 
 	add_property(
-	  descriptor,
+	  transformable,
 	  {.name = "Position",
 	   .type = UserData,
+	  	.category = "Transform",
 	   .get =
 	     [](const Instance *instance, lua_State *context) {
 		     auto *transformable =
@@ -640,17 +636,110 @@ void ReflectionService::register_reflections() {
 	     [](Instance *instance, lua_State *context) {
 		     auto *transformable =
 		       dynamic_cast<Instances::Transformable *>(instance);
-		     auto *position =
-		       get_userdata_from_context<glm::vec3>(context, -1, 0x06);
-
-		     if (position == nullptr) {
-			     throw std::runtime_error("Vector3 is nullptr");
-		     }
+		     auto *position = get_vector3_from_lua(context, -1);
 
 		     transformable->set_position(*position);
 
 		     return 1;
 	     }}
+	);
+
+	add_property(
+	  transformable,
+	  {.name = "Rotation",
+	   .type = UserData,
+	  	.category = "Transform",
+	   .get =
+	     [](const Instance *instance, lua_State *context) {
+		     auto *transformable =
+		       dynamic_cast<const Instances::Transformable *>(instance);
+
+		     Scripting::Reflection::push_vector3(context, *transformable->rotation);
+		     return 1;
+	     },
+	   .set =
+	     [](Instance *instance, lua_State *context) {
+		     auto *transformable =
+		       dynamic_cast<Instances::Transformable *>(instance);
+	     	auto *rotation = get_vector3_from_lua(context, -1);
+
+		     transformable->set_rotation(*rotation);
+
+		     return 1;
+	     }}
+	);
+
+	add_property(
+	transformable,
+	{.name = "Scale",
+	 .type = UserData,
+		.category = "Transform",
+	 .get =
+		 [](const Instance *instance, lua_State *context) {
+			 auto *transformable =
+				 dynamic_cast<const Instances::Transformable *>(instance);
+
+			 push_vector3(context, *transformable->scale);
+			 return 1;
+		 },
+	 .set =
+		 [](Instance *instance, lua_State *context) {
+			 auto *transformable =
+				 dynamic_cast<Instances::Transformable *>(instance);
+		 	auto *scale = get_vector3_from_lua(context, -1);
+
+			 transformable->set_scale(*scale);
+
+			 return 1;
+		 }}
+);
+
+
+	create_reflection(
+		{.className = "DataModel",
+		 .base = "Instance",
+		 .flags = {Scripting::Reflection::Service},
+		 .constructor =
+			 []() {
+				 throw std::runtime_error(
+					 "You can't make a DataModel, as it's a singleton."
+				 );
+				 return nullptr;
+			 },
+		 .methods = {
+			 {
+				 .name = "get_service",
+				 .method =
+					 [](const std::shared_ptr<Instance> instance, lua_State *context) {
+						 const std::string service = luaL_checkstring(context, -1);
+						 const auto foundService =
+							 Application::instance()->currentModel->get_service<Instance>(
+								 service
+							 );
+
+						 if (foundService == nullptr) {
+							 luaL_error(context, "Cannot create non-existent service");
+							 return 0;
+						 }
+
+						 Services::ReflectionService::reflect_class(context, foundService);
+						 return 1;
+					 },
+			 },
+			 {
+				 .name = "set_window_title",
+				 .method =
+					 [](const std::shared_ptr<Instance> instance, lua_State *context) {
+						 const std::string title = luaL_checkstring(context, -1);
+
+						 Application::instance()
+							 ->currentModel
+							 ->get_service<Services::RenderingService>("RenderingService")
+							 ->set_window_title(title);
+						 return 0;
+					 },
+			 }
+		 }}
 	);
 
 	auto drawableReflection = create_reflection(
@@ -660,6 +749,7 @@ void ReflectionService::register_reflections() {
 	   .properties =
 	     {{.name = "Color",
 	       .type = ReflectionPropertyType::UserData,
+	  			.category = "Data",
 	       .get =
 	         [](const Instance *instance, lua_State *context) {
 		         auto *drawable =
@@ -696,6 +786,23 @@ void ReflectionService::register_reflections() {
 	  .methods = {},
 	});
 
+	add_property(meshPart, {
+		.name = "DisableCulling",
+		.type = Boolean,
+		.category = "Quirks",
+		.get = [](const Instance *instance, lua_State *context) {
+			const auto *mesh = dynamic_cast<const Instances::MeshPart*>(instance);
+			lua_pushboolean(context, mesh->noCulling);
+
+			return 1;
+		},
+		.set = [](Instance *instance, lua_State *context) {
+			auto *mesh = dynamic_cast<Instances::MeshPart*>(instance);
+			mesh->noCulling = luaL_checkboolean(context, -1);
+			return 1;
+		}
+	});
+
 	add_method(
 	  meshPart,
 	  {.name = "set_model",
@@ -724,6 +831,7 @@ void ReflectionService::register_reflections() {
 	     {
 	       .name = "FieldOfView",
 	       .type = Number,
+	     		.category = "Data",
 	       .flags = {},
 
 	       .get =
@@ -749,23 +857,46 @@ void ReflectionService::register_reflections() {
 
 	add_property(
 	  camera,
-	  {
-	    .name = "UseDebugControls",
-	    .type = Boolean,
-	    .flags = {},
-	    .get = [](const Instances::Instance *instance, lua_State *context) {
-		    const auto *camera = dynamic_cast<const Instances::Camera *>(instance);
-		    lua_pushboolean(context, camera->useDebugMovement);
-		    return 1;
-	    },
-	  	.set = [](Instances::Instance* instance, lua_State* context) {
-	  		auto *camera = dynamic_cast<Instances::Camera *>(instance);
-	  		const auto newBool = luaL_checkboolean(context, -1);
-	  		camera->useDebugMovement = newBool;
+	  {.name = "UseDebugControls",
+	   .type = Boolean,
+	  	.category = "Quirks",
+	   .flags = {},
+	   .get =
+	     [](const Instances::Instance *instance, lua_State *context) {
+		     const auto *camera = dynamic_cast<const Instances::Camera *>(instance);
+		     lua_pushboolean(context, camera->useDebugMovement);
+		     return 1;
+	     },
+	   .set =
+	     [](Instances::Instance *instance, lua_State *context) {
+		     auto *camera = dynamic_cast<Instances::Camera *>(instance);
+		     const auto newBool = luaL_checkboolean(context, -1);
+		     camera->useDebugMovement = newBool;
 
-	  		return 0;
-	  	}
-	  }
+		     return 0;
+	     }}
+	);
+	add_property(
+	camera,
+	{.name = "Resolution",
+	 .type = Vector2,
+		.category = "Data",
+	 .flags = {},
+	 .get =
+		 [](const Instances::Instance *instance, lua_State *context) {
+			 const auto *camera = dynamic_cast<const Instances::Camera *>(instance);
+			 push_vector2(context,  *new glm::vec2(camera->resolution->x, camera->resolution->y));
+			 return 1;
+		 },
+	 .set =
+		 [](Instances::Instance *instance, lua_State *context) {
+			 auto *camera = dynamic_cast<Instances::Camera *>(instance);
+		 	const auto newResolution = get_vector2_from_lua(context, -1);
+
+		 	camera->resolution = new DataTypes::Vector2 {static_cast<uint32_t>(newResolution->x), static_cast<uint32_t>(newResolution->y)};
+
+			 return 0;
+		 }}
 	);
 
 	create_reflection({

@@ -18,6 +18,7 @@ namespace Nyanners::Instances {
 			 {
 			 	.name = "Text",
 				.type = String,
+			 	.category = "Data",
 				.get =
 					[](const Instance *instance, lua_State *context) {
 						const auto *label =
@@ -36,6 +37,7 @@ namespace Nyanners::Instances {
 					}},
 					 {.name = "MaxVisibleGlyphs",
 		 .type = ReflectionPropertyType::Number,
+					 	.category = "Data",
 		 .get =
 		 [](const Instance *instance, lua_State *context) {
 			 const auto *label =
@@ -68,17 +70,26 @@ TextLabel::TextLabel() : Instance("TextLabel") {
     mesh->bind();
 
 		mesh->bind();
+		// mesh->set_vertices({
+		// 	0.f, 1.f,  0.f, 0.f,
+		// 	0.f, 0.f,  0.f, 1.f,
+		// 	1.f, 0.f,  1.0f, 1.0f,
+		// 	1.f, 1.f,  1.0f, 0.f
+		// });
+		// mesh->set_indexes({0, 1, 2, 0, 3, 4});
 		mesh->set_vertices({
-			0.f, 1.f,  0.f, 0.f,
-			0.f, 0.f,  0.f, 1.f,
-			1.f, 0.f,  1.f, 1.f,
-			1.f, 1.f,  1.f, 0.f
+			0.0f, 1.0f, 0.0f, 0.0f,
+			0.0f, 0.0f, 0.0f, 1.0f,
+			1.0f, 0.0f, 1.0f, 1.0f,
+
+			// 0.0f, 1.0f, 0.0f, 0.0f,
+			1.0f, 0.0f, 1.0f, 1.0f,
+			1.0f, 1.0f, 1.0f, 0.0f
 		});
 
-		// mesh->set_indexes({0, 1, 2, 0, 3, 4});
-		mesh->set_indexes({0, 1, 2, 0, 2, 3});
+		mesh->set_indexes({0, 1, 2, 0, 3, 4});
 		glEnableVertexAttribArray(0);
-		glVertexAttribPointer(0, 4, GL_FLOAT, GL_FALSE, 0, 0);
+		glVertexAttribPointer(0, 4, GL_FLOAT, GL_FALSE, 4 * sizeof(float), 0);
     Drawable::set_color({255, 255, 255, 255});
     mesh->unbind();
 }
@@ -100,39 +111,43 @@ void TextLabel::draw() {
 		this->material->shader->setMatrix("uProjection", Services::RenderingService::renderer->projection2D);
     int renderedGlyph = 0;
 
+		auto window_size = Services::RenderingService::renderer->get_window_size();
+
 		for (const auto& glyph : glyphs) {
-			const auto xPosition = glyph.position.x;
-			const auto yPosition = glyph.position.y;
+			if (maxVisibleGlyph != -1 && renderedGlyph >= maxVisibleGlyph) {
+				break;
+			}
+
+			const auto xPosition = glyph.position.x * scale->x;
+			const auto yPosition = glyph.position.y * scale->y;
 			const auto character = glyph.character;
+
+			if (xPosition > window_size.x) {
+				continue;
+			}
+
+			if (yPosition > window_size.y) {
+				continue;;
+			}
 
 			const auto glyphWidth = glyph.size.x;
 			const auto glyphHeight = glyph.size.y;
 			this->material->set_texture(character.texture);
 
 			mesh->bind();
-			mesh->set_vertices({
-					xPosition,              yPosition + glyphHeight,    0.0f, 0.0f,
-					xPosition,              yPosition,                  0.0f, 1.0f,
-					xPosition + glyphWidth, yPosition,                  1.0f, 1.0f,
+			glm::mat4 transform = glm::translate(glm::mat4(1.0f), glm::vec3(xPosition, yPosition, 0.0f));
+			transform = glm::scale(transform, glm::vec3(glyphWidth * scale->x, glyphHeight * scale->y, 1.0f));
+			this->material->shader->setMatrix("uTransform", transform);
 
-					// xPosition,              yPosition + glyphHeight,    0.0f, 0.0f,
-					xPosition + glyphWidth, yPosition,                  1.0f, 1.0f,
-					xPosition + glyphWidth, yPosition + glyphHeight,    1.0f, 0.0f
-			});
-
-			mesh->set_indexes({0, 1, 2, 0, 3, 4});
 			mesh->bind();
 			Services::RenderingService::renderer->render_mesh(mesh);
-
-			// now advance cursors for next glyph (note that advance is number of 1/64 pixels)
-			// globalPositionX += (character.advance >> 6) * scale; // bitshift by 6 to get value in pixels (2^6 = 64)
 			renderedGlyph += 1;
 		}
 
 		// reset
 		Services::RenderingService::renderer->enable_depth_buffer();
 		Services::RenderingService::renderer->set_previous_depth_test();
-	Services::RenderingService::renderer->set_renderer_feature(Core::Rendering::RendererFeature::FaceCulling, true);
+		Services::RenderingService::renderer->set_renderer_feature(Core::Rendering::RendererFeature::FaceCulling, true);
 }
 
 void TextLabel::update(const float deltaTime) {
@@ -179,21 +194,21 @@ void TextLabel::calculate_text(const std::string &text) {
 
 		// taken from https://youtu.be/S0PyZKX4lyI, very good watch
 		if (*iterator == '\n') {
-			globalPositionY -= (character.size.y * lineHeight) * scale;
+			globalPositionY -= (character.size.y * lineHeight) * textScale;
 			globalPositionX = position->x;
 			continue;
 		}
 
 		if (*iterator == ' ') {
-			globalPositionX += (character.advance >> 6) * scale;
+			globalPositionX += (character.advance >> 6) * textScale;
 			continue;
 		}
 
-		float xPosition = globalPositionX + character.bearing.x * scale;
-		float yPosition = globalPositionY - (character.size.y - character.bearing.y) * scale;
+		float xPosition = globalPositionX + character.bearing.x * textScale;
+		float yPosition = globalPositionY - (character.size.y - character.bearing.y) * textScale;
 
-		const float glyphWidth = character.size.x * scale;
-		const float glyphHeight = character.size.y * scale;
+		const float glyphWidth = character.size.x * textScale;
+		const float glyphHeight = character.size.y * textScale;
 
 		DataTypes::CalculatedGlyph glyph {};
 		glyph.position = glm::vec2(xPosition, yPosition);
@@ -201,6 +216,6 @@ void TextLabel::calculate_text(const std::string &text) {
 		glyph.character = character;
 
 		glyphs.push_back(glyph);
-		globalPositionX += (character.advance >> 6) * scale; // bitshift by 6 to get value in pixels (2^6 = 64)
+		globalPositionX += (character.advance >> 6) * textScale; // bitshift by 6 to get value in pixels (2^6 = 64)
 	};
 }

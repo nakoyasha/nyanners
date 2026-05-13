@@ -17,6 +17,15 @@ namespace Nyanners::Resources::OpenGL {
 		  int height,
 		  void *imageBuffer
 		) override;
+
+		void upload_buffer_cubemap(
+			CubemapSide side,
+			int internalFormat,
+			int externalFormat,
+			int width,
+			int height,
+			void *imageBuffer
+		);
 		void set_mipmap_enabled(const bool newState) override;
 		void set_texture_parameter(const TextureFilterParameter& parameter, const TextureWrapMode& wrapMode) override;
 		void use() override;

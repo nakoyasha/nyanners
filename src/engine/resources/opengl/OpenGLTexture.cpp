@@ -60,6 +60,20 @@ void OpenGLTexture::upload_buffer(const int internalFormat, const int externalFo
 	GL_CHECK(glTexImage2D(textureType, 0, internalFormat, this->width, this->height, 0, externalFormat, GL_UNSIGNED_BYTE, imageBuffer));
 }
 
+void OpenGLTexture::upload_buffer_cubemap(
+  CubemapSide side,
+  int internalFormat,
+  int externalFormat,
+  int width,
+  int height,
+  void *imageBuffer
+) {
+	this->width += width;
+	this->height = height;
+
+	glTexImage2D(static_cast<GLenum>(side), 0, GL_RGB, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, imageBuffer);
+}
+
 void OpenGLTexture::set_mipmap_enabled(const bool newState) {
 	if (newState == true) {
 		GL_CHECK(glTexParameteri(textureType, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR));
@@ -90,6 +104,8 @@ int getOpenGLFilterParameter(const TextureFilterParameter& parameter) {
 			return GL_TEXTURE_WRAP_T;
 		case TextureWrapCoordinateS:
 			return GL_TEXTURE_WRAP_S;
+		case TextureWrapCoordinateR:
+			return GL_TEXTURE_WRAP_R;
 		case MinificationFilter:
 			return GL_TEXTURE_MIN_FILTER;
 		case MagnificationFilter:

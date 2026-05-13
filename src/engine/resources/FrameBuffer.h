@@ -2,12 +2,13 @@
 #include "Texture.h"
 #include "glad/glad.h"
 #include "instances/datatypes/Vector.h"
+#include <glm/gtc/matrix_transform.hpp>
 
 namespace Nyanners::Resources {
 		class FrameBuffer {
 		public:
 			std::shared_ptr<Resources::Texture> framebufferTexture;
-			DataTypes::Vector2 size = DataTypes::Vector2({0, 0});
+			DataTypes::Vector2* size;
 
 			FrameBuffer(const int width, const int height);
 			~FrameBuffer();

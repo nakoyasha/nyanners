@@ -32,10 +32,6 @@ add_library(Nyanners
         instances/drawable/MeshPart.cpp
         instances/drawable/TextLabel.h
         instances/drawable/TextLabel.cpp
-        instances/debug/DebugUIService.h
-        instances/debug/DebugUIService.cpp
-        instances/debug/DebugWindow.h
-        instances/debug/DebugWindow.cpp
         instances/Instance.h
         instances/Instance.cpp
         instances/DataModel.h
@@ -106,8 +102,8 @@ add_library(Nyanners
         instances/services/TextService.cpp
         instances/services/TextService.h
         utils/glCheck.h
-        instances/debug/FrameCounter.cpp
-        instances/debug/FrameCounter.h
+        debug/FrameCounter.cpp
+        debug/FrameCounter.h
         scripting/reflections/ReflectionTypes.h
         instances/services/user/InputService.cpp
         instances/services/user/InputService.h
@@ -116,6 +112,23 @@ add_library(Nyanners
         instances/basic/Transformable.h
         instances/container/BasicContainers.h
         instances/container/BasicContainers.cpp
+
+        # debugging
+        debug/DebugUIService.h
+        debug/DebugUIService.cpp
+        debug/DebugWindow.h
+        debug/DebugWindow.cpp
+
+        debug/ExplorerPanel.cpp
+        debug/ExplorerPanel.h
+        debug/ViewportPanel.cpp
+        debug/ViewportPanel.h
+        debug/CommandBar.cpp
+        debug/CommandBar.h
+        debug/OutputPanel.cpp
+        debug/OutputPanel.h
+        debug/MainMenubar.cpp
+        debug/MainMenubar.h
 )
 
 add_library(

@@ -6,6 +6,7 @@ using namespace Nyanners::Instances;
 
 Skybox::Skybox() : Instance("Skybox") {
 	skyboxTexture = Resources::Texture::create(TextureType::Cubemap);
+	skyboxTexture->debugIdentifier = "ProjectSkybox";
 	skyboxTexture->use();
 
 	std::vector<std::string> files = {
@@ -26,24 +27,21 @@ Skybox::Skybox() : Instance("Skybox") {
 
 			data = stbi_load(file.c_str(), &width, &height, &nrChannels, 3);
 
-			glTexImage2D(
-				GL_TEXTURE_CUBE_MAP_POSITIVE_X + i,
-			0, GL_RGB, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, data
-			);
-
+			skyboxTexture->upload_buffer_cubemap(static_cast<Resources::CubemapSide>(GL_TEXTURE_CUBE_MAP_POSITIVE_X + i), GL_RGB, GL_RGB, width, height, data);
 			stbi_image_free(data);
 	}
 
-	glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-	glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-	glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
-	glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
-	glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_R, GL_CLAMP_TO_EDGE);
+	skyboxTexture->set_texture_parameter(TextureFilterParameter::MagnificationFilter, Linear);
+	skyboxTexture->set_texture_parameter(TextureFilterParameter::MinificationFilter, Linear);
+	skyboxTexture->set_texture_parameter(TextureFilterParameter::TextureWrapCoordinateS, ClampToEdge);
+	skyboxTexture->set_texture_parameter(TextureFilterParameter::TextureWrapCoordinateT, ClampToEdge);
+	skyboxTexture->set_texture_parameter(TextureFilterParameter::TextureWrapCoordinateR, ClampToEdge);
 
 	material->set_shader("assets/shaders/skybox/vertex.glsl", "assets/shaders/skybox/frag.glsl");
 	material->set_texture(skyboxTexture);
+	material->shader->setColor("uColor", *material->color);
 
-	glBindVertexArray(vertexArrayID);
+	// glBindVertexArray(vertexArrayID);
 
 	// notice of ai-generated code:
 	// yeah i couldn't be bothered here either to be honest. then again
@@ -100,7 +98,7 @@ Skybox::Skybox() : Instance("Skybox") {
 	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(float) * 3, nullptr);
 	this->mesh->unbind();
 
-	glBindVertexArray(0);
+	// glBindVertexArray(0);
 }
 
 void Skybox::draw() {
@@ -110,9 +108,9 @@ void Skybox::draw() {
 	glCullFace(GL_FRONT);
 
 	this->material->use();
-	glBindVertexArray(vertexArrayID);
+	// glBindVertexArray(vertexArrayID);
 	Services::RenderingService::renderer->render_mesh(this->mesh);
-	glBindVertexArray(0);
+	// glBindVertexArray(0);
 
 	// glDepthFunc(GL_LESS);
 	// glDepthMask(GL_TRUE);

@@ -7,6 +7,7 @@
 namespace Nyanners::Instances {
   class MeshPart : virtual public Instance, public Drawable {
   public:
+  	bool noCulling = false;
     void draw() override;
     MeshPart();
 

@@ -1,7 +1,7 @@
 #pragma once
+#include "DebugWindow.h"
 #include "instances/DataModel.h"
 #include "instances/Script.h"
-#include "instances/debug/DebugWindow.h"
 #include "instances/services/SelectionService.h"
 #include "resources/Texture.h"
 
@@ -20,14 +20,17 @@ struct StringValueCache {
 	}
 };
 
-namespace TestApp::Panels {
+namespace Nyanners::Debug::UI {
 	class ExplorerPanel : public Nyanners::Instances::DebugWindow {
 
 	public:
 		ExplorerPanel();
 		void render_vec3(
-		  glm::vec3 &values, ReflectionProperty property, Instance *instance
-		);
+		  const glm::vec3 &values, const ReflectionProperty& property, Instance *instance
+		) const;
+		void render_vec2(
+		  const glm::vec2 &values, const ReflectionProperty& property, Instance *instance
+		) const;
 		void render_instance(const std::shared_ptr<Instance> &instance);
 		void draw() override;
 		StringValueCache &get_or_make_string_cache(
@@ -37,6 +40,10 @@ namespace TestApp::Panels {
 		);
 
 	private:
+		void display_property(
+		  const std::shared_ptr<Instance>& instance, const ReflectionProperty& property);
+		static void display_color_property(const std::shared_ptr<Instance>& instance, const DataTypes::Color3& color);
+
 		const std::map<std::string_view, std::shared_ptr<Texture>> classIcons = {
 		  {"World", Texture::create(Texture2D, "assets/textures/editor/world.png")},
 

@@ -1,9 +1,11 @@
-#include "DebugUIService.h"
+#include "debug/DebugUIService.h"
 #include "imgui.h"
 #include "imgui_impl_opengl3.h"
 #include "instances/services/RenderingService.h"
+#include "instances/services/user/InputService.h"
 
 using namespace Nyanners::Services;
+bool DebugUIService::renderWindows = true;
 
 DebugUIService::DebugUIService() : Instance("DebugUIService") {
 	ImGuiIO &io = ImGui::GetIO();
@@ -104,6 +106,12 @@ DebugUIService::DebugUIService() : Instance("DebugUIService") {
 	// Drag & Drop
 	//
 	colors[ImGuiCol_DragDropTarget] = accent;
+
+	InputService::onInput.connect([this](Input::InputEvent event) {
+		if (event.key == Input::KeyCode::F8 && event.state == Input::InputState::Began) {
+			renderWindows = !renderWindows;
+		}
+	});
 }
 
 DebugUIService::~DebugUIService() {
@@ -117,20 +125,24 @@ void DebugUIService::draw_imgui() const {
 
 	io.DisplaySize =
 	  ImVec2(static_cast<float>(size.x), static_cast<float>(size.y));
+
+
 	ImGui::NewFrame();
 	ImGui_ImplOpenGL3_NewFrame();
 
 	ImGui::DockSpaceOverViewport(
 	  0, ImGui::GetMainViewport(), ImGuiDockNodeFlags_PassthruCentralNode
 	);
-	for (const auto &child : children) {
-		const auto drawable = std::dynamic_pointer_cast<Instances::Drawable>(child);
+	if (renderWindows) {
+		for (const auto &child : children) {
+			const auto drawable = std::dynamic_pointer_cast<Instances::Drawable>(child);
 
-		if (drawable == nullptr) {
-			continue;
+			if (drawable == nullptr) {
+				continue;
+			}
+
+			drawable->draw();
 		}
-
-		drawable->draw();
 	}
 
 	ImGui::Render();
@@ -138,6 +150,8 @@ void DebugUIService::draw_imgui() const {
 
 void DebugUIService::on_frame_end() {
 	ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
+	ImGui::UpdatePlatformWindows();
+	ImGui::RenderPlatformWindowsDefault();
 }
 
 static ImGuiKey toImGuiKey(const sf::Keyboard::Key key) {

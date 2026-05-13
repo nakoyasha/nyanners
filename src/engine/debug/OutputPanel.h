@@ -1,5 +1,5 @@
 #pragma once
-#include "instances/debug/DebugWindow.h"
+#include "DebugWindow.h"
 #include "instances/services/ConsoleService.h"
 
 struct ConsoleOutput {
@@ -7,7 +7,7 @@ struct ConsoleOutput {
 	const std::string message;
 };
 
-namespace TestApp::Panels {
+namespace Nyanners::Debug::UI {
 	class OutputPanel : public Nyanners::Instances::DebugWindow {
 	public:
 		OutputPanel() : Instance("OutputWindow") {

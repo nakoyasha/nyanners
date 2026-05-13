@@ -1,13 +1,13 @@
 #include "Application.h"
 #include "core/Logger.h"
 #include "debug/CommandBar.h"
+#include "debug/DebugUIService.h"
 #include "debug/ExplorerPanel.h"
+#include "debug/FrameCounter.h"
 #include "debug/MainMenubar.h"
 #include "debug/OutputPanel.h"
 #include "debug/ViewportPanel.h"
 #include "instances/Script.h"
-#include "instances/debug/DebugUIService.h"
-#include "instances/debug/FrameCounter.h"
 #include "instances/drawable/MeshPart.h"
 #include "instances/drawable/TextLabel.h"
 #include "instances/services/EngineService.h"
@@ -26,8 +26,8 @@ class TestApplication : public Application {
 public:
 	std::shared_ptr<Instances::Camera> camera;
 	std::shared_ptr<Instances::Camera> cameraTwo;
-	Resources::FrameBuffer *framebuffer;
-	Resources::FrameBuffer *secondaryFramebuffer;
+	FrameBuffer *framebuffer;
+	FrameBuffer *secondaryFramebuffer;
 
 	TestApplication() : Application({1280, 720}, "TestApp") {
 		m_Instance = this;
@@ -45,6 +45,8 @@ public:
 		this->cameraTwo = std::make_shared<Instances::Camera>();
 		cameraTwo->useDebugMovement = false;
 
+		camera->name = "MainCamera";
+		cameraTwo->name = "SecondaryCamera";
 		renderService->add_child(camera);
 		renderService->add_child(cameraTwo);
 	}
@@ -59,7 +61,7 @@ private:
 	std::shared_ptr<World> world;
 	std::shared_ptr<UIService> uiService;
 	std::shared_ptr<DebugUIService> debugUI;
-	Resources::Material* mizuMaterial;
+	Resources::Material *mizuMaterial;
 };
 
 void TestApplication::start() {
@@ -70,7 +72,7 @@ void TestApplication::start() {
 	mizuMaterial->set_color(new DataTypes::Color3({255, 255, 255, 255}));
 	mizuMaterial->set_texture("assets/textures/mizuzu.png");
 
-	InputService::onInput.connect([](const Input::InputEvent& event) {
+	InputService::onInput.connect([](const Input::InputEvent &event) {
 		if (event.key == Input::KeyCode::F8) {
 
 			if (event.state == Input::InputState::Began) {
@@ -80,6 +82,8 @@ void TestApplication::start() {
 			}
 		}
 	});
+
+	ScriptService::run_autorun();
 
 	while (renderService->is_window_open()) {
 		this->on_draw();
@@ -95,20 +99,32 @@ void TestApplication::on_draw() const {
 	if (!renderService->is_window_open()) {
 		return;
 	}
+
+
 	debugUI->draw_imgui();
 
-	framebuffer->clear();
-	RenderingService::renderer->render_from(world, nullptr, framebuffer);
-	RenderingService::renderer->render_from(uiService, nullptr, framebuffer);
+	if (!renderService->active) {
+		renderService->end_frame();
+		return;
+	}
+
+	if (DebugUIService::renderWindows) {
+		framebuffer->clear();
+		RenderingService::renderer->render_from(world, nullptr, framebuffer);
+		RenderingService::renderer->render_from(uiService, nullptr, framebuffer);
+	} else {
+		RenderingService::renderer->render_from(world, nullptr, nullptr);
+		RenderingService::renderer->render_from(uiService, nullptr, nullptr);
+	}
 
 	// re-render again into a secondary framebuffer using the 2nd camera
-	RenderingService::renderer->disable_depth_buffer();
-
 	secondaryFramebuffer->clear();
-	RenderingService::renderer->render_from(world, cameraTwo, secondaryFramebuffer);
-	RenderingService::renderer->render_from(uiService, cameraTwo, secondaryFramebuffer);
-
-	RenderingService::renderer->enable_depth_buffer();
+	RenderingService::renderer->render_from(
+	  world, cameraTwo, secondaryFramebuffer
+	);
+	RenderingService::renderer->render_from(
+	  uiService, cameraTwo, secondaryFramebuffer
+	);
 
 	renderService->end_frame();
 }
@@ -120,7 +136,7 @@ void TestApplication::on_update() {
 		}
 
 		// TODO: better way of doing this. idk
-		auto* value = &event.value();
+		auto *value = &event.value();
 
 		renderService->handle_window_event(event);
 		EngineService::handle_event(value);
@@ -132,27 +148,7 @@ void TestApplication::on_update() {
 
 int main() {
 	auto *app = new TestApplication();
-
 	const auto model = app->currentModel;
-	const auto engineService =
-	  model->find_first_child<EngineService>("EngineService");
-
-	if (engineService == nullptr) {
-		EngineService::panic("Could not find EngineService??");
-	}
-
-	auto script = std::make_shared<Instances::Script>();
-
-	try {
-		auto source = IOService::read_file("assets/autorun.luau");
-		script->name = "autorun";
-		script->set_source(source);
-		script->initialize_script();
-	} catch (std::runtime_error &e) {
-		EngineService::panic(
-		  std::format("Failed to run autorun.luau: {}", e.what())
-		);
-	}
 
 	const auto renderingService =
 	  app->currentModel->get_service<Services::RenderingService>(
@@ -160,8 +156,7 @@ int main() {
 	  );
 	const auto runService =
 	  app->currentModel->get_service<RunService>("RunService");
-	const auto uiService =
-	  app->currentModel->get_service<UIService>("UIService");
+	const auto uiService = app->currentModel->get_service<UIService>("UIService");
 	const auto world = app->currentModel->get_service<World>("World");
 	const auto debugUI =
 	  app->currentModel->get_service<DebugUIService>("DebugUIService");
@@ -169,20 +164,24 @@ int main() {
 	app->framebuffer = new Resources::FrameBuffer(1280, 720);
 	app->secondaryFramebuffer = new Resources::FrameBuffer(1280, 720);
 
-	// const auto label = std::make_shared<Instances::TextLabel>();
-	// label->set_text("hi! \n do new lines work?");
-	// const auto frameCounter = std::make_shared<Debug::FrameCounter>();
+	const auto label = std::make_shared<Instances::TextLabel>();
+	label->set_text("hi! \n do new lines work?");
+	const auto frameCounter = std::make_shared<Debug::FrameCounter>();
+
+	uiService->add_child(label, frameCounter);
 	const auto mesh = std::make_shared<Instances::MeshPart>();
 	const auto meshTwo = std::make_shared<Instances::MeshPart>();
 	const auto teapot = std::make_shared<Instances::MeshPart>();
 
 	world->add_child(std::make_shared<Instances::Skybox>());
 
-	debugUI->add_child(std::make_shared<TestApp::Panels::ExplorerPanel>());
-	debugUI->add_child(std::make_shared<TestApp::Panels::ViewportPanel>(app->framebuffer));
-	debugUI->add_child(std::make_shared<TestApp::Panels::CommandBar>());
-	debugUI->add_child(std::make_shared<TestApp::Panels::OutputPanel>());
-	debugUI->add_child(std::make_shared<TestApp::Panels::MainMenubar>());
+	debugUI->add_child(std::make_shared<Debug::UI::ExplorerPanel>());
+	debugUI->add_child(
+	  std::make_shared<Debug::UI::ViewportPanel>(app->framebuffer)
+	);
+	debugUI->add_child(std::make_shared<Debug::UI::CommandBar>());
+	debugUI->add_child(std::make_shared<Debug::UI::OutputPanel>());
+	debugUI->add_child(std::make_shared<Debug::UI::MainMenubar>());
 
 	mesh->set_vertices(
 	  {-0.5f,
@@ -210,12 +209,24 @@ int main() {
 	mesh->set_indexes({0, 1, 2, 2, 3, 0});
 	mesh->set_color({255, 255, 255, 255});
 
-	meshTwo->set_vertices({
-	  	-0.5f, -0.5f, 0.0f, 0.0f,
-	    0.5f,-0.5f, 1.0f, 0.0f,
-	   0.5f, 0.5f, 1.0f, 1.0f,
-	   -0.5f, 0.5f,0.0f, 1.0f
-	  });
+	meshTwo->set_vertices(
+	  {-0.5f,
+	   -0.5f,
+	   0.0f,
+	   0.0f,
+	   0.5f,
+	   -0.5f,
+	   1.0f,
+	   0.0f,
+	   0.5f,
+	   0.5f,
+	   1.0f,
+	   1.0f,
+	   -0.5f,
+	   0.5f,
+	   0.0f,
+	   1.0f}
+	);
 
 	// 0 and 2 are duplicates; therefore it can be optimized down here:
 	meshTwo->set_indexes({0, 1, 2, 2, 3, 0});
@@ -227,9 +238,6 @@ int main() {
 	world->add_child(mesh, meshTwo);
 	mesh->material->set_texture("assets/textures/enanui.png");
 	meshTwo->material->set_texture(app->secondaryFramebuffer->framebufferTexture);
-
-	// uiService->add_child(label, frameCounter);
-	script->run_script();
 
 	Core::Logger::log("Running Test App");
 	app->start();

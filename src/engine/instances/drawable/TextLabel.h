@@ -32,7 +32,7 @@ namespace Nyanners::Instances {
   	Resources::Font* font;
   	std::vector<DataTypes::CalculatedGlyph> glyphs;
 
-    float scale = 1;
+    float textScale = 1;
     float lineHeight = 1.3;
 
 

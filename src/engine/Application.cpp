@@ -1,12 +1,12 @@
 #include "Application.h"
 #include "core/Logger.h"
-#include "instances/debug/DebugUIService.h"
+#include "debug/DebugUIService.h"
 #include "instances/services/EngineService.h"
 #include "instances/services/RenderingService.h"
 #include "instances/services/RunService.h"
 #include "instances/services/SelectionService.h"
-#include "instances/services/user/InputService.h"
 #include "instances/services/UIService.h"
+#include "instances/services/user/InputService.h"
 #include "instances/world/World.h"
 
 Nyanners::Application::Application(const DataTypes::Vector2 size, const std::string& windowTitle)

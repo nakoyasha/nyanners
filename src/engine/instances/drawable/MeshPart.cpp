@@ -26,9 +26,13 @@ void MeshPart::update(const float deltaTime) {
 };
 
 void MeshPart::draw() {
+	Services::RenderingService::renderer->set_renderer_feature(Core::Rendering::RendererFeature::FaceCulling, !noCulling);
+
 	this->material->use();
 	Services::RenderingService::renderer->render_mesh(this->mesh);
 	this->material->release();
+
+	Services::RenderingService::renderer->set_renderer_feature(Core::Rendering::RendererFeature::FaceCulling, noCulling);
 }
 
 void MeshPart::load_from_obj_file(const std::filesystem::path &path) {
@@ -58,14 +62,14 @@ void MeshPart::load_from_obj_file(const std::filesystem::path &path) {
 			newVertices.push_back(p[2]);
 
 			// uv
-			if (idx.t != -1) {
-				const float* t = &objMesh->texcoords[idx.t * 2];
-				newVertices.push_back(t[0]);
-				newVertices.push_back(1.0f - t[1]); // OBJ V flip
-			} else {
+			// if (idx.t != -1) {
+				// const float* t = &objMesh->texcoords[idx.t * 2];
+				// newVertices.push_back(t[0]);
+				// newVertices.push_back(1.0f - t[1]); // OBJ V flip
+			// } else {
 				newVertices.push_back(0.0f);
 				newVertices.push_back(0.0f);
-			}
+			// }
 		}
 
 		indexOffset += face;

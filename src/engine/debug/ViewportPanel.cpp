@@ -3,7 +3,7 @@
 #include "imgui.h"
 #include "core/Logger.h"
 
-using namespace TestApp::Panels;
+using namespace Nyanners::Debug::UI;
 
 ViewportPanel::ViewportPanel(Nyanners::Resources::FrameBuffer* newFrameBuffer) : Instance("ViewportPanel") {
 	renderService = Nyanners::Application::instance()->currentModel->get_service<Nyanners::Services::RenderingService>("RenderingService");

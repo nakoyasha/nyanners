@@ -5,6 +5,8 @@
 using namespace Nyanners::Resources;
 
 FrameBuffer::FrameBuffer(const int width, const int height) {
+	size = new DataTypes::Vector2 {0, 0};
+
 	int normalizedWidth = width, normalizedHeight = height;
 
 	if (width <= 0) {
@@ -22,13 +24,27 @@ FrameBuffer::FrameBuffer(const int width, const int height) {
 	GL_CHECK(glBindFramebuffer(GL_FRAMEBUFFER, framebufferId));
 
 	this->framebufferTexture->use();
-	this->framebufferTexture->upload_buffer(GL_RGB, GL_RGB, normalizedWidth, normalizedHeight, nullptr);
-	GL_CHECK(glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, static_cast<GLuint>(reinterpret_cast<uintptr_t>(this->framebufferTexture->get_texture_handle())), 0));
+	this->framebufferTexture->upload_buffer(
+	  GL_RGB, GL_RGB, normalizedWidth, normalizedHeight, nullptr
+	);
+	GL_CHECK(glFramebufferTexture2D(
+	  GL_FRAMEBUFFER,
+	  GL_COLOR_ATTACHMENT0,
+	  GL_TEXTURE_2D,
+	  static_cast<GLuint>(reinterpret_cast<uintptr_t>(
+	    this->framebufferTexture->get_texture_handle()
+	  )),
+	  0
+	));
 
 	GL_CHECK(glGenRenderbuffers(1, &renderBufferId));
 	GL_CHECK(glBindRenderbuffer(GL_RENDERBUFFER, renderBufferId));
-	GL_CHECK(glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH24_STENCIL8, normalizedWidth, normalizedHeight));
-	GL_CHECK(glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_STENCIL_ATTACHMENT, GL_RENDERBUFFER, renderBufferId));
+	GL_CHECK(glRenderbufferStorage(
+	  GL_RENDERBUFFER, GL_DEPTH24_STENCIL8, normalizedWidth, normalizedHeight
+	));
+	GL_CHECK(glFramebufferRenderbuffer(
+	  GL_FRAMEBUFFER, GL_DEPTH_STENCIL_ATTACHMENT, GL_RENDERBUFFER, renderBufferId
+	));
 	GL_CHECK(glViewport(0, 0, normalizedWidth, normalizedHeight));
 
 	check_status();
@@ -36,8 +52,9 @@ FrameBuffer::FrameBuffer(const int width, const int height) {
 	GL_CHECK(glBindFramebuffer(GL_FRAMEBUFFER, 0));
 	this->framebufferTexture->unuse();
 	GL_CHECK(glBindRenderbuffer(GL_RENDERBUFFER, 0));
-	size.x = width;
-	size.y = height;
+
+	size->x = width;
+	size->y = height;
 }
 
 FrameBuffer::~FrameBuffer() {
@@ -80,7 +97,7 @@ void FrameBuffer::resize(const int width, const int height) {
 	}
 
 	// don't recompute
-	if (this->size.x == normalizedWidth && this->size.y == normalizedHeight) {
+	if (this->size->x == normalizedWidth && this->size->y == normalizedHeight) {
 		return;
 	}
 
@@ -104,8 +121,9 @@ void FrameBuffer::resize(const int width, const int height) {
 	this->framebufferTexture->unuse();
 	GL_CHECK(glBindRenderbuffer(GL_RENDERBUFFER, 0));
 	this->release();
-	size.x = normalizedWidth;
-	size.y = normalizedHeight;
+
+	size->x = normalizedWidth;
+	size->y = normalizedHeight;
 }
 
 void FrameBuffer::construct_framebuffer(const int width, const int height) {
@@ -137,8 +155,9 @@ void FrameBuffer::construct_framebuffer(const int width, const int height) {
 	GL_CHECK(glBindFramebuffer(GL_FRAMEBUFFER, 0));
 	this->framebufferTexture->unuse();
 	GL_CHECK(glBindRenderbuffer(GL_RENDERBUFFER, 0));
-	size.x = width;
-	size.y = height;
+
+	size->x = width;
+	size->y = height;
 }
 
 void FrameBuffer::check_status() {

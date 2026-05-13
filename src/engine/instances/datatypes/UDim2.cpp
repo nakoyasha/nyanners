@@ -6,8 +6,8 @@ using namespace Nyanners::DataTypes;
 void UDim2::recomputeSize() {
 	const auto screenRes = Services::RenderingService::renderer->get_window_size();
 
-	this->absoluteX = this->x * screenRes.width;
-	this->absoluteY = this->y * screenRes.height;
+	this->absoluteX = this->x * screenRes.x;
+	this->absoluteY = this->y * screenRes.y;
 }
 
 void UDim2::setX(const float newX) {
@@ -28,7 +28,7 @@ UDim2::UDim2(const float x, const float y) : UDim2() {
 UDim2::UDim2() {
 }
 
-Vector2 UDim2::getVector() const {
-	return Vector2({absoluteX, absoluteY});
+Nyanners::DataTypes::Vector2 UDim2::getVector() const {
+	return {static_cast<uint32_t>(absoluteX), static_cast<uint32_t>(absoluteY)};
 }
 

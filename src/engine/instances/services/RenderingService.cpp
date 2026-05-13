@@ -1,14 +1,13 @@
 #define STB_IMAGE_IMPLEMENTATION
-#include "stb_image.h"
-
 #include "RenderingService.h"
 #include "Application.h"
 #include "IOService.h"
 #include "RunService.h"
+#include "stb_image.h"
+#include "../../debug/DebugUIService.h"
 #include "SFML/Graphics/RenderWindow.hpp"
 #include "SFML/Window/VideoMode.hpp"
 #include "core/Logger.h"
-#include "instances/debug/DebugUIService.h"
 
 using namespace Nyanners::Services;
 

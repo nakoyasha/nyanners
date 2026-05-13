@@ -1,6 +1,6 @@
 #include "RunService.h"
 #include "ReflectionService.h"
-#include "instances/debug/DebugUIService.h"
+#include "../../debug/DebugUIService.h"
 
 using namespace Nyanners::Services;
 

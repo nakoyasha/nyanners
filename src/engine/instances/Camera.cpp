@@ -10,6 +10,7 @@ namespace Nyanners::Scripting {
 }
 
 Camera::Camera() : Instance("Camera") {
+	resolution = new DataTypes::Vector2(512, 512);
 }
 
 void Camera::update(const float deltaTime) {
@@ -58,6 +59,7 @@ void Camera::update(const float deltaTime) {
 		// rebuild view
 		view = glm::lookAt(cameraPos, cameraPos + cameraFront, cameraUp);
 		position = new glm::vec3(cameraPos.x, cameraPos.y, cameraPos.z);
+		rotation = new glm::vec3(pitch, yaw, 0.0f);
 		Instance::update(deltaTime);
 	}
 }

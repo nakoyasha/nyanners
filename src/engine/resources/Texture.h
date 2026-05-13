@@ -23,18 +23,31 @@ enum TextureWrapMode {
 	ClampToEdge = 2,
 };
 
+
 enum TextureFilterParameter {
 	// based on GL_TEXTURE_WRAP_T
 	TextureWrapCoordinateT = 0,
 	// based on GL_TEXTURE_WRAP_S
 	TextureWrapCoordinateS = 1,
+	// based on GL_TEXTURE_WRAP_R
+	TextureWrapCoordinateR = 2,
 	// based on GL_TEXTURE_MIN_FILTER
-	MinificationFilter = 2,
+	MinificationFilter = 3,
 	// based on GL_TEXTURE_MAG_FILTER
-	MagnificationFilter = 3,
+	MagnificationFilter = 4,
 };
 
 namespace Nyanners::Resources {
+	// TODO: when switching to another api, this might be entirely wrong
+	enum class CubemapSide {
+		Left = 0x8515,
+		Right = 0x8515 + 1,
+		Up = 0x8515 + 2,
+		Down = 0x8515 + 3,
+		Front = 0x8515 + 4,
+		Back = 0x8515 + 5,
+	};
+
 	class Texture : public std::enable_shared_from_this<Texture> {
 	public:
 		virtual ~Texture() = default;
@@ -51,6 +64,15 @@ namespace Nyanners::Resources {
 		  int width,
 		  int height,
 		  void *imageBuffer
+		) = 0;
+
+		virtual void upload_buffer_cubemap(
+			CubemapSide side,
+			int internalFormat,
+			int externalFormat,
+			int width,
+			int height,
+			void *imageBuffer
 		) = 0;
 
 		virtual void set_mipmap_enabled(const bool newState) = 0;

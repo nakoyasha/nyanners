@@ -1,8 +1,8 @@
 #pragma once
+#include "DebugWindow.h"
 #include "instances/Script.h"
-#include "instances/debug/DebugWindow.h"
 
-namespace TestApp::Panels {
+namespace Nyanners::Debug::UI {
 	class CommandBar : public Nyanners::Instances::DebugWindow {
 	public:
 		CommandBar();

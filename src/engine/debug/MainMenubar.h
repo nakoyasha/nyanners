@@ -1,9 +1,9 @@
 #pragma once
 #include "Application.h"
-#include "instances/debug/DebugWindow.h"
+#include "DebugWindow.h"
 #include "instances/services/RenderingService.h"
 
-namespace TestApp::Panels {
+namespace Nyanners::Debug::UI {
 	class MainMenubar : public Nyanners::Instances::DebugWindow {
 	public:
 		MainMenubar() : Instance("MenubarPanel") {
