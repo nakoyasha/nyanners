@@ -34,7 +34,7 @@ void OpenGLMaterial::set_color(DataTypes::Color3 *newColor) {
 
 void OpenGLMaterial::set_texture(const std::shared_ptr<Resources::Texture>& newTexture) {
 	texture->unuse();
-	texture = std::move(newTexture);
+	texture = newTexture;
 	texture->use();
 
 	shader->use();

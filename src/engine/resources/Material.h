@@ -14,7 +14,7 @@ namespace Nyanners::Resources {
 		virtual void release() = 0;
 
 		virtual void set_color(DataTypes::Color3* newColor) = 0;
-		virtual void set_texture(std::shared_ptr<Resources::Texture> newTexture) = 0;
+		virtual void set_texture(const std::shared_ptr<Texture> &newTexture) = 0;
 		virtual void set_texture(const std::filesystem::path& newTexturePath) = 0;
 
 		virtual void set_shader(Resources::Shader* newShader) = 0;

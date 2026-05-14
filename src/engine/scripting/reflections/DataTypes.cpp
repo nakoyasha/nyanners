@@ -1,5 +1,6 @@
 #include "DataTypes.h"
 #include "core/Logger.h"
+#include "scripting/data/UserdataTags.h"
 #include "third_party/luau/VM/src/ldo.h"
 
 using namespace Nyanners::Services;
@@ -224,4 +225,17 @@ glm::vec2 *Nyanners::Scripting::Reflection::get_vector2_from_lua(
 	}
 
 	return position;
+}
+Nyanners::DataTypes::Color3 *
+Nyanners::Scripting::Reflection::get_color_from_lua(
+  lua_State *context, int idx
+) {
+	auto *color =
+	ReflectionService::get_userdata_from_context<DataTypes::Color3>(context, idx, 0x05);
+
+	if (color == nullptr) {
+		throw std::runtime_error("Color3 is nullptr");
+	}
+
+	return color;
 }

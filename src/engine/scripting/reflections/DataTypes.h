@@ -9,4 +9,5 @@ namespace Nyanners::Scripting::Reflection {
 
 	glm::vec3* get_vector3_from_lua(lua_State* context, int idx = -1);
 	glm::vec2* get_vector2_from_lua(lua_State* context, int idx = -1);
+	DataTypes::Color3* get_color_from_lua(lua_State* context, int idx = -1);
 }
