@@ -79,6 +79,7 @@ void MainMenubar::draw() {
 				// bigger version for viewing
 				ImGui::BeginTooltip();
 					ImGui::Image(handle, ImVec2(512, 512), ImVec2(0, 1), ImVec2(1, 0));
+					ImGui::Text("X: %d, Y: %d", texture->width, texture->height);
 				ImGui::EndTooltip();
 			}
 
