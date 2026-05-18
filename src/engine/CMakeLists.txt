@@ -129,6 +129,13 @@ add_library(Nyanners
         debug/OutputPanel.h
         debug/MainMenubar.cpp
         debug/MainMenubar.h
+        scripting/reflections/ReflectionDescriptorRegistry.cpp
+        scripting/reflections/ReflectionDescriptorRegistry.h
+        scripting/reflections/ReflectionDescriptor.cpp
+        scripting/reflections/ReflectionDescriptor.h
+        scripting/reflections/ReflectionProperty.h
+        scripting/reflections/ReflectionPropertyReaders.h
+        utils/ImGuiColor3.h
 )
 
 add_library(

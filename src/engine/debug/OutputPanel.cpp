@@ -1,5 +1,6 @@
 #include "OutputPanel.h"
 #include "imgui.h"
+#include "utils/ImGuiColor3.h"
 
 using namespace Nyanners::Debug::UI;
 
@@ -12,12 +13,15 @@ void OutputPanel::draw() {
 		for (int index = clipper.DisplayStart; index < clipper.DisplayEnd; ++index) {
 			const auto log = messages[index];
 			const auto message = log.message.c_str();
+
 			if (log.level == Nyanners::Core::LogLevel::Error) {
-				ImGui::TextColored(ImVec4(0.92f, 0.31, 0.33, 1.0f), message);
+				ImGui::TextColored(color3_to_imvec4({234, 79, 84, 255}), message);
 			} else if (log.level == Nyanners::Core::LogLevel::Warning) {
-				ImGui::TextColored(ImVec4(255 / 255, 255 / 255, 143 / 255, 1.0f), message);
+				ImGui::TextColored(color3_to_imvec4({255, 255, 143, 255}), message);
 			} else if (log.level == Nyanners::Core::LogLevel::Info) {
 				ImGui::TextUnformatted(message);
+			} else if (log.level == Nyanners::Core::LogLevel::Debug) {
+				ImGui::TextColored(color3_to_imvec4({38, 216, 222, 255}), message);
 			}
 		}
 	}

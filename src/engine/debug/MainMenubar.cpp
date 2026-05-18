@@ -17,20 +17,16 @@ void MainMenubar::draw() {
 	if (ImGui::BeginMenu("Instances")) {
 		if (ImGui::BeginMenu("Create..")) {
 			for (const auto &descriptor :
-			     Nyanners::Services::ReflectionService::classes |
+			     ReflectionDescriptorRegistry::instance()->descriptors |
 			       std::views::values) {
 
-				if (!std::ranges::contains(
-				      descriptor.flags,
-				      Nyanners::Scripting::Reflection::ReflectionInstanceFlags::
-				        Creatable
-				    )) {
+				if (descriptor.flags & 0) {
 					continue;
 				}
 
-				if (ImGui::MenuItem(descriptor.className.c_str())) {
-					const auto instance = descriptor.constructor();
-					Nyanners::Application::instance()->currentModel->add_child(instance);
+				if (ImGui::MenuItem(descriptor.name.c_str())) {
+					const auto instance = descriptor.construct<Instances::Instance>();
+					Application::instance()->currentModel->add_child(instance);
 				}
 			};
 			ImGui::EndMenu();

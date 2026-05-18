@@ -168,7 +168,7 @@ int main() {
 	label->set_text("hi! \n do new lines work?");
 	const auto frameCounter = std::make_shared<Debug::FrameCounter>();
 
-	uiService->add_child(label, frameCounter);
+	uiService->add_child(label);
 	const auto mesh = std::make_shared<Instances::MeshPart>();
 	const auto meshTwo = std::make_shared<Instances::MeshPart>();
 	const auto teapot = std::make_shared<Instances::MeshPart>();

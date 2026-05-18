@@ -2,55 +2,18 @@
 #include "lua.h"
 #include "lualib.h"
 #include "instances/Instance.h"
-#include "instances/datatypes/Vector.h"
-#include "scripting/reflections/ReflectionTypes.h"
 #include "instances/container/BasicContainers.h"
-#include <algorithm>
+#include "scripting/reflections/ReflectionDescriptor.h"
+#include "scripting/reflections/ReflectionDescriptorRegistry.h"
+#include "scripting/reflections/ReflectionTypes.h"
 #include <functional>
 #include <map>
-#include <variant>
 
-enum ReflectionPropertyType
-{
-  Unknown,
-  String,
-  Number,
-  Boolean,
-  Instance,
-  Method,
-	Vector3,
-	Vector2,
-  UserData,
-};
-
-using ReflectionVariant = std::variant<
-	std::monostate, // void
-	bool,
-	int,
-	double,
-	float,
-	std::string,
-	std::shared_ptr<Nyanners::Instances::Instance>,
-	Nyanners::DataTypes::Vector3,
-	Nyanners::DataTypes::Vector2
->;
+using namespace Nyanners::Scripting::Reflection;
 
 using ReflectionGetter = std::function<int(const Nyanners::Instances::Instance*, lua_State*)>;
 using ReflectionSetter = std::function<void(Nyanners::Instances::Instance*, lua_State*)>;
 using ReflectionConstructor = std::function<std::shared_ptr<Nyanners::Instances::Instance>()>;
-using InstanceFlags = std::array<Nyanners::Scripting::Reflection::ReflectionInstanceFlags, 3>;
-using PropertyFlags = std::array<Nyanners::Scripting::Reflection::ReflectionPropertyFlags, 3>;
-
-struct ReflectionProperty {
-  const std::string name;
-  const ReflectionPropertyType type = Unknown;
-	const std::string category = "Unknown";
-	const PropertyFlags flags;
-
-  const ReflectionGetter get;
-  const ReflectionSetter set;
-
-};
 
 using ReflectionMethodCallback = std::function<int(std::shared_ptr<Nyanners::Instances::Instance>, lua_State* context)>;
 
@@ -65,7 +28,7 @@ struct ReflectionMethod {
 struct ReflectionClass {
   const std::string className = "Instance";
   const std::string base = "Instance";
-	const InstanceFlags flags;
+	// const InstanceFlags flags;
 
   const ReflectionConstructor constructor;
   std::vector<ReflectionProperty> properties;
@@ -75,81 +38,34 @@ struct ReflectionClass {
 struct ReflectionInstance
 {
   std::shared_ptr<Nyanners::Instances::Instance> pointer;
-  ReflectionClass* descriptor;
+  ReflectionDescriptor* descriptor;
 };
-
-namespace Nyanners::Scripting::Reflection {
-	template <typename T>
-	const T& get_value_from_variant(const ReflectionVariant& v);
-
-	template <>
-	inline const std::string& get_value_from_variant<std::string>(const ReflectionVariant& v) {
-		return std::get<std::string>(v);
-	}
-
-	template <>
-	inline const bool& get_value_from_variant<bool>(const ReflectionVariant& v) {
-		return std::get<bool>(v);
-	}
-
-	template <>
-	inline const int& get_value_from_variant<int>(const ReflectionVariant& v) {
-		return std::get<int>(v);
-	}
-
-	template <>
-	inline const float& get_value_from_variant<float>(const ReflectionVariant& v) {
-		return std::get<float>(v);
-	}
-
-	template <typename T>
-	std::shared_ptr<Nyanners::Instances::Instance> create_instance() {
-		static_assert(std::is_base_of_v<Nyanners::Instances::Instance, T>);
-
-		return std::make_shared<T>();
-	}
-}
 
 namespace Nyanners::Services {
   class ReflectionService : public Instances::Instance {
   public:
-    static std::map<std::string, ReflectionClass> classes;
-    ReflectionService() : Instance("ReflectionService") {
-    	Instances::link_basic_containers();
-    };
+    ReflectionService() : Instance("ReflectionService") {};
 
     static void reflect_class(lua_State* context, const std::shared_ptr<Instance>& instance);
     static ReflectionClass& create_reflection(const ReflectionClass &descriptor);
-		;
-  	static void add_property(ReflectionClass& descriptor, const ReflectionProperty& property);
-  	template <typename internalType, typename get, typename set>
-  	static void add_property_new(
-  		ReflectionClass& descriptor,
-  		const ReflectionPropertyType type,
-  		std::string name,
 
-  		get&& getter,
-  		set&& setter
-  		) {
-  		ReflectionProperty property = {
-  			.name = std::move(name),
-				.type = type,
-			};
+  	static ReflectionDescriptor & create_descriptor(const std::string& className, const std::vector<std::string>& parents
+		);
 
-  		property.get = [getter = std::forward<get>(getter)](const Instance* i) {
-  			return ReflectionValue(getter(i));
-  		};
+  	static bool does_descriptor_exist(const std::string& className) {
+  		return ReflectionDescriptorRegistry::instance()->descriptors.contains(className);
+  	}
 
-  		property.set = [setter = std::forward<set>(setter)](const Instance* i, const ReflectionVariant& variant) {
-  			setter(i, Scripting::Reflection::get_value_from_variant<internalType>(variant));
-  		};
+		static ReflectionDescriptor get_descriptor(const std::string& className)
+  	{
+			 return ReflectionDescriptorRegistry::instance()->descriptors.at(className);
+  	}
 
-  		descriptor.properties.push_back(std::move(property));
-  	};
-  	static void add_method(ReflectionClass& descriptor, const ReflectionMethod& method);
+  	// static void add_property(ReflectionClass& descriptor, const ReflectionProperty& property);
+  	// static void add_method(ReflectionClass& descriptor, const ReflectionMethod& method);
 
     static ReflectionInstance* get_instance_from_context(lua_State* context, const int id);
-  	static ReflectionClass* get_descriptor(std::string className);
+  	// static ReflectionClass* get_descriptor(std::string className);
   	static std::vector<ReflectionProperty> get_properties(const std::shared_ptr<Instance>& instance);
     static void register_reflections();
 
@@ -171,13 +87,23 @@ namespace Nyanners::Services {
   		new (selfUser) T(*data);
   	}
   private:
+  	static void construct_family_tree(
+		  const ReflectionDescriptor &start,
+		  std::vector<ReflectionDescriptor *> &descriptors
+		);
+
     static int instance_index(lua_State* context, const ReflectionInstance* instance);
-  	static int handle_property(lua_State* context, std::string_view propertyName,const ReflectionInstance* instance, const ReflectionClass& descriptor);
+  	static int handle_property(
+		  lua_State *context,
+		  const std::string &propertyName,
+		  const ReflectionInstance *instance,
+		  const ReflectionDescriptor &descriptor
+		);
   	static bool handle_new_value(
 		  lua_State *context,
-		  std::string_view propertyName,
+		  const std::string &propertyName,
 		  const ReflectionInstance *instance,
-		  const ReflectionClass &descriptor
+		  const ReflectionDescriptor &descriptor
 		);
     static int instance_new_index(lua_State* context, const ReflectionInstance* instance);
   };

@@ -20,12 +20,11 @@ namespace Nyanners::Instances {
         }
       }
 
-      for (const auto& descriptor : Services::ReflectionService::classes | std::views::values)
+      for (const auto& descriptor : ReflectionDescriptorRegistry::instance()->descriptors | std::views::values)
       {
-        if (descriptor.className == name)
+        if (descriptor.name == name)
         {
-          const auto newInstance = descriptor.constructor();
-          return std::dynamic_pointer_cast<T>(newInstance);
+          return descriptor.construct<T>();
         }
       }
 

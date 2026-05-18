@@ -43,12 +43,7 @@ lua_State* ScriptService::make_main_context() {
 }
 
 lua_State *ScriptService::make_context() {
-		if (mainContext == nullptr) {
-			mainContext = make_main_context();
-		}
-
-		auto context = lua_newthread(mainContext);
-		return context;
+	return make_main_context();
 }
 
 void ScriptService::run_autorun() {
@@ -76,11 +71,8 @@ int ScriptService::handle_lua_console(lua_State *context) {
 
     lua_getfield(context, LUA_REGISTRYINDEX, LUA_SCRIPT_REGISTRY_INDEX);
 
-    const auto *script =
-            static_cast<Nyanners::Instances::Script *>(lua_tolightuserdatatagged(
-                context, lua_gettop(context), LUA_SCRIPT_USERDATA_TAG));
-
-    if (script == nullptr) {
+    const auto *script = static_cast<Instances::Script*>(lua_tolightuserdatatagged(context, lua_gettop(context), 0x02));
+    if (script == nullptr || script->context == nullptr) {
         EngineService::panic("Got output from a VM with no attached Script, wtf???");
     }
 

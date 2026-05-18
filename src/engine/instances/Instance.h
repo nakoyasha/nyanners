@@ -27,8 +27,21 @@ namespace Nyanners::Instances {
   		(add_child(children), ...);
   	}
     virtual void remove_child(const std::shared_ptr<Instance> &child);
-
     virtual void update(const float deltaTime);
+
+  	bool get_active() const {
+  		return this->active;
+  	};
+
+  	[[nodiscard]] std::string get_name() const {
+  		return this->name;
+  	};
+
+  	void set_name(std::string name) {
+  		this->name = name;
+  	}
+
+
     virtual void set_active(const bool newActiveState);
 
     template <typename T>

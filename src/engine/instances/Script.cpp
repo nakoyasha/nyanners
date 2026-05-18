@@ -5,7 +5,6 @@
 #include "core/Logger.h"
 #include "scripting/LibDatatype.h"
 #include "scripting/LibInstance.h"
-#include "scripting/data/UserdataTags.h"
 #include "services/IOService.h"
 #include "services/ReflectionService.h"
 #include <format>
@@ -15,7 +14,7 @@ using namespace Nyanners::Instances;
 
 void Script::initialize_script() {
   context = Services::ScriptService::make_context();
-  lua_pushlightuserdatatagged(context, this, LUA_SCRIPT_USERDATA_TAG);
+  lua_pushlightuserdatatagged(context, this, 0x02);
   lua_setfield(context, LUA_REGISTRYINDEX, LUA_SCRIPT_REGISTRY_INDEX);
 }
 
@@ -77,8 +76,25 @@ void Script::run_script()
     {
         if (lua_pcall(context, 0, LUA_MULTRET, 0) != LUA_OK)
         {
-            std::string error = lua_tostring(context, -1);
-            Core::Logger::log(error);
+        	const std::string error = lua_tostring(context, -1);
+        	lua_Debug debugInfo;
+
+        	Core::Logger::log_error(error);
+        	luaL_traceback(context, context, nullptr, 1);
+
+        	const std::string traceback = lua_tostring(context, -1);
+        	lua_pop(context, -1);
+
+        	std::istringstream iterator(traceback);
+        	Core::Logger::log_debug("Stack Begin");
+        	for (std::string line; std::getline(iterator, line);) {
+        		if (line.find("[C]") != std::string::npos) {
+        			Core::Logger::log_debug("<engine internals>");
+        		} else {
+        			Core::Logger::log_debug(line);
+        		}
+        	}
+        	Core::Logger::log_debug("Stack End");
         }
         else
         {

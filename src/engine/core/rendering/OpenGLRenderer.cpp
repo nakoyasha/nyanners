@@ -58,17 +58,19 @@ void OpenGLRenderer::initialize() {
 	quadMesh = Resources::Mesh::create();
 	quadMesh->bind();
 	quadMesh->set_vertices({
-		-0.5f, -0.5f, 0.0f, 0.0f,
-		0.5f,-0.5f, 1.0f, 0.0f,
-		0.5f, 0.5f, 1.0f, 1.0f,
-		-0.5f, 0.5f,0.0f, 1.0f
+		0.0f, 1.0f, 0.0f, 0.0f,
+		0.0f,0.0f,0.0f,1.0f,
+		1.0f,0.0f,1.0f,1.0f,
+
+		1.0f,0.0f,1.0f,1.0f,
+		1.0f,1.0f,1.0f,0.0f
 	});
 
-	quadMesh->set_indexes({0, 1, 2, 2, 3, 0});
+	quadMesh->set_indexes({0, 1, 2, 0, 3, 4});
 	glEnableVertexAttribArray(0);
 	glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, sizeof(float) * 4, nullptr);
 	glEnableVertexAttribArray(1);
-	glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, sizeof(float) * 4, (void*)(sizeof(float) * 2));
+	glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, sizeof(float) * 4, reinterpret_cast<void*>(sizeof(float) * 2));
 	quadMesh->unbind();
 }
 
@@ -251,9 +253,9 @@ void OpenGLRenderer::render_quad(
 	const auto transform = glm::translate(glm::mat4(1.0f), glm::vec3(position.x, position.y, 0.0f));
 
 	material->use();
-	material->shader->setMatrix("uModel", glm::scale(transform, glm::vec3(size.x, size.y, 0.0f)));
+	material->shader->setMatrix("uTransform", glm::scale(transform, glm::vec3(size.x, size.y, 0.0f)));
 	material->shader->setMatrix("uView", camera->view);
-	material->shader->setMatrix("uProjection", camera->projection);
+	material->shader->setMatrix("uProjection", projection2D);
 	material->shader->setBool("uScreenSpace", true);
 
 	quadMesh->bind();

@@ -3,22 +3,12 @@
 
 namespace Nyanners::Instances {
 	void link_basic_containers() {
-			const auto& model = Nyanners::Services::ReflectionService::create_reflection({
-					.className = "Model",
-					.base = "Instance",
-					.flags = {Nyanners::Scripting::Reflection::Creatable},
-					.constructor = &Nyanners::Scripting::Reflection::create_instance<Nyanners::Instances::Model>,
-					.properties = {},
-					.methods = {}
-			});
-			const auto& folder = Nyanners::Services::ReflectionService::create_reflection({
-				.className = "Folder",
-				.base = "Instance",
-				.flags = {Nyanners::Scripting::Reflection::Creatable},
-				.constructor = &Nyanners::Scripting::Reflection::create_instance<Nyanners::Instances::Folder>,
-				.properties = {},
-				.methods = {}
-		});
+		// TODO: combine meshes in a Model? I guess
+		Services::ReflectionService::create_descriptor("Model", {"Instance"})
+		.add_constructor<Model>();
+
+		Services::ReflectionService::create_descriptor("Folder", {"Instance"})
+		.add_constructor<Folder>();
 	}
 }
 
