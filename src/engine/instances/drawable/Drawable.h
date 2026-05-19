@@ -21,7 +21,6 @@ namespace Nyanners::Instances {
 		virtual ~Drawable();
 
   	virtual void set_color(DataTypes::Color3 newColor);
-  	virtual void set_color(DataTypes::Color3* newColor);
 
   	virtual bool isLegacy();
     virtual void draw() {};

@@ -69,7 +69,7 @@ void TestApplication::start() {
 	RenderingService::renderer->set_depth_test(Core::Rendering::Always);
 	RenderingService::renderer->disable_depth_buffer();
 	mizuMaterial = Resources::Material::create();
-	mizuMaterial->set_color(new DataTypes::Color3({255, 255, 255, 255}));
+	mizuMaterial->set_color({255, 255, 255, 255});
 	mizuMaterial->set_texture("assets/textures/mizuzu.png");
 
 	InputService::onInput.connect([](const Input::InputEvent &event) {

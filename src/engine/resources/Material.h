@@ -7,13 +7,12 @@ namespace Nyanners::Resources {
 	public:
 		Resources::Shader* shader {};
 		std::shared_ptr<Resources::Texture> texture {};
-
-		DataTypes::Color3* color = new DataTypes::Color3{255, 255, 255, 255};
+		DataTypes::Color3 color = {255, 255, 255, 255};
 
 		virtual void use() = 0;
 		virtual void release() = 0;
 
-		virtual void set_color(DataTypes::Color3* newColor) = 0;
+		virtual void set_color(DataTypes::Color3 newColor) = 0;
 		virtual void set_texture(const std::shared_ptr<Texture> &newTexture) = 0;
 		virtual void set_texture(const std::filesystem::path& newTexturePath) = 0;
 

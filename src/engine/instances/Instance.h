@@ -37,7 +37,7 @@ namespace Nyanners::Instances {
   		return this->name;
   	};
 
-  	void set_name(std::string name) {
+  	void set_name(const std::string& name) {
   		this->name = name;
   	}
 

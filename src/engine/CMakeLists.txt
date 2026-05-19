@@ -136,6 +136,7 @@ add_library(Nyanners
         scripting/reflections/ReflectionProperty.h
         scripting/reflections/ReflectionPropertyReaders.h
         utils/ImGuiColor3.h
+        scripting/reflections/ReflectionMethod.h
 )
 
 add_library(

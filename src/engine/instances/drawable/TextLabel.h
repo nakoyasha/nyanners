@@ -27,11 +27,14 @@ namespace Nyanners::Instances {
     void draw() override;
     void update(const float deltaTime) override;
 
-    void set_text(const std::string& newText);
+    void set_text(std::string newText);
+  	[[nodiscard]] std::string get_text() const;
     void set_position(const glm::vec3 &newPosition) override;
 
-  	void set_shadow_color(const DataTypes::Color3 &newColor);
+  	DataTypes::Color3 get_color() const;
+  	void set_color(const DataTypes::Color3 &newColor);
 		DataTypes::Color3 get_shadow_color() const;
+  	void set_shadow_color(const DataTypes::Color3 &newColor);
   	void set_draw_shadow(bool shouldDraw);
   	bool get_draw_shadow() const;
   private:

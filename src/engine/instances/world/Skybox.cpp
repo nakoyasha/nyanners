@@ -39,7 +39,7 @@ Skybox::Skybox() : Instance("Skybox") {
 
 	material->set_shader("assets/shaders/skybox/vertex.glsl", "assets/shaders/skybox/frag.glsl");
 	material->set_texture(skyboxTexture);
-	material->shader->setColor("uColor", *material->color);
+	material->set_color(material->color);
 
 	// glBindVertexArray(vertexArrayID);
 

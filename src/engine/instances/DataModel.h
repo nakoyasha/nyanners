@@ -10,6 +10,11 @@ namespace Nyanners::Instances {
   public:
     DataModel() : Instance("DataModel") {};
 
+  	int test_lua_method(lua_State* context) {
+  		lua_pushboolean(context, true);
+  		return 1;
+  	}
+
     template <typename T>
     std::shared_ptr<T> get_service(const std::string& name) {
       for (const auto& child : children)
@@ -30,5 +35,18 @@ namespace Nyanners::Instances {
 
       return nullptr;
     }
+
+  	int get_service_lua(lua_State* context) {
+  		const std::string& name = luaL_checkstring(context, -1);
+  		auto service = get_service<Instance>(name);
+
+  		if (service != nullptr) {
+  			Services::ReflectionService::reflect_class(context, service);
+  		} else {
+  			luaL_error(context, "No such service exists");
+  		}
+
+			return 1;
+		}
   };
 }

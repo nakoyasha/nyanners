@@ -30,6 +30,18 @@ namespace Nyanners::Instances {
 			return this->transform;
 		}
 
+		[[nodiscard]] virtual glm::vec3 get_position() const {
+			return *position;
+		};
+
+		[[nodiscard]] virtual glm::vec3 get_rotation() const {
+			return *rotation;
+		};
+
+		[[nodiscard]] virtual glm::vec3 get_scale() const {
+			return *scale;
+		};
+
 		virtual void set_position(const glm::vec3& newPosition) {
 			position = new glm::vec3(newPosition);
 		};

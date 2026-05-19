@@ -19,3 +19,19 @@ ReflectionDescriptor::get_property(const std::string &propertyName) const {
 
 	return std::nullopt;
 }
+
+std::optional<ReflectionMethod> ReflectionDescriptor::get_method(const std::string &methodName) const {
+	for (const auto &method : methods) {
+		if (method.name == methodName) {
+			return method;
+		};
+	}
+
+	for (auto &parent : parents) {
+		if (const auto &method = parent->get_method(methodName); method != std::nullopt) {
+			return method;
+		}
+	}
+
+	return std::nullopt;
+}

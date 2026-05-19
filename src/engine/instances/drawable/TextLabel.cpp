@@ -8,90 +8,13 @@
 using namespace Nyanners::Instances;
 
 namespace Nyanners::Instances {
-	// const ReflectionClass &instance =
-	//   Services::ReflectionService::create_reflection({
-	//     .className = "TextLabel",
-	//     .base = "Drawable",
-	//     .flags = {Scripting::Reflection::ReflectionInstanceFlags::Creatable},
-	//     .constructor = &Scripting::Reflection::create_instance<TextLabel>,
-	//     .properties = {
-	//       {.name = "Text",
-	//        .type = String,
-	//        .category = "Data",
-	//        .get =
-	//          [](const Instance *instance, lua_State *context) {
-	// 	         const auto *label =
-	// 	           dynamic_cast<const Instances::TextLabel *>(instance);
-	//
-	// 	         lua_pushstring(context, label->text.c_str());
-	//
-	// 	         return 1;
-	//          },
-	//        .set =
-	//          [](Instance *instance, lua_State *context) {
-	// 	         auto *label = dynamic_cast<Instances::TextLabel *>(instance);
-	// 	         const std::string text = luaL_checkstring(context, -1);
-	//
-	// 	         label->set_text(text);
-	//          }},
-	//       {.name = "MaxVisibleGlyphs",
-	//        .type = ReflectionPropertyType::Number,
-	//        .category = "Data",
-	//        .get =
-	//          [](const Instance *instance, lua_State *context) {
-	// 	         const auto *label =
-	// 	           dynamic_cast<const Instances::TextLabel *>(instance);
-	//
-	// 	         lua_pushnumber(context, label->maxVisibleGlyph);
-	//
-	// 	         return 1;
-	//          },
-	//        .set =
-	//          [](Instance *instance, lua_State *context) {
-	// 	         auto *label = dynamic_cast<Instances::TextLabel *>(instance);
-	// 	         const int newGlyphs = luaL_checknumber(context, -1);
-	//
-	// 	         label->maxVisibleGlyph = newGlyphs;
-	//          }},
-	//       {.name = "ShadowColor",
-	//        .type = ReflectionPropertyType::UserData,
-	//        .category = "Data",
-	//        .get =
-	//          [](const Instance *instance, lua_State *context) {
-	// 	         const auto label = dynamic_cast<const TextLabel *>(instance);
-	// 	         DataTypes::Color3 color = {label->get_shadow_color()};
-	//
-	// 	         // ugh
-	// 	         Scripting::Reflection::push_color3(context, color);
-	// 	         return 1;
-	//          },
-	//        .set =
-	//          [](Instance *instance, lua_State *context) {
-	// 	         auto label = dynamic_cast<TextLabel *>(instance);
-	// 	         auto color = Scripting::Reflection::get_color_from_lua(context);
-	//
-	// 	         label->set_shadow_color(*color);
-	// 	         return 0;
-	//          }},
-	//       {.name = "DrawShadow",
-	//        .type = ReflectionPropertyType::Boolean,
-	//        .category = "Data",
-	//        .get =
-	//          [](const Instance *instance, lua_State *context) {
-	// 	         const auto label = dynamic_cast<const TextLabel *>(instance);
-	// 	         lua_pushboolean(context, label->get_draw_shadow());
-	// 	         return 1;
-	//          },
-	//        .set =
-	//          [](Instance *instance, lua_State *context) {
-	// 	         auto label = dynamic_cast<TextLabel *>(instance);
-	// 	         const auto shouldDraw = luaL_checkboolean(context, -1);
-	//
-	// 	         label->set_draw_shadow(shouldDraw);
-	// 	         return 0;
-	//          }}
-	//     },
-	//   });
+	auto registrator = ReflectionDescriptorRegistry::instance()->create_registrator([]() {
+		Services::ReflectionService::create_descriptor("TextLabel", {"Instance", "Transformable"})
+			.add_property_chained<TextLabel, bool, &TextLabel::get_draw_shadow, &TextLabel::set_draw_shadow>("DrawShadow", Boolean)
+			.add_property_chained<TextLabel, std::string, &TextLabel::get_text, &TextLabel::set_text>("Text", String)
+			.add_property_chained<TextLabel, DataTypes::Color3, &TextLabel::get_color, &TextLabel::set_color>("Color", Color)
+			.add_property_chained<TextLabel, DataTypes::Color3, &TextLabel::get_shadow_color, &TextLabel::set_shadow_color>("ShadowColor", Color);
+	});
 }
 
 TextLabel::TextLabel() : Instance("TextLabel") {
@@ -109,7 +32,7 @@ TextLabel::TextLabel() : Instance("TextLabel") {
 	);
 	shadowMaterial->shader->use();
 	material->shader->setInt("uTexture", 0);
-	shadowMaterial->set_color(&shadowColor);
+	shadowMaterial->set_color(shadowColor);
 	shadowMaterial->release();
 
 	mesh = Resources::Mesh::create();
@@ -232,10 +155,14 @@ void TextLabel::update(const float deltaTime) {
 	uiPosition.recomputeSize();
 }
 
-void TextLabel::set_text(const std::string &newText) {
+void TextLabel::set_text(std::string newText) {
 	text = newText;
 	glyphs.clear();
 	calculate_text(this->text);
+}
+
+std::string TextLabel::get_text() const {
+	return this->text;
 }
 
 void TextLabel::set_position(const glm::vec3 &newPosition) {
@@ -249,14 +176,23 @@ void TextLabel::set_position(const glm::vec3 &newPosition) {
 	calculate_text(this->text);
 }
 
-void TextLabel::set_shadow_color(const DataTypes::Color3 &newColor) {
-	shadowColor = newColor;
-	shadowMaterial->set_color(&shadowColor);
+Nyanners::DataTypes::Color3 TextLabel::get_color() const {
+	return material->color;
+}
+
+void TextLabel::set_color(const DataTypes::Color3 &newColor) {
+	material->set_color(newColor);
 }
 
 Nyanners::DataTypes::Color3 TextLabel::get_shadow_color() const {
 	return this->shadowColor;
 }
+
+void TextLabel::set_shadow_color(const DataTypes::Color3 &newColor) {
+	this->shadowColor = newColor;
+	shadowMaterial->set_color(newColor);
+}
+
 
 void TextLabel::set_draw_shadow(bool shouldDraw) {
 	this->drawShadow = shouldDraw;
@@ -267,6 +203,9 @@ bool TextLabel::get_draw_shadow() const {
 }
 
 void TextLabel::calculate_text(const std::string &newText) {
+	const auto window_size =
+	Services::RenderingService::renderer->get_window_size();
+
 	float globalPositionX = position->x;
 	float globalPositionY = position->y;
 

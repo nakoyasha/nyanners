@@ -15,6 +15,12 @@ namespace Nyanners::Scripting::Reflection {
 		Accessible = 1 << 1,
 	};
 
+	enum class ReflectionMethodFlags {
+		None = 0,
+		// this is solely here for decoration, and knowing which methods will be actually interacting with the lua state
+		CustomLuaState = 0,
+	};
+
 	enum ReflectionPropertyType
 	{
 		Unknown,

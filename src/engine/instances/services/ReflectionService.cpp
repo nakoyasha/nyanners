@@ -1,6 +1,7 @@
 #include "ReflectionService.h"
 #include "Application.h"
 #include "EngineService.h"
+#include "RenderingService.h"
 #include "lualib.h"
 #include "core/Logger.h"
 #include "instances/Script.h"
@@ -24,17 +25,6 @@ ReflectionService::get_instance_from_context(lua_State *context, const int id) {
 
 	return instance;
 }
-
-// ReflectionClass *
-// ReflectionService::get_descriptor(const std::string className) {
-// 	const auto descriptor = classes.find(className);
-//
-// 	if (descriptor != classes.end()) {
-// 		return &descriptor->second;
-// 	} else {
-// 		return nullptr;
-// 	}
-// }
 
 std::vector<ReflectionProperty>
 ReflectionService::get_properties(const std::shared_ptr<Instance> &instance) {
@@ -81,25 +71,6 @@ void ReflectionService::reflect_class(
 
 		descriptor = instanceDescriptor;
 	}
-
-	// if (descriptor.name == "Instance") {
-	// }
-
-	// if (descriptor == std::nullopt) {
-		// Core::Logger::log(
-		//   std::format(
-		//     "Class {} is missing a Reflection descriptor", instance->baseName
-		//   )
-		// );
-
-		// this is mainly here to make dev easier
-		// const auto defaultDescriptor = classes.find("Instance");
-		//
-		// if (defaultDescriptor != classes.end()) {
-		// 	descriptor = defaultDescriptor;
-		// }
-	// }
-
 	auto *selfUser =
 	  lua_newuserdatadtor(context, sizeof(ReflectionInstance), [](void *ptr) {
 		  auto instance = static_cast<ReflectionInstance *>(ptr);
@@ -187,18 +158,6 @@ ReflectionDescriptor &ReflectionService::create_descriptor(
 	return iterator->second;
 }
 
-// void ReflectionService::add_property(
-//   ReflectionClass &descriptor, const ReflectionProperty &property
-// ) {
-// 	descriptor.properties.push_back(property);
-// }
-//
-// void ReflectionService::add_method(
-//   ReflectionClass &descriptor, const ReflectionMethod &method
-// ) {
-// 	descriptor.methods.push_back(method);
-// }
-
 int ReflectionService::handle_property(
   lua_State *context,
   const std::string &propertyName,
@@ -247,33 +206,26 @@ int ReflectionService::handle_property(
 		return 0;
 	}
 
-	// for (auto &method : descriptor.methods) {
-	// 	if (method.name == propertyName) {
-	// 		// oh lord, this is evil.
-	// 		auto **methodData =
-	// 		  static_cast<const ReflectionMethodCallback **>(lua_newuserdatatagged(
-	// 		    context, sizeof(ReflectionMethod *), LUA_PROPERTY_METHOD_TAG
-	// 		  ));
-	// 		*methodData = &method.method;
-	//
-	// 		lua_pushcclosure(
-	// 		  context,
-	// 		  [](lua_State *context) {
-	// 			  auto **method =
-	// 			    static_cast<ReflectionMethodCallback **>(lua_touserdatatagged(
-	// 			      context, lua_upvalueindex(1), LUA_PROPERTY_METHOD_TAG
-	// 			    ));
-	// 			  auto instance = get_instance_from_context(context, 1);
-	// 			  ;
-	//
-	// 			  return (**method)(instance->pointer, context);
-	// 		  },
-	// 		  method.name.c_str(),
-	// 		  1
-	// 		);
-	// 		return 1;
-	// 	}
-	// }
+	if (const auto& method = descriptor.get_method(propertyName.data()); method != std::nullopt) {
+		auto **methodData =
+			static_cast<const ReflectionMethodCallback **>(lua_newuserdatatagged(
+			context, sizeof(ReflectionMethod *), LUA_PROPERTY_METHOD_TAG
+			));
+		*methodData = &method->call;
+
+		lua_pushcclosure(
+		context,
+		[](lua_State *context) {
+			auto **methodCallback =
+				static_cast<ReflectionMethodCallback **>(lua_touserdatatagged(
+				context, lua_upvalueindex(1), LUA_PROPERTY_METHOD_TAG
+				));
+			auto instance = get_instance_from_context(context, 1);
+
+			return (**methodCallback)(instance->pointer.get(), context);
+		}, method->name.c_str(), 1);
+		return 1;
+	}
 
 	if (auto child =
 	      instance->pointer->find_first_child<Instance>(propertyName.data())) {
@@ -342,7 +294,6 @@ void ReflectionService::construct_family_tree(
 		descriptors.push_back(parent);
 		construct_family_tree(*parent, descriptors);
 	}
-	// std::ranges::reverse(descriptors.begin(), descriptors.end());
 }
 
 int ReflectionService::instance_index(
@@ -370,17 +321,15 @@ int ReflectionService::instance_index(
 		return result;
 	}
 
-	// luaL_error(
-	//   context,
-	//   std::format(
-	//     "{}::{} is an invalid property and or child",
-	//     instance->pointer->baseName,
-	//     propertyName
-	//   )
-	//     .c_str()
-	// );
-
-	luaL_error(context, "Invalid property");
+	luaL_error(
+	  context,
+	  std::format(
+	    "{}::{} is an invalid property and or child",
+	    instance->pointer->baseName,
+	    propertyName
+	  )
+	    .c_str()
+	);
 
 	return 0;
 }
@@ -419,6 +368,19 @@ void ReflectionService::register_reflections() {
 		.add_property_chained<Instance, std::string, &Instance::get_name, &Instance::set_name>("Name", String)
 		.add_property_chained<Instance, bool, &Instance::get_active, &Instance::set_active>("Active", Boolean);
 
-	create_descriptor("DataModel", {"Instance"});
+	create_descriptor("DataModel", {"Instance"})
+	.add_method<Instances::DataModel, &Instances::DataModel::get_service_lua>("get_service", Boolean);
+
+	create_descriptor("Transformable", {"Instance"})
+	.add_property_chained<Instances::Transformable, glm::vec3, &Instances::Transformable::get_position, &Instances::Drawable::set_position>("Position", Vector3)
+	.add_property_chained<Instances::Transformable, glm::vec3, &Instances::Transformable::get_rotation, &Instances::Drawable::set_rotation>("Rotation", Vector3)
+	.add_property_chained<Instances::Transformable, glm::vec3, &Instances::Transformable::get_scale, &Instances::Drawable::set_scale>("Scale", Vector3);
+
+	create_descriptor("MeshPart", {"Transformable"});
+
+	create_descriptor("RenderingService", {"Instance"})
+	.add_property<RenderingService, double, &RenderingService::get_fps>("FPS", Number);
+
 	Instances::link_basic_containers();
+	ReflectionDescriptorRegistry::instance()->flush_registrators();
 }

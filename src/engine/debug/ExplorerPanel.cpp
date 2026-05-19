@@ -4,6 +4,7 @@
 #include "imgui_internal.h"
 #include "misc/cpp/imgui_stdlib.h"
 #include "scripting/reflections/DataTypes.h"
+#include "utils/ImGuiColor3.h"
 #include <algorithm>
 
 using namespace Nyanners::Debug::UI;
@@ -13,37 +14,26 @@ ExplorerPanel::ExplorerPanel() : Instance("ExplorerPanel") {
 	activeDm = Nyanners::Application::instance()->currentModel;
 	selectionService =
 	  activeDm->get_service<SelectionService>("SelectionService");
-
-	script = std::make_shared<Instances::Script>();
-	script->initialize_script();
 }
 
-void ExplorerPanel::render_vec3(
+void ExplorerPanel::render_vector(
   const glm::vec3 &values, const ReflectionProperty& property, Instance *instance
 ) const {
-	// float vec_float[3] = {values.x, values.y, values.z};
-	//
-	// if (ImGui::DragFloat3("##VectorEditor", vec_float, 0.5)) {
-	// 	auto newVector =
-	// 	  std::make_unique<glm::vec3>(vec_float[0], vec_float[1], vec_float[2]);
-	//
-	// 	Nyanners::Scripting::Reflection::push_vector3(script->context, *newVector);
-	// 	property.set(instance, script->context);
-	// }
+	float vec_float[3] = {values.x, values.y, values.z};
+
+	if (ImGui::DragFloat3("##VectorEditor", vec_float, 0.5)) {
+		property.set(instance, glm::vec3(vec_float[0], vec_float[1], vec_float[2]), nullptr);
+	}
 }
 
-void ExplorerPanel::render_vec2(
+void ExplorerPanel::render_vector(
   const glm::vec2 &values, const ReflectionProperty& property, Instance *instance
 ) const {
-	// float vec_float[3] = {values.x, values.y};
-	//
-	// if (ImGui::DragFloat2("##VectorEditor", vec_float, 0.5)) {
-	// 	auto newVector =
-	// 		std::make_unique<glm::vec2>(vec_float[0], vec_float[1]);
-	//
-	// 	Nyanners::Scripting::Reflection::push_vector2(script->context, *newVector);
-	// 	property.set(instance, script->context);
-	// }
+	float vec_float[2] = {values.x, values.y};
+
+	if (ImGui::DragFloat2("##VectorEditor", vec_float, 0.5)) {
+		property.set(instance, glm::vec2(vec_float[0], vec_float[1]), nullptr);
+	}
 }
 
 void ExplorerPanel::render_instance(const std::shared_ptr<Instance> &instance) {
@@ -196,11 +186,71 @@ StringValueCache &ExplorerPanel::get_or_make_string_cache(
 	return cache;
 }
 void ExplorerPanel::display_property(
-  const std::shared_ptr<Instance> &instance, const ReflectionProperty &property
+  const std::shared_ptr<Instance> &selection, const ReflectionProperty &property
 ) {
-	auto selection = instance.get();
+	auto instance = selection.get();
 
 	ImGui::PushID(property.name.c_str());
+
+	ReflectionValue value;
+	property.get(instance, value, nullptr);
+
+	ImGui::Text(property.name.c_str());
+	ImGui::SameLine();
+
+	if (property.type == String) {
+		auto &buffer = get_or_make_string_cache(selection, property.name, std::get<std::string>(value));
+
+		if (ImGui::InputText("##TextInput",buffer.buffer.data(),buffer.buffer.size(),ImGuiInputTextFlags_EnterReturnsTrue)) {
+			property.set(instance, buffer.buffer.data(), nullptr);
+		}
+	} else if (property.type == Boolean) {
+		auto boolean = std::get<bool>(value);
+
+		if (ImGui::Checkbox("##BooleanInput", &boolean)) {
+			property.set(instance, boolean, nullptr);
+		};
+	} else if (property.type == Number) {
+		double number = std::get<double>(value);
+
+		if (ImGui::InputDouble("##NumberInput", &number, 1)) {
+			property.set(instance, number, nullptr);
+		};
+	} else if (property.type == Vector3) {
+		auto vector = std::get<glm::vec3>(value);
+		render_vector(vector, property, instance);
+	} else if (property.type == Vector2) {
+		auto vector = std::get<glm::vec2>(value);
+		render_vector(vector, property, instance);
+	} else if (property.type == Color) {
+		auto color = std::get<DataTypes::Color3>(value);
+		display_color_property(color, property, instance);
+	}
+	else {
+		ImGui::TextColored(color3_to_imvec4({255, 0, 0, 255}), "No compatible value");
+	}
+
+	// switch (property.type) {
+	// 	case Unknown:
+	// 		break;
+	// 	case String:
+	// 		break;
+	// 	case Number:
+	// 		break;
+	// 	case Boolean:
+	// 		break;
+	// 	case ReflectionPropertyType::Instance:
+	// 		break;
+	// 	case Vector3:
+	// 		break;
+	// 	case Vector2:
+	// 		break;
+	// 	case Color:
+	// 		break;
+	// 	case UserData:
+	// 		break;
+	// }
+
 	// try {
 	// 	property.get(selection, script->context);
 	// 	const int type = lua_type(script->context, -1);
@@ -291,26 +341,26 @@ void ExplorerPanel::display_property(
 }
 
 void ExplorerPanel::display_color_property(
-  const std::shared_ptr<Instance> &instance, const DataTypes::Color3 &color
+  const DataTypes::Color3 &color,
+  const ReflectionProperty &property,
+  Instance *instance
 ) {
 	float color_float[4] = {
-	  std::round(static_cast<float>(color.r) / 255.0f),
-	  std::round(static_cast<float>(color.g) / 255.0f),
-	  std::round(static_cast<float>(color.b) / 255.0f),
-	  std::round(static_cast<float>(color.alpha) / 255.0f)
+	  static_cast<float>(color.r) / 255.0f,
+	  static_cast<float>(color.g) / 255.0f,
+	  static_cast<float>(color.b) / 255.0f,
+	  static_cast<float>(color.alpha) / 255.0f
 	};
 
-	if (ImGui::ColorEdit4("##ColorPicker", color_float)) {
-		const auto drawable = std::dynamic_pointer_cast<Drawable>(instance);
-
-		drawable->set_color(
-		  {static_cast<int>(color_float[0] * 255.0f),
-		   static_cast<int>(color_float[1] * 255.0f),
-		   static_cast<int>(color_float[2] * 255.0f),
-		   static_cast<int>(color_float[3] * 255.0f)}
-		);
+	if (ImGui::ColorEdit4(property.name.c_str(), color_float)) {
+		property.set(instance, DataTypes::Color3(
+			color_float[0] * 255.0f,
+			color_float[1] * 255.0f,
+			color_float[2] * 255.0f,
+			color_float[3] * 255.0f
+			), nullptr);
 		Nyanners::Core::Logger::log(
-		  std::format("{},{},{}.{}", color.r, color.g, color.b, color.alpha)
+		  std::format("{},{},{}.{}", color_float[0], color_float[1], color_float[2], color_float[3])
 		);
 	}
 }

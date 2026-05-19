@@ -25,9 +25,9 @@ void OpenGLMaterial::release() {
 	texture->unuse();
 }
 
-void OpenGLMaterial::set_color(DataTypes::Color3 *newColor) {
+void OpenGLMaterial::set_color(const DataTypes::Color3 newColor) {
 	shader->use();
-	shader->setColor("uColor", *newColor);
+	shader->setColor("uColor", newColor);
 	color = newColor;
 	shader->release();
 }

@@ -25,10 +25,10 @@ namespace Nyanners::Debug::UI {
 
 	public:
 		ExplorerPanel();
-		void render_vec3(
+		void render_vector(
 		  const glm::vec3 &values, const ReflectionProperty& property, Instance *instance
 		) const;
-		void render_vec2(
+		void render_vector(
 		  const glm::vec2 &values, const ReflectionProperty& property, Instance *instance
 		) const;
 		void render_instance(const std::shared_ptr<Instance> &instance);
@@ -42,7 +42,11 @@ namespace Nyanners::Debug::UI {
 	private:
 		void display_property(
 		  const std::shared_ptr<Instance>& instance, const ReflectionProperty& property);
-		static void display_color_property(const std::shared_ptr<Instance>& instance, const DataTypes::Color3& color);
+		static void display_color_property(
+		  const DataTypes::Color3 &color,
+		  const ReflectionProperty &property,
+		  Instance *instance
+		);
 
 		const std::map<std::string_view, std::shared_ptr<Texture>> classIcons = {
 		  {"World", Texture::create(Texture2D, "assets/textures/editor/world.png")},
@@ -110,8 +114,6 @@ namespace Nyanners::Debug::UI {
 		   Texture::create(Texture2D, "assets/textures/editor/exclamation.png")},
 		};
 		std::vector<StringValueCache> stringValueBuffers;
-
-		std::shared_ptr<Nyanners::Instances::Script> script;
 		std::shared_ptr<Nyanners::Instances::DataModel> activeDm;
 		std::shared_ptr<Nyanners::Services::SelectionService> selectionService;
 	};

@@ -15,15 +15,15 @@ using ReflectionGetter = std::function<int(const Nyanners::Instances::Instance*,
 using ReflectionSetter = std::function<void(Nyanners::Instances::Instance*, lua_State*)>;
 using ReflectionConstructor = std::function<std::shared_ptr<Nyanners::Instances::Instance>()>;
 
-using ReflectionMethodCallback = std::function<int(std::shared_ptr<Nyanners::Instances::Instance>, lua_State* context)>;
+// using ReflectionMethodCallback = std::function<int(std::shared_ptr<Nyanners::Instances::Instance>, lua_State* context)>;
 
-struct ReflectionMethod {
-  const std::string name;
-  ReflectionMethodCallback method = [](const std::shared_ptr<Nyanners::Instances::Instance>&, lua_State* context){
-    luaL_error(context, "Method is unimplemented");
-    return 0;
-  };
-};
+// struct ReflectionMethod {
+//   const std::string name;
+//   ReflectionMethodCallback method = [](const std::shared_ptr<Nyanners::Instances::Instance>&, lua_State* context){
+//     luaL_error(context, "Method is unimplemented");
+//     return 0;
+//   };
+// };
 
 struct ReflectionClass {
   const std::string className = "Instance";

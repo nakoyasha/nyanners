@@ -22,17 +22,7 @@ Drawable::~Drawable() {
 	glDeleteBuffers(1, &vertexArrayID);
 }
 
-
-
 void Drawable::set_color(const DataTypes::Color3 newColor) {
-	glBindVertexArray(vertexArrayID);
-
-	this->material->set_color(new DataTypes::Color3(newColor));
-
-	glBindVertexArray(0);
-}
-
-void Drawable::set_color(DataTypes::Color3 *newColor) {
 	glBindVertexArray(vertexArrayID);
 
 	this->material->set_color(newColor);

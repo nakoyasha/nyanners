@@ -39,6 +39,8 @@ namespace Nyanners::Services
         void handle_window_event(const std::optional<sf::Event> &event);
 		    bool is_window_open() const;
 
+    		[[nodiscard]] double get_fps() const {return static_cast<double>(this->fps);}
+
     		static void add_texture(const std::shared_ptr<Resources::Texture>& texture);
     		static void remove_texture(const std::shared_ptr<Resources::Texture>& texture);
 

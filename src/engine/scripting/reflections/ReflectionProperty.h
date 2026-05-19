@@ -19,8 +19,8 @@ namespace Nyanners::Scripting::Reflection {
 		DataTypes::Color3
 	>;
 
-	using GetterMethod = void (*)(void *instance, ReflectionValue& refValue, lua_State *context);
-	using SetterMethod = void (*)(void* instance, const ReflectionValue& value, lua_State* context);
+	using GetterMethod = void (*)(Instances::Instance *instance, ReflectionValue& refValue, lua_State *context);
+	using SetterMethod = void (*)(Instances::Instance* instance, const ReflectionValue& value, lua_State* context);
 
 	struct ReflectionProperty {
 		const std::string name;
