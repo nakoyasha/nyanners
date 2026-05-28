@@ -142,9 +142,11 @@ void TestApplication::on_update() {
 		// TODO: better way of doing this. idk
 		auto *value = &event.value();
 
-		renderService->handle_window_event(event);
 		EngineService::handle_event(value);
-		InputService::handle_event(value);
+		renderService->handle_window_event(event);
+		if (renderService->window->hasFocus()) {
+			InputService::handle_event(value);
+		}
 	}
 
 	runService->tick();

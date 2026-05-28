@@ -26,7 +26,7 @@ void Camera::update(const float deltaTime) {
 		return;
 	}
 
-	if (useDebugMovement) {
+	if (useDebugMovement && Services::RenderingService::renderer->currentWindow->hasFocus()) {
 		float velocity = moveSpeed * deltaTime;
 
 		if (sf::Keyboard::isKeyPressed(sf::Keyboard::Key::Up))
