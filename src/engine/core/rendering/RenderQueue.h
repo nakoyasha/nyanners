@@ -4,8 +4,9 @@
 
 namespace Nyanners::Core {
 	struct RenderCommand {
-		Resources::Mesh* mesh;
-		glm::mat4 transform;
+		const Resources::Mesh* mesh;
+		const Resources::Material* material;
+		Resources::FrameBuffer* framebuffer;
 	};
 
 	struct RenderQueue {

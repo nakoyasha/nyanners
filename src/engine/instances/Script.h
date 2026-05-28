@@ -1,7 +1,6 @@
 #pragma once
 #include "Instance.h"
 #include "Luau/Compiler.h"
-#include "scripting/data/UserdataTags.h"
 #include "services/ScriptService.h"
 #include <filesystem>
 
@@ -12,11 +11,13 @@ namespace Nyanners::Instances {
     std::filesystem::path filePath;
     lua_State* context;
 
-    Script() : Instance("Script") {
-    };
+    Script();;
 
     void initialize_script();
-    void set_file(const std::filesystem::path& scriptPath);
+
+    std::string get_file_path() const;
+    void set_file(const std::string& scriptPath);
+  	void reload();
     void set_source(std::string &source);
     void run_script();
     void set_active(const bool active) override;

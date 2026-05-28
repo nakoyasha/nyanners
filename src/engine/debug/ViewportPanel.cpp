@@ -5,28 +5,33 @@
 
 using namespace Nyanners::Debug::UI;
 
-ViewportPanel::ViewportPanel(Nyanners::Resources::FrameBuffer* newFrameBuffer) : Instance("ViewportPanel") {
-	renderService = Nyanners::Application::instance()->currentModel->get_service<Nyanners::Services::RenderingService>("RenderingService");
+ViewportPanel::ViewportPanel(Resources::FrameBuffer* newFrameBuffer, Core::Rendering::Viewport* newViewport) : Instance("ViewportPanel") {
+	renderService = Application::instance()->currentModel->get_service<Services::RenderingService>("RenderingService");
 	framebuffer = newFrameBuffer;
+	viewport = newViewport;
 }
 
 void ViewportPanel::draw() {
-	ImGui::Begin("Viewport");
+	const auto& frameBufferSize = framebuffer->size;
+	ImGui::Begin(std::format("Viewport ({}, {})###Viewport", frameBufferSize.x, frameBufferSize.y).c_str());
 
 	const float window_width = ImGui::GetContentRegionAvail().x;
 	const float window_height = ImGui::GetContentRegionAvail().y;
 
+	const auto& windowPosition = ImGui::GetCursorScreenPos();
+
 	glViewport(0, 0, window_width, window_height);
 	framebuffer->resize(window_width, window_height);
+	viewport->size = {window_width, window_height};
+	viewport->position = {windowPosition.x, windowPosition.y};
 
-	ImVec2 pos = ImGui::GetCursorScreenPos();
 	ImGui::GetWindowDrawList()->AddImage(
 		framebuffer->get_texture_id(),
-		ImVec2(pos.x, pos.y),
-		ImVec2(pos.x + window_width, pos.y + window_height),
+		ImVec2(windowPosition.x, windowPosition.y),
+		ImVec2(windowPosition.x + window_width, windowPosition.y + window_height),
 		ImVec2(0, 1),
 		ImVec2(1, 0)
-);
+	);
 
 	ImGui::End();
 }

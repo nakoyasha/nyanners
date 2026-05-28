@@ -8,7 +8,7 @@
 
 using namespace Nyanners::Instances;
 
-MeshPart::MeshPart() : Instance("MeshPart"){
+MeshPart::MeshPart() : Instance("MeshPart") {
 	runService =
 	  Application::instance()->currentModel->get_service<Services::RunService>(
 	    "RunService"
@@ -27,11 +27,7 @@ void MeshPart::update(const float deltaTime) {
 
 void MeshPart::draw() {
 	Services::RenderingService::renderer->set_renderer_feature(Core::Rendering::RendererFeature::FaceCulling, !noCulling);
-
-	this->material->use();
-	Services::RenderingService::renderer->render_mesh(this->mesh);
-	this->material->release();
-
+	Services::RenderingService::renderer->render_mesh(this->material, this->mesh);
 	Services::RenderingService::renderer->set_renderer_feature(Core::Rendering::RendererFeature::FaceCulling, noCulling);
 }
 

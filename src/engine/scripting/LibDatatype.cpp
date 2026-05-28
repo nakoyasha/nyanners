@@ -9,9 +9,20 @@ int luaVector3_new(lua_State* context) {
 	const double x = luaL_checknumber(context, -3);
 	const double y = luaL_checknumber(context, -2);
 	const double z = luaL_checknumber(context, -1);
-	const auto vector = new glm::vec3(x, y, z);
 
-	Reflection::push_vector3(context, *vector);
+	auto vector = glm::vec3(x, y, z);
+
+	push_vector3(context, vector);
+	return 1;
+}
+
+int luaVector2_new(lua_State* context) {
+	const double x = luaL_checknumber(context, -2);
+	const double y = luaL_checknumber(context, -1);
+
+	auto vector = glm::vec2(x, y);
+
+	push_vector2(context, vector);
 	return 1;
 }
 
@@ -31,8 +42,17 @@ void LibDatatype::attach(lua_State *context) {
 	}, "Color3.new");
 	lua_setfield(context, 2, "new");
 	lua_setglobal(context, "Color3");
+	// Vectors
+
+	// Vector3
 	lua_createtable(context, 0, 1);
 	lua_pushcfunction(context, luaVector3_new, "Vector3.new");
 	lua_setfield(context, 2, "new");
 	lua_setglobal(context, "Vector3");
+
+	// Vector2
+	lua_createtable(context, 0, 1);
+	lua_pushcfunction(context, luaVector2_new, "Vector2.new");
+	lua_setfield(context, 2, "new");
+	lua_setglobal(context, "Vector2");
 }

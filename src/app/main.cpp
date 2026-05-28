@@ -8,15 +8,15 @@
 #include "debug/OutputPanel.h"
 #include "debug/ViewportPanel.h"
 #include "instances/Script.h"
+#include "instances/ui/LayerCollector.h"
+#include "instances/ui/Button.h"
+#include "instances/ui/TextLabel.h"
 #include "instances/drawable/MeshPart.h"
-#include "instances/drawable/TextLabel.h"
 #include "instances/services/EngineService.h"
-#include "instances/services/IOService.h"
 #include "instances/services/RenderingService.h"
 #include "instances/services/RunService.h"
 #include "instances/services/UIService.h"
 #include "instances/services/user/InputService.h"
-#include "instances/world/Skybox.h"
 #include "instances/world/World.h"
 
 using namespace Nyanners;
@@ -28,19 +28,21 @@ public:
 	std::shared_ptr<Instances::Camera> cameraTwo;
 	FrameBuffer *framebuffer;
 	FrameBuffer *secondaryFramebuffer;
+	Core::Rendering::Viewport* editorViewport;
 
 	TestApplication() : Application({1280, 720}, "TestApp") {
 		m_Instance = this;
+		editorViewport = new Core::Rendering::Viewport();
 
 		this->runService =
-		  currentModel->get_service<Services::RunService>("RunService");
+		  currentModel->get_service<RunService>("RunService");
 		this->renderService =
-		  currentModel->get_service<Services::RenderingService>("RenderingService");
-		this->world = currentModel->get_service<Services::World>("World");
+		  currentModel->get_service<RenderingService>("RenderingService");
+		this->world = currentModel->get_service<World>("World");
 		this->uiService =
-		  currentModel->get_service<Services::UIService>("UIService");
+		  currentModel->get_service<UIService>("UIService");
 		this->debugUI =
-		  currentModel->get_service<Services::DebugUIService>("DebugUIService");
+		  currentModel->get_service<DebugUIService>("DebugUIService");
 		this->camera = std::make_shared<Instances::Camera>();
 		this->cameraTwo = std::make_shared<Instances::Camera>();
 		cameraTwo->useDebugMovement = false;
@@ -52,6 +54,7 @@ public:
 	}
 
 	void start() override;
+protected:
 	void on_draw() const override;
 	void on_update() override;
 
@@ -61,14 +64,14 @@ private:
 	std::shared_ptr<World> world;
 	std::shared_ptr<UIService> uiService;
 	std::shared_ptr<DebugUIService> debugUI;
-	Resources::Material *mizuMaterial;
+	Material *mizuMaterial;
 };
 
 void TestApplication::start() {
 	RenderingService::renderer->set_current_camera(camera);
 	RenderingService::renderer->set_depth_test(Core::Rendering::Always);
 	RenderingService::renderer->disable_depth_buffer();
-	mizuMaterial = Resources::Material::create();
+	mizuMaterial = Material::create();
 	mizuMaterial->set_color({255, 255, 255, 255});
 	mizuMaterial->set_texture("assets/textures/mizuzu.png");
 
@@ -86,8 +89,8 @@ void TestApplication::start() {
 	ScriptService::run_autorun();
 
 	while (renderService->is_window_open()) {
-		this->on_draw();
 		this->on_update();
+		this->on_draw();
 	}
 }
 
@@ -100,7 +103,6 @@ void TestApplication::on_draw() const {
 		return;
 	}
 
-
 	debugUI->draw_imgui();
 
 	if (!renderService->active) {
@@ -109,10 +111,12 @@ void TestApplication::on_draw() const {
 	}
 
 	if (DebugUIService::renderWindows) {
+		renderService->renderer->set_viewport(editorViewport);
 		framebuffer->clear();
 		RenderingService::renderer->render_from(world, nullptr, framebuffer);
 		RenderingService::renderer->render_from(uiService, nullptr, framebuffer);
 	} else {
+		renderService->renderer->reset_viewport();
 		RenderingService::renderer->render_from(world, nullptr, nullptr);
 		RenderingService::renderer->render_from(uiService, nullptr, nullptr);
 	}
@@ -151,33 +155,25 @@ int main() {
 	const auto model = app->currentModel;
 
 	const auto renderingService =
-	  app->currentModel->get_service<Services::RenderingService>(
+	  app->currentModel->get_service<RenderingService>(
 	    "RenderingService"
 	  );
 	const auto runService =
 	  app->currentModel->get_service<RunService>("RunService");
 	const auto uiService = app->currentModel->get_service<UIService>("UIService");
 	const auto world = app->currentModel->get_service<World>("World");
-	const auto debugUI =
-	  app->currentModel->get_service<DebugUIService>("DebugUIService");
+	const auto debugUI = app->currentModel->get_service<DebugUIService>("DebugUIService");
 
-	app->framebuffer = new Resources::FrameBuffer(1280, 720);
-	app->secondaryFramebuffer = new Resources::FrameBuffer(1280, 720);
+	app->framebuffer = new FrameBuffer(1280, 720);
+	app->secondaryFramebuffer = new FrameBuffer(1280, 720);
 
-	const auto label = std::make_shared<Instances::TextLabel>();
-	label->set_text("hi! \n do new lines work?");
-	const auto frameCounter = std::make_shared<Debug::FrameCounter>();
-
-	uiService->add_child(label);
 	const auto mesh = std::make_shared<Instances::MeshPart>();
 	const auto meshTwo = std::make_shared<Instances::MeshPart>();
 	const auto teapot = std::make_shared<Instances::MeshPart>();
 
-	world->add_child(std::make_shared<Instances::Skybox>());
-
 	debugUI->add_child(std::make_shared<Debug::UI::ExplorerPanel>());
 	debugUI->add_child(
-	  std::make_shared<Debug::UI::ViewportPanel>(app->framebuffer)
+	  std::make_shared<Debug::UI::ViewportPanel>(app->framebuffer, app->editorViewport)
 	);
 	debugUI->add_child(std::make_shared<Debug::UI::CommandBar>());
 	debugUI->add_child(std::make_shared<Debug::UI::OutputPanel>());
@@ -235,7 +231,7 @@ int main() {
 	mesh->set_position(glm::vec3(0.0f, 0.0f, 0.0f));
 	meshTwo->set_position(glm::vec3(0.0f, 2.0f, 0.0f));
 
-	world->add_child(mesh, meshTwo);
+	world->add_child(meshTwo, mesh);
 	mesh->material->set_texture("assets/textures/enanui.png");
 	meshTwo->material->set_texture(app->secondaryFramebuffer->framebufferTexture);
 

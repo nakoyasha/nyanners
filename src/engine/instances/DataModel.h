@@ -3,6 +3,7 @@
 #include <memory>
 #include <ranges>
 
+#include "lualib.h"
 #include "services/ReflectionService.h"
 
 namespace Nyanners::Instances {
@@ -29,7 +30,7 @@ namespace Nyanners::Instances {
       {
         if (descriptor.name == name)
         {
-          return descriptor.construct<T>();
+          return std::dynamic_pointer_cast<T>(descriptor.construct());
         }
       }
 

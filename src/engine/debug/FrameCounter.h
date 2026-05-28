@@ -1,5 +1,5 @@
 #pragma once
-#include "instances/drawable/TextLabel.h"
+#include "../instances/ui/TextLabel.h"
 #include "instances/services/RenderingService.h"
 
 namespace Nyanners::Debug {

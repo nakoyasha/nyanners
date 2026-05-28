@@ -10,7 +10,12 @@ using namespace Nyanners::Services;
 void EngineService::panic(const std::string_view &panicMessage) {
   const auto& location = std::source_location::current();
   Core::Logger::log(std::format("PANIC! From {}\n {}", location.file_name(), panicMessage));
-  std::terminate();
+
+	// #ifdef NDEBUG
+	__builtin_trap();
+	// #else
+  // std::terminate();
+	// #endif
 }
 
 Nyanners::Instances::Signal<Nyanners::DataTypes::Vector2> EngineService::onWindowResized;

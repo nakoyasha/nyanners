@@ -52,10 +52,12 @@ namespace Nyanners::Resources {
 	public:
 		virtual ~Texture() = default;
 
+		std::string debugIdentifier = "texture";
 		int height {};
 		int width {};
+		bool isTransparent = false;
 		void  *textureBuffer {};
-		std::string debugIdentifier = "texture";
+
 		virtual void load_from_file(const std::filesystem::path& path) = 0;
 
 		virtual void upload_buffer(

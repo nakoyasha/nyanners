@@ -16,9 +16,10 @@ namespace Nyanners::Services
         float deltaTime = 1.0f;
         bool isRunning = false;
 
-        std::shared_ptr<Nyanners::Instances::Signal<float>> preRender;
-        std::shared_ptr<Nyanners::Instances::Signal<float>> onTick;
-        std::shared_ptr<Nyanners::Instances::Signal<>> onStop;
+        std::shared_ptr<Instances::Signal<float>> preRender;
+        std::shared_ptr<Instances::Signal<float>> onRender;
+        std::shared_ptr<Instances::Signal<float>> onTick;
+        std::shared_ptr<Instances::Signal<>> onStop;
 
         RunService() : Instance("RunService")
         {
@@ -28,10 +29,12 @@ namespace Nyanners::Services
         };
 
         void bind_model(std::shared_ptr<Instances::DataModel> model);
-        float get_time_since_start();
+        float get_time_since_start() const;
         void run();
-        void stop();;
+        void stop();
         void tick();
+
+        std::shared_ptr<Instances::SignalBase> get_on_tick() const;
 
     private:
         std::shared_ptr<Instances::DataModel> model;

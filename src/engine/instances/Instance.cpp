@@ -2,8 +2,15 @@
 #include "Instance.h"
 #include "core/Logger.h"
 #include "drawable/Drawable.h"
+#include "services/EngineService.h"
+#include "services/ReflectionService.h"
 
 using namespace Nyanners::Instances;
+
+Instance::~Instance() {
+	Core::Logger::log_debug("Instance is being destroyed");
+}
+
 void Instance::add_child(const std::shared_ptr<Instance>& child) {
   auto us = shared_from_this();
 
@@ -29,7 +36,7 @@ void Instance::add_child(const std::shared_ptr<Instance>& child) {
 void Instance::remove_child(const std::shared_ptr<Instance> &child) {
   if (child->parent.lock() != shared_from_this()) {
     // return because wtf are we doing
-    Core::Logger::log("Invalid removal; this child is not ours, thus we can't give it up for adoption.");
+    Core::Logger::log_error("Invalid removal; this child is not ours, thus we can't give it up for adoption.");
     return;
   }
 
@@ -50,6 +57,86 @@ void Instance::update(const float deltaTime)
   }
 }
 
+std::string Instance::get_name() const {
+	return this->name;
+}
+
+std::string Instance::get_basename() const {
+	return this->baseName;
+}
+
 void Instance::set_active(const bool newActiveState) {
   this->active = newActiveState;
+}
+
+std::shared_ptr<Nyanners::Instances::Instance> Instance::clone() {
+	auto descriptors = ReflectionDescriptorRegistry::instance()->descriptors;
+	auto descriptor = descriptors.find(this->baseName);
+
+	bool usingDefault = false;
+
+	if (descriptor == descriptors.end()) {
+		Core::Logger::log_debug("Terrible copy will be made because this instance LACKS A REFLECTION DESCRIPTOR!! PLEASE ADD ONE");
+		auto defaultDescriptor = descriptors.find("Instance");
+
+		if (defaultDescriptor == descriptors.end()) {
+			Services::EngineService::panic("Attempt to clone while... there's no reflection information at all...?");
+		} else {
+			descriptor = defaultDescriptor;
+			usingDefault = true;
+		}
+	}
+
+	if (descriptor->second.flags & static_cast<uint8_t>(ReflectionInstanceFlags::Service)) {
+		throw std::runtime_error("This is a service and cannot be cloned");
+	}
+
+	if ((descriptor->second.flags & static_cast<uint8_t>(ReflectionInstanceFlags::NotCreatable))) {
+		throw std::runtime_error("This instance cannot be created");
+	}
+
+	std::shared_ptr<Instance> instance;
+
+	if (usingDefault) {
+		instance = std::make_shared<Instance>(this->baseName);
+	} else {
+		instance = descriptor->second.construct();
+	}
+
+	auto* instancePtr = instance.get();
+
+	for (const auto& property : Services::ReflectionService::get_properties(shared_from_this())) {
+		ReflectionValue value {};
+		property.get(this, value, nullptr);
+
+		// for the best, it's probably a good idea to not do this
+		if (property.type != ReflectionPropertyType::Instance || property.type != ReflectionPropertyType::UserData) {
+			property.set(instancePtr, value, nullptr);
+		}
+	};
+
+	return instance;
+}
+
+int Instance::clone_lua(lua_State* context) {
+	auto instance = this->clone();
+	Services::ReflectionService::reflect_class(context, instance);
+
+	return 1;
+}
+
+int Instance::destroy_lua(lua_State *context) {
+	const auto currentParent = this->parent.lock();
+	auto instance = Services::ReflectionService::get_instance_from_context(context, -1);
+
+	if (currentParent != nullptr) {
+		currentParent->remove_child(shared_from_this());
+		this->parent.reset();
+	}
+
+	// free pointer
+	instance->pointer.reset();
+	lua_gc(context, LUA_GCCOLLECT, 0);
+
+	return 0;
 }

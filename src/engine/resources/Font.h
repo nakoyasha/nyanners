@@ -22,6 +22,7 @@ namespace Nyanners::Resources {
 
 		int fontHeight = 48;
 		int fontWidth = 0;
+		FT_Face fontFace;
 
 		const std::string fontPath {};
 		std::map<char, DataTypes::Character> characters;
@@ -35,7 +36,6 @@ namespace Nyanners::Resources {
 
 	private:
 		FT_Library ft;
-		FT_Face fontFace;
 		void generate_character(const char vChar);
 	};
 }

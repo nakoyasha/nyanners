@@ -10,6 +10,7 @@ using namespace Nyanners::Resources;
 struct StringValueCache {
 	std::string_view value;
 	std::shared_ptr<Nyanners::Instances::Instance> instance;
+	std::string property;
 	std::array<char, 2048> buffer;
 	bool operator==(const StringValueCache &ref) const {
 		if (ref.value == value && ref.instance == instance) {
@@ -110,8 +111,13 @@ namespace Nyanners::Debug::UI {
 		  {"Camera",
 		   Texture::create(Texture2D, "assets/textures/editor/Photo_icon.png")},
 
+			{"LayerCollector",
+			Texture::create(Texture2D, "assets/textures/editor/LayerCollector.png")},
+			{"Button",
+			Texture::create(Texture2D, "assets/textures/editor/Button.png")},
+
 		  {"Unknown",
-		   Texture::create(Texture2D, "assets/textures/editor/exclamation.png")},
+		   Texture::create(Texture2D, "assets/textures/editor/Instance.png")},
 		};
 		std::vector<StringValueCache> stringValueBuffers;
 		std::shared_ptr<Nyanners::Instances::DataModel> activeDm;

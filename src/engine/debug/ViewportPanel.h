@@ -5,11 +5,12 @@
 namespace Nyanners::Debug::UI {
 	class ViewportPanel : public Instances::DebugWindow {
 	public:
-		ViewportPanel(Nyanners::Resources::FrameBuffer* newFrameBuffer);
+		ViewportPanel(Resources::FrameBuffer* newFrameBuffer, Core::Rendering::Viewport* newViewport);
 		void draw() override;
-		void update(const float deltaTime) override;
+		void update(float deltaTime) override;
 	private:
-		std::shared_ptr<Nyanners::Services::RenderingService> renderService;
-		Nyanners::Resources::FrameBuffer* framebuffer;
+		std::shared_ptr<Services::RenderingService> renderService;
+		Resources::FrameBuffer* framebuffer;
+		Core::Rendering::Viewport* viewport;
 	};
 } // TestApp

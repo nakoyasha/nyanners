@@ -14,13 +14,13 @@ OpenGLMaterial::OpenGLMaterial() {
 	shader->setBool("uTextureSet", false);
 }
 
-void OpenGLMaterial::use() {
+void OpenGLMaterial::use() const {
 	this->shader->use();
 	GL_CHECK(glActiveTexture(GL_TEXTURE0));
 	this->texture->use();
 }
 
-void OpenGLMaterial::release() {
+void OpenGLMaterial::release() const {
 	shader->release();
 	texture->unuse();
 }

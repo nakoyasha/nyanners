@@ -1,8 +1,18 @@
 #include "Drawable.h"
+
+#include "lualib.h"
 #include "resources/Mesh.h"
 #include "instances/services/RenderingService.h"
 
 using namespace Nyanners::Instances;
+
+namespace Nyanners::Scripting {
+	static auto drawableDescriptor = ReflectionDescriptorRegistry::instance()->create_registrator([]() {
+		Services::ReflectionService::create_descriptor("Drawable", {})
+		.add_property_chained<Drawable, DataTypes::Color3, &Drawable::get_color, &Drawable::set_color>("Color", Color)
+		.add_method<Drawable, &Drawable::lua_set_texture>("set_texture", Null);
+	});
+}
 
 Drawable::Drawable() : Transformable(), indexCount(0) {
 	glGenVertexArrays(1, &vertexArrayID);
@@ -22,6 +32,10 @@ Drawable::~Drawable() {
 	glDeleteBuffers(1, &vertexArrayID);
 }
 
+Nyanners::DataTypes::Color3 Drawable::get_color() const {
+	return this->material->color;
+}
+
 void Drawable::set_color(const DataTypes::Color3 newColor) {
 	glBindVertexArray(vertexArrayID);
 
@@ -30,6 +44,9 @@ void Drawable::set_color(const DataTypes::Color3 newColor) {
 	glBindVertexArray(0);
 }
 
-bool Drawable::isLegacy() {
-	return false;
+int Drawable::lua_set_texture(lua_State *context) {
+	const auto textureFile = luaL_checkstring(context, -1);
+	this->material->set_texture(textureFile);
+
+	return 0;
 }

@@ -10,7 +10,7 @@ namespace Nyanners::Instances {
 	public:
 		Camera();
 
-		DataTypes::Vector2* resolution;
+		glm::vec2 resolution {800, 600};
 		glm::mat4 projection {};
 		glm::mat4 view = glm::lookAt(
 		  glm::vec3(4, 5, 3), // Camera is at (4,3,3), in World Space
@@ -25,6 +25,9 @@ namespace Nyanners::Instances {
 		void set_fov(unsigned int newFov);
 		void calculate_projection(const DataTypes::Vector2 &size, bool forceRecalculate);
 		void set_position(const glm::vec3 &newPosition) override;
+
+		glm::vec2 get_resolution() const;
+		void set_resolution(const glm::vec2& newResolution);
 
 	private:
 		DataTypes::Vector2 lastSize {0,0};

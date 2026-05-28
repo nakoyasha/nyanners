@@ -8,14 +8,14 @@ namespace Nyanners::Resources {
 		class FrameBuffer {
 		public:
 			std::shared_ptr<Resources::Texture> framebufferTexture;
-			DataTypes::Vector2* size;
+			glm::vec2 size {};
 
 			FrameBuffer(const int width, const int height);
 			~FrameBuffer();
 			GLuint get_texture_id();
 
 			void use() const;
-			void release();
+			void release() const;
 			void clear();
 			void resize(const int width, const int height);
 		private:

@@ -127,6 +127,11 @@ void RenderingService::handle_window_event(
 bool RenderingService::is_window_open() const {
 	return window->isOpen();
 }
+
+glm::vec2 RenderingService::get_window_size() const {
+	return this->renderer->camera->resolution;
+}
+
 void RenderingService::add_texture(
   const std::shared_ptr<Resources::Texture> &texture
 ) {

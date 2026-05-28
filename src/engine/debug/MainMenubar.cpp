@@ -4,13 +4,14 @@
 #include "imgui.h"
 #include "core/Logger.h"
 #include "instances/services/ReflectionService.h"
-#include <algorithm>
+#include "instances/services/SelectionService.h"
 
 using namespace Nyanners::Debug::UI;
 
 void MainMenubar::draw() {
 	const auto fps = renderService->fps;
 	const auto frameTime = renderService->frameTime;
+	auto selectionService = Application::instance()->currentModel->get_service<Services::SelectionService>("SelectionService");
 
 	ImGui::BeginMainMenuBar();
 
@@ -20,17 +21,31 @@ void MainMenubar::draw() {
 			     ReflectionDescriptorRegistry::instance()->descriptors |
 			       std::views::values) {
 
-				if (descriptor.flags & 0) {
+				if (descriptor.flags & static_cast<uint8_t>(ReflectionInstanceFlags::Service)) {
+					continue;
+				}
+
+				if (descriptor.flags & static_cast<uint8_t>(ReflectionInstanceFlags::NotCreatable)) {
 					continue;
 				}
 
 				if (ImGui::MenuItem(descriptor.name.c_str())) {
-					const auto instance = descriptor.construct<Instances::Instance>();
-					Application::instance()->currentModel->add_child(instance);
+					const auto instance = descriptor.construct();
+					selectionService->currentSelection->add_child(instance);
 				}
 			};
 			ImGui::EndMenu();
 		}
+
+		if (selectionService->currentSelection != nullptr) {
+			if (ImGui::Button("Perform Mitosis")) {
+				auto selection = selectionService->currentSelection;
+				auto instance = selection->clone();
+				selection->parent.lock()->add_child(instance);
+			}
+		}
+
+
 		ImGui::EndMenu();
 	}
 
@@ -59,8 +74,7 @@ void MainMenubar::draw() {
 	}
 
 	ImGui::SameLine(ImGui::GetWindowWidth() - 180.0f);
-	ImGui::Text("%d FPS", fps);
-	ImGui::Text("%fms", frameTime);
+	ImGui::Text("%d FPS (%fms)", fps, frameTime);
 	ImGui::EndMainMenuBar();
 
 	if (showTextureViewer == true) {

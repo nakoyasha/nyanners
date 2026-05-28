@@ -18,11 +18,14 @@ namespace Nyanners::Services {
   class ScriptService : public Instances::Instance {
   public:
   	static std::map<lua_State*, Scripting::Scheduler::ScriptResumptionDate> scheduled;
+  	static std::map<lua_State*, Instance*> luaToInstance;
   	static lua_State* mainContext;
 
     ScriptService();
     static lua_State *make_main_context();
   	static lua_State *make_context();
+
+  	static void take_ownership_of_state(lua_State* context, Instance* owner);
 
   	static void run_autorun();
     static int handle_lua_console(lua_State* context);

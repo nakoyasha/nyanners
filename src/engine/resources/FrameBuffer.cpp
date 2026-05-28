@@ -5,8 +5,6 @@
 using namespace Nyanners::Resources;
 
 FrameBuffer::FrameBuffer(const int width, const int height) {
-	size = new DataTypes::Vector2 {0, 0};
-
 	int normalizedWidth = width, normalizedHeight = height;
 
 	if (width <= 0) {
@@ -53,8 +51,8 @@ FrameBuffer::FrameBuffer(const int width, const int height) {
 	this->framebufferTexture->unuse();
 	GL_CHECK(glBindRenderbuffer(GL_RENDERBUFFER, 0));
 
-	size->x = width;
-	size->y = height;
+	size.x = width;
+	size.y = height;
 }
 
 FrameBuffer::~FrameBuffer() {
@@ -66,7 +64,7 @@ void FrameBuffer::use() const {
 	GL_CHECK(glBindFramebuffer(GL_FRAMEBUFFER, this->framebufferId));
 }
 
-void FrameBuffer::release() {
+void FrameBuffer::release() const {
 	GL_CHECK(glBindFramebuffer(GL_FRAMEBUFFER, 0));
 }
 
@@ -97,7 +95,7 @@ void FrameBuffer::resize(const int width, const int height) {
 	}
 
 	// don't recompute
-	if (this->size->x == normalizedWidth && this->size->y == normalizedHeight) {
+	if (this->size.x == normalizedWidth && this->size.y == normalizedHeight) {
 		return;
 	}
 
@@ -122,8 +120,8 @@ void FrameBuffer::resize(const int width, const int height) {
 	GL_CHECK(glBindRenderbuffer(GL_RENDERBUFFER, 0));
 	this->release();
 
-	size->x = normalizedWidth;
-	size->y = normalizedHeight;
+	size.x = normalizedWidth;
+	size.y = normalizedHeight;
 }
 
 void FrameBuffer::construct_framebuffer(const int width, const int height) {
@@ -156,8 +154,8 @@ void FrameBuffer::construct_framebuffer(const int width, const int height) {
 	this->framebufferTexture->unuse();
 	GL_CHECK(glBindRenderbuffer(GL_RENDERBUFFER, 0));
 
-	size->x = width;
-	size->y = height;
+	size.x = width;
+	size.y = height;
 }
 
 void FrameBuffer::check_status() {

@@ -88,7 +88,7 @@ namespace Nyanners::Instances {
 
                     }
 
-                    lua_pop(luaConnection.context, -1);
+                    lua_pop(luaConnection.context, 1);
                 }
             }
         }

@@ -30,8 +30,8 @@ add_library(Nyanners
         instances/drawable/Drawable.cpp
         instances/drawable/MeshPart.h
         instances/drawable/MeshPart.cpp
-        instances/drawable/TextLabel.h
-        instances/drawable/TextLabel.cpp
+        instances/ui/TextLabel.h
+        instances/ui/TextLabel.cpp
         instances/Instance.h
         instances/Instance.cpp
         instances/DataModel.h
@@ -137,6 +137,19 @@ add_library(Nyanners
         scripting/reflections/ReflectionPropertyReaders.h
         utils/ImGuiColor3.h
         scripting/reflections/ReflectionMethod.h
+        instances/basic/ScriptConnection.h
+        instances/basic/Script.cpp
+        instances/ui/Button.cpp
+        instances/ui/Button.h
+        instances/ui/UIElement.h
+        instances/ui/LayerCollector.cpp
+        instances/ui/LayerCollector.h
+        instances/ui/UIElement.cpp
+        instances/ui/components/UIComponent.h
+        instances/ui/components/UIAspectRatioComponent.cpp
+        instances/ui/components/UIAspectRatioComponent.h
+        instances/ui/components/UIComponent.cpp
+        core/rendering/Viewport.h
 )
 
 add_library(

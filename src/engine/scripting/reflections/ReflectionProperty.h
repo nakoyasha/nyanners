@@ -2,6 +2,7 @@
 #include "ReflectionTypes.h"
 #include "lua.h"
 #include "instances/Instance.h"
+#include "instances/basic/SignalBase.h"
 #include <string>
 #include <variant>
 
@@ -14,9 +15,10 @@ namespace Nyanners::Scripting::Reflection {
 	  float,
 	  std::string,
 	  std::shared_ptr<Instances::Instance>,
+	  Instances::SignalBase*,
 	  glm::vec3,
 	  glm::vec2,
-		DataTypes::Color3
+	  DataTypes::Color3
 	>;
 
 	using GetterMethod = void (*)(Instances::Instance *instance, ReflectionValue& refValue, lua_State *context);
@@ -26,9 +28,13 @@ namespace Nyanners::Scripting::Reflection {
 		const std::string name;
 		const ReflectionPropertyType type;
 		// const std::string category = "Unknown";
-		const uint8_t flags;
+		uint8_t flags;
 
 		GetterMethod get;
 		SetterMethod set;
+
+		[[nodiscard]] bool has_flag(const ReflectionPropertyFlags& flag) const {
+			return this->flags & static_cast<uint8_t>(flag);
+		};
 	};
 }

@@ -3,12 +3,12 @@
 #include "instances/Script.h"
 
 namespace Nyanners::Debug::UI {
-	class CommandBar : public Nyanners::Instances::DebugWindow {
+	class CommandBar : public Instances::DebugWindow {
 	public:
 		CommandBar();
-		virtual void draw() override;
+		void draw() override;
 	private:
 		std::string commandInput = "";
-		std::shared_ptr<Nyanners::Instances::Script> script;
+		std::shared_ptr<Instances::Script> script;
 	};
 }

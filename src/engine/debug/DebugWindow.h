@@ -6,6 +6,6 @@ namespace Nyanners::Instances {
     class DebugWindow : virtual public Instance, public Drawable {
     public:
       DebugWindow();
-    	virtual void imgui_render() {};
+        virtual void imgui_render() {};
     };
 }

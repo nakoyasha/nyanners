@@ -22,6 +22,7 @@ void OpenGLRenderer::initialize() {
 	if (!currentWindow->setActive(true)) {
 		throw std::runtime_error("OpenGL initialization failed");
 	};
+	currentViewport = &defaultViewport;
 
 	if (!gladLoadGLLoader(
 	      reinterpret_cast<GLADloadproc>(sf::Context::getFunction)
@@ -54,27 +55,35 @@ void OpenGLRenderer::initialize() {
 	glEnable(GL_CULL_FACE);
 	glCullFace(GL_BACK);
 
-	set_depth_test(Core::Rendering::Less);
+	set_depth_test(Rendering::Less);
 	quadMesh = Resources::Mesh::create();
 	quadMesh->bind();
 	quadMesh->set_vertices({
-		0.0f, 1.0f, 0.0f, 0.0f,
-		0.0f,0.0f,0.0f,1.0f,
-		1.0f,0.0f,1.0f,1.0f,
+		0.0f, 0.0f, 0.0f, 0.0f, // top left
+		1.0f, 0.0f, 1.0f, 0.0f, // top right
+		1.0f, 1.0f, 1.0f, 1.0f, // bottom right
 
-		1.0f,0.0f,1.0f,1.0f,
-		1.0f,1.0f,1.0f,0.0f
+
+		// 0.0f, 0.0f, 0.0f, 0.0f, // top left (again)
+		1.0f, 1.0f, 1.0f, 1.0f, // bottom right
+		0.0f, 1.0f, 0.0f, 1.0f // bottom left
 	});
 
 	quadMesh->set_indexes({0, 1, 2, 0, 3, 4});
 	glEnableVertexAttribArray(0);
-	glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, sizeof(float) * 4, nullptr);
+	glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 4 * sizeof(float), nullptr);
 	glEnableVertexAttribArray(1);
-	glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, sizeof(float) * 4, reinterpret_cast<void*>(sizeof(float) * 2));
+	glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 4 * sizeof(float), (void*)(sizeof(float) * 2));
 	quadMesh->unbind();
 }
 
 void OpenGLRenderer::start_frame() {
+	const auto& windowSize = get_window_size();
+	const auto& windowPosition = get_window_position();
+
+	defaultViewport.size = {windowSize.x, windowSize.y};
+	defaultViewport.position = {0, 0};
+
 	clear();
 }
 
@@ -122,18 +131,19 @@ void OpenGLRenderer::render_from(
 		activeCamera = this->camera;
 	}
 
+	auto windowSize = get_window_size();
 
-	if (auto cCam = activeCamera.lock(); framebuffer != nullptr) {
+	if (const auto cCam = activeCamera.lock(); framebuffer != nullptr) {
 		bind_framebuffer(framebuffer);
 
 		// resize as this will be a rendertarget
 		if (cCam == this->camera) {
 			cCam->resolution = framebuffer->size;
 		} else {
-			framebuffer->resize(cCam->resolution->x, cCam->resolution->y);
+			framebuffer->resize(cCam->resolution.x, cCam->resolution.y);
 		}
 	} else {
-		cCam->resolution = new DataTypes::Vector2(get_window_size());
+		cCam->resolution = glm::vec2(windowSize.x, windowSize.y);
 	}
 
 	if (const auto usedCamera = activeCamera.lock()) {
@@ -170,7 +180,7 @@ void OpenGLRenderer::bind_framebuffer(Resources::FrameBuffer *newFrameBuffer) {
 
 	this->framebuffer = newFrameBuffer;
 	newFrameBuffer->use();
-	GL_CHECK(glViewport(0, 0, newFrameBuffer->size->x, newFrameBuffer->size->y));
+	GL_CHECK(glViewport(0, 0, newFrameBuffer->size.x, newFrameBuffer->size.y));
 }
 
 void OpenGLRenderer::unbind_framebuffer() {
@@ -190,10 +200,10 @@ void OpenGLRenderer::calculate_projection(const DataTypes::Vector2 &size, const 
 	projection2D = glm::ortho(
 	  0.0f,
 	  static_cast<float>(size.x),
-	  0.0f,
 	  static_cast<float>(size.y),
-	  1.0f,
-	  0.0f
+	  0.0f,
+	  -1.0f,
+	  1.0f
 	);
 }
 
@@ -230,8 +240,9 @@ void OpenGLRenderer::set_renderer_feature(Rendering::RendererFeature feature, bo
 
 }
 
-void OpenGLRenderer::render_mesh(const Resources::Mesh *mesh) {
+void OpenGLRenderer::render_mesh(const Resources::Material* material, const Resources::Mesh *mesh) {
 	mesh->bind();
+	material->use();
 
 	if (mesh->indexCount == 0) {
 		GL_CHECK(
@@ -244,6 +255,8 @@ void OpenGLRenderer::render_mesh(const Resources::Mesh *mesh) {
 	}
 
 	mesh->unbind();
+	material->release();
+
 }
 void OpenGLRenderer::render_quad(
   Resources::Material *material,
@@ -253,15 +266,13 @@ void OpenGLRenderer::render_quad(
 	const auto transform = glm::translate(glm::mat4(1.0f), glm::vec3(position.x, position.y, 0.0f));
 
 	material->use();
-	material->shader->setMatrix("uTransform", glm::scale(transform, glm::vec3(size.x, size.y, 0.0f)));
-	material->shader->setMatrix("uView", camera->view);
+	material->shader->setMatrix("uTransform", glm::scale(transform, glm::vec3(size.x, size.y, 1.0f)));
+	material->shader->setMatrix("uView", glm::mat4(1.0f));
 	material->shader->setMatrix("uProjection", projection2D);
-	material->shader->setBool("uScreenSpace", true);
 
 	quadMesh->bind();
-	render_mesh(quadMesh);
+	render_mesh(material, quadMesh);
 	quadMesh->unbind();
-	material->release();
 }
 
 void OpenGLRenderer::render_quad(
@@ -270,17 +281,19 @@ void OpenGLRenderer::render_quad(
   const glm::vec2 &size
 ) {
 	const auto transform = glm::translate(glm::mat4(1.0f), position);
+	render_quad(material, transform);
+}
 
+void OpenGLRenderer::render_quad(Resources::Material *material, const glm::mat4 &transform) {
 	material->use();
-	material->shader->setMatrix("uModel", glm::scale(transform, glm::vec3(size.x, size.y, 0.0f)));
+	material->shader->setMatrix("uTransform", transform);
 	material->shader->setMatrix("uView", camera->view);
-	material->shader->setMatrix("uProjection", camera->projection);
+	material->shader->setMatrix("uProjection", projection2D);
 	material->shader->setBool("uScreenSpace", false);
 
 	quadMesh->bind();
-	render_mesh(quadMesh);
+	render_mesh(material, quadMesh);
 	quadMesh->unbind();
-	material->release();
 }
 
 void OpenGLRenderer::handle_event(const sf::Event *event) {
@@ -337,7 +350,41 @@ void OpenGLRenderer::disable_depth_buffer() {
 }
 
 void OpenGLRenderer::end_frame() {
+	// draw all
+
+	for (const auto& command : queue.opaque) {
+		draw_command(command);
+	}
+
+	for (const auto& command : queue.transparent) {
+		draw_command(command);
+	}
+
 	currentWindow->display();
+}
+
+void OpenGLRenderer::draw_command(const RenderCommand &command) {
+	const auto& mesh = command.mesh;
+	const auto& material = command.material;
+	auto* framebuffer = command.framebuffer;
+
+	bind_framebuffer(framebuffer);
+	material->use();
+	mesh->bind();
+
+	if (mesh->indexCount == 0) {
+		GL_CHECK(
+		  glDrawArrays(GL_TRIANGLES, 0, static_cast<GLint>(mesh->vertexCount))
+		);
+	} else {
+		GL_CHECK(glDrawElements(
+		  GL_TRIANGLES, static_cast<int>(mesh->indexCount), GL_UNSIGNED_INT, nullptr
+		));
+	}
+
+	mesh->unbind();
+	material->release();
+	unbind_framebuffer();
 }
 
 void OpenGLRenderer::shutdown() {
@@ -346,11 +393,17 @@ void OpenGLRenderer::shutdown() {
 
 Nyanners::DataTypes::Vector2 OpenGLRenderer::get_window_size() {
 	if (this->framebuffer != nullptr) {
-		return *this->framebuffer->size;
+		auto size = this->framebuffer->size;
+		return DataTypes::Vector2(size.x, size.y);
 	}
 
 	const auto size = this->currentWindow->getSize();
 	return {size.x, size.y};
+}
+
+Nyanners::DataTypes::Vector2 OpenGLRenderer::get_window_position() {
+	const auto& position = this->currentWindow->getPosition();
+	return {static_cast<uint32_t>(position.x), static_cast<uint32_t>(position.y)};
 }
 
 void OpenGLRenderer::set_window_size(const DataTypes::Vector2 newWindowSize) {

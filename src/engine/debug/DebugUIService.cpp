@@ -7,9 +7,16 @@
 using namespace Nyanners::Services;
 bool DebugUIService::renderWindows = true;
 
+namespace Nyanners::Scripting {
+	auto debugUIService = ReflectionDescriptorRegistry::instance()->create_registrator([]() {
+		ReflectionService::create_descriptor("DebugUIService", {"Instance"})
+			.add_property_chained<DebugUIService, bool, &DebugUIService::get_demo_open, &DebugUIService::set_demo_open>("DemoWindowEnabled", Boolean);
+	});
+}
+
 DebugUIService::DebugUIService() : Instance("DebugUIService") {
 	ImGuiIO &io = ImGui::GetIO();
-	// ImGui::StyleColorsLight();
+	ImGui::StyleColorsLight();
 	io.ConfigFlags |= ImGuiConfigFlags_DockingEnable;
 	io.ConfigFlags |= ImGuiConfigFlags_ViewportsEnable;
 
@@ -17,15 +24,17 @@ DebugUIService::DebugUIService() : Instance("DebugUIService") {
 	style.FrameBorderSize = 1.0f;
 	ImVec4 *colors = style.Colors;
 
+	io.Fonts->AddFontFromFileTTF("assets/fonts/arial.ttf");
+
 	// NOTICE OF AI-GENERATED CODE:
 	// i could not be bothered to do this part, sorry!
 
-	const ImVec4 accent =
+	constexpr ImVec4 accent =
 	  ImVec4(245.0f / 255.0f, 66.0f / 255.0f, 102.0f / 255.0f, 1.0f);
-	const ImVec4 accentHover = ImVec4(accent.x, accent.y, accent.z, 0.5f);
-	const ImVec4 accentActive = ImVec4(accent.x, accent.y, accent.z, 0.9f);
-	const ImVec4 accentDim = ImVec4(accent.x, accent.y, accent.z, 0.35f);
-	const ImVec4 accentDimSel = ImVec4(accent.x, accent.y, accent.z, 0.7f);
+	constexpr ImVec4 accentHover = ImVec4(accent.x, accent.y, accent.z, 0.5f);
+	constexpr ImVec4 accentActive = ImVec4(accent.x, accent.y, accent.z, 0.9f);
+	constexpr ImVec4 accentDim = ImVec4(accent.x, accent.y, accent.z, 0.35f);
+	constexpr ImVec4 accentDimSel = ImVec4(accent.x, accent.y, accent.z, 0.7f);
 
 	//
 	// Frames / Inputs
@@ -126,7 +135,6 @@ void DebugUIService::draw_imgui() const {
 	io.DisplaySize =
 	  ImVec2(static_cast<float>(size.x), static_cast<float>(size.y));
 
-
 	ImGui::NewFrame();
 	ImGui_ImplOpenGL3_NewFrame();
 
@@ -143,9 +151,21 @@ void DebugUIService::draw_imgui() const {
 
 			drawable->draw();
 		}
+
+		if (demoWindowOpen) {
+			ImGui::ShowDemoWindow();
+		}
 	}
 
 	ImGui::Render();
+}
+
+bool DebugUIService::get_demo_open() const {
+	return this->demoWindowOpen;
+}
+
+void DebugUIService::set_demo_open(const bool isOpened) {
+	this->demoWindowOpen = isOpened;
 }
 
 void DebugUIService::on_frame_end() {

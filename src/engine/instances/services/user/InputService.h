@@ -75,6 +75,13 @@ namespace Nyanners::Input {
 		Tab,
 		LeftShift,
 		RightShift,
+
+		Mouse0,
+		Mouse1,
+		Mouse2,
+		Mouse3,
+		Mouse4,
+		Mouse5,
 	};
 
 	struct InputEvent {
@@ -91,5 +98,7 @@ namespace Nyanners::Services {
 		InputService() : Instance("InputService") {};
 
 		static void handle_event(const sf::Event *event);
+		static bool is_key_down(const Input::KeyCode &key);
+		static bool is_mouse_over_button(const glm::vec2 &buttonPosition, const glm::vec2 &buttonSize);
 	};
 }

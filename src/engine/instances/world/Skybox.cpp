@@ -4,6 +4,13 @@
 
 using namespace Nyanners::Instances;
 
+namespace Nyanners::Scripting {
+	auto skyboxDescriptor = ReflectionDescriptorRegistry::instance()->create_registrator([]() {
+		Services::ReflectionService::create_descriptor("Skybox", {"Instance", "Transformable", "Drawable"})
+		.add_constructor<Skybox>();
+	});
+}
+
 Skybox::Skybox() : Instance("Skybox") {
 	skyboxTexture = Resources::Texture::create(TextureType::Cubemap);
 	skyboxTexture->debugIdentifier = "ProjectSkybox";
@@ -21,7 +28,7 @@ Skybox::Skybox() : Instance("Skybox") {
 	int width, height, nrChannels;
 	unsigned char *data;
 
-	// stbi_set_flip_vertically_on_load(1);
+	stbi_set_flip_vertically_on_load(0);
 	for (unsigned int i = 0; i < files.size(); i++) {
 			auto file = files[i];
 
@@ -30,6 +37,7 @@ Skybox::Skybox() : Instance("Skybox") {
 			skyboxTexture->upload_buffer_cubemap(static_cast<Resources::CubemapSide>(GL_TEXTURE_CUBE_MAP_POSITIVE_X + i), GL_RGB, GL_RGB, width, height, data);
 			stbi_image_free(data);
 	}
+	stbi_set_flip_vertically_on_load(1);
 
 	skyboxTexture->set_texture_parameter(TextureFilterParameter::MagnificationFilter, Linear);
 	skyboxTexture->set_texture_parameter(TextureFilterParameter::MinificationFilter, Linear);
@@ -107,9 +115,8 @@ void Skybox::draw() {
 	Services::RenderingService::renderer->disable_depth_buffer();
 	glCullFace(GL_FRONT);
 
-	this->material->use();
 	// glBindVertexArray(vertexArrayID);
-	Services::RenderingService::renderer->render_mesh(this->mesh);
+	Services::RenderingService::renderer->render_mesh(this->material, this->mesh);
 	// glBindVertexArray(0);
 
 	// glDepthFunc(GL_LESS);

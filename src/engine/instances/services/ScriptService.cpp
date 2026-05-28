@@ -6,7 +6,6 @@
 #include "Luau/Compiler.h"
 #include "core/Logger.h"
 #include "instances/Script.h"
-#include "scripting/data/UserdataTags.h"
 #include <format>
 
 using namespace Nyanners::Services;
@@ -46,6 +45,12 @@ lua_State *ScriptService::make_context() {
 	return make_main_context();
 }
 
+void ScriptService::take_ownership_of_state(
+  lua_State *context, Instances::Instance *owner
+) {
+
+}
+
 void ScriptService::run_autorun() {
 	auto script = std::make_shared<Instances::Script>();
 
@@ -55,11 +60,14 @@ void ScriptService::run_autorun() {
 			throw std::runtime_error("autorun script does not exist");
 		}
 
-		auto source = IOService::read_file("assets/autorun.luau");
 		script->name = "autorun";
-		script->set_source(source);
+		script->set_file("assets/autorun.luau");
 		script->initialize_script();
 		script->run_script();
+
+		auto instance = Application::instance()->currentModel->get_service<Services::ScriptService>("ScriptService");
+		instance->add_child(script);
+
 	} catch (std::runtime_error &e) {
 		throw std::runtime_error(std::format("Failed to run autorun.luau: {}", e.what()));
 	}
@@ -69,12 +77,14 @@ int ScriptService::handle_lua_console(lua_State *context) {
     const int argumentCount = lua_gettop(context);
     const Core::LogLevel logLevel = static_cast<Core::LogLevel>(luaL_checknumber(context, lua_upvalueindex(1)));
 
-    lua_getfield(context, LUA_REGISTRYINDEX, LUA_SCRIPT_REGISTRY_INDEX);
+    lua_getfield(context, LUA_REGISTRYINDEX, "current_script");
 
-    const auto *script = static_cast<Instances::Script*>(lua_tolightuserdatatagged(context, lua_gettop(context), 0x02));
+    const auto *script = static_cast<Instances::Script*>(lua_tolightuserdatatagged(context, -1, 0x02));
     if (script == nullptr || script->context == nullptr) {
         EngineService::panic("Got output from a VM with no attached Script, wtf???");
     }
+
+		lua_pop(context, 1);
 
     std::string scriptPath = script->name;
     std::string output;

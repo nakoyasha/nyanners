@@ -13,7 +13,7 @@
 namespace Nyanners::Scripting::Reflection {
 	// anyone is welcome to come up with a better idea to do this. i'm tired
 	struct ReflectionDescriptorInstance {
-		std::function<std::shared_ptr<void>()> constructor = []() -> std::shared_ptr<void> {
+		std::function<std::shared_ptr<Instances::Instance>()> constructor = []() -> std::shared_ptr<Instances::Instance> {
 			throw std::runtime_error("This instance is not creatable.");
 		};
 	};
@@ -22,11 +22,12 @@ namespace Nyanners::Scripting::Reflection {
 	public:
 		std::string name;
 		ReflectionDescriptorInstance constructorInstance;
-		const uint8_t flags {};
+		uint8_t flags {};
 
 		std::vector<ReflectionProperty> properties;
 		std::vector<ReflectionMethod> methods;
 		std::vector<ReflectionDescriptor*> parents;
+		std::vector<std::string> pending_parents {};
 
 		template <typename object, typename T, T (object::*getter)() const, void (object::*setter)(const T&)>
 		ReflectionProperty add_property(const std::string& propertyName, const ReflectionPropertyType type)
@@ -104,6 +105,7 @@ namespace Nyanners::Scripting::Reflection {
 				.type = type,
 				.flags = 0
 			};
+			property.flags ^= static_cast<uint8_t>(ReflectionPropertyFlags::ReadOnly);
 
 			property.get = [](Instances::Instance* instance, ReflectionValue& refValue, lua_State* context)
 			{
@@ -144,7 +146,7 @@ namespace Nyanners::Scripting::Reflection {
 		};
 
 		template <typename object, int (object::*method)(lua_State* context)>
-		ReflectionMethod add_method(const std::string& methodName, const ReflectionPropertyType returnType)
+		ReflectionDescriptor& add_method(const std::string& methodName, const ReflectionPropertyType returnType)
 		{
 			ReflectionMethod methodObject {
 				.name = methodName,
@@ -160,13 +162,25 @@ namespace Nyanners::Scripting::Reflection {
 			};
 
 			methods.push_back(methodObject);
+			return *this;
+		};
+
+		ReflectionMethod add_method_anon(const std::string& methodName, const ReflectionMethodCallback callback, const ReflectionPropertyType returnType)
+		{
+			ReflectionMethod methodObject {
+				.name = methodName,
+				.returnType = returnType,
+				.flags = 0,
+				.call = callback
+			};
+
+			methods.push_back(methodObject);
 			return methodObject;
 		};
 
-		template <typename T>
-		[[nodiscard]] std::shared_ptr<T> construct() const
+		[[nodiscard]] std::shared_ptr<Instances::Instance> construct() const
 		{
-			return std::static_pointer_cast<T>(this->constructorInstance.constructor());
+			return this->constructorInstance.constructor();
 		}
 
 		template <class object>

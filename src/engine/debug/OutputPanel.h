@@ -1,5 +1,6 @@
 #pragma once
 #include "DebugWindow.h"
+#include "imgui.h"
 #include "instances/services/ConsoleService.h"
 
 struct ConsoleOutput {
@@ -10,16 +11,10 @@ struct ConsoleOutput {
 namespace Nyanners::Debug::UI {
 	class OutputPanel : public Nyanners::Instances::DebugWindow {
 	public:
-		OutputPanel() : Instance("OutputWindow") {
-			Nyanners::Services::ConsoleService::onMessage.connect([this](const Nyanners::Core::LogLevel logLevel, std::string message) {
-				messages.push_back({
-					.level = logLevel,
-					.message = message,
-				});
-			});
-		};
+		OutputPanel();;
 		void draw() override;
 	private:
+		ImFont *font;
 		std::vector<ConsoleOutput> messages;
 	};
 }

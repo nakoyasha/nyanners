@@ -27,10 +27,9 @@ LibInstance::create_instance(const std::string &className) {
 	const auto classes = ReflectionDescriptorRegistry::instance()->descriptors;
 
 	for (const auto &descriptor : classes | std::views::values) {
-		const auto instanceClass = descriptor;
-
-		if (instanceClass.name == className) {
-			return instanceClass.construct<Instances::Instance>();
+		if (const auto &instanceClass = descriptor;
+		    instanceClass.name == className) {
+			return instanceClass.construct();
 		}
 	}
 

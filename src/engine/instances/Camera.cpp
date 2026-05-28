@@ -6,11 +6,19 @@
 using namespace Nyanners::Instances;
 
 namespace Nyanners::Scripting {
-
+	auto registrator = ReflectionDescriptorRegistry::instance()->create_registrator([]() {
+		  Services::ReflectionService::create_descriptor(
+		    "Camera", {"Transformable"}
+		  )
+		    .add_property<
+		      Camera,
+		      glm::vec2,
+		      &Camera::get_resolution,
+		      &Camera::set_resolution>("Resolution", Vector2);
+	  });
 }
 
 Camera::Camera() : Instance("Camera") {
-	resolution = new DataTypes::Vector2(512, 512);
 }
 
 void Camera::update(const float deltaTime) {
@@ -18,7 +26,6 @@ void Camera::update(const float deltaTime) {
 		return;
 	}
 
-	glm::vec3 cameraPos = {position->x, position->y, position->z};
 	if (useDebugMovement) {
 		float velocity = moveSpeed * deltaTime;
 
@@ -43,23 +50,25 @@ void Camera::update(const float deltaTime) {
 		);
 
 		if (sf::Keyboard::isKeyPressed(sf::Keyboard::Key::W))
-			cameraPos += cameraFront * velocity;
+			position += cameraFront * velocity;
 		if (sf::Keyboard::isKeyPressed(sf::Keyboard::Key::S))
-			cameraPos -= cameraFront * velocity;
+			position -= cameraFront * velocity;
 		if (sf::Keyboard::isKeyPressed(sf::Keyboard::Key::E))
-			cameraPos += cameraUp * velocity;
+			position += cameraUp * velocity;
 		if (sf::Keyboard::isKeyPressed(sf::Keyboard::Key::Q))
-			cameraPos -= cameraUp * velocity;
+			position -= cameraUp * velocity;
 
 		if (sf::Keyboard::isKeyPressed(sf::Keyboard::Key::A))
-			cameraPos -= glm::normalize(glm::cross(cameraFront, cameraUp)) * velocity;
+			position -= glm::normalize(glm::cross(cameraFront, cameraUp)) * velocity;
 		if (sf::Keyboard::isKeyPressed(sf::Keyboard::Key::D))
-			cameraPos += glm::normalize(glm::cross(cameraFront, cameraUp)) * velocity;
+			position += glm::normalize(glm::cross(cameraFront, cameraUp)) * velocity;
 
 		// rebuild view
-		view = glm::lookAt(cameraPos, cameraPos + cameraFront, cameraUp);
-		position = new glm::vec3(cameraPos.x, cameraPos.y, cameraPos.z);
-		rotation = new glm::vec3(pitch, yaw, 0.0f);
+		view = glm::lookAt(position, position + cameraFront, cameraUp);
+		rotation = {pitch, yaw, 0.0f };
+		view = glm::rotate(view, glm::radians(rotation.x), glm::vec3(1.0f, 0.0f, 0.0f));
+		view = glm::rotate(view, glm::radians(rotation.y), glm::vec3(0.0f, 1.0f, 0.0f));
+		view = glm::rotate(view, glm::radians(rotation.z), glm::vec3(0.0f, 0.0f, 1.0f));
 		Instance::update(deltaTime);
 	}
 }
@@ -76,9 +85,9 @@ void Camera::calculate_projection(const DataTypes::Vector2 &size, bool forceReca
 		}
 	}
 
-	Core::Logger::log(
-	  std::format("Camera size updated to {},{}", size.x, size.y)
-	);
+	// Core::Logger::log_debug(
+	  // std::format("Camera size updated to {},{}", size.x, size.y)
+	// );
 	projection = glm::perspective(
 	  glm::radians(static_cast<float>(fov)),
 	  static_cast<float>(size.x) / static_cast<float>(size.y),
@@ -92,4 +101,12 @@ void Camera::calculate_projection(const DataTypes::Vector2 &size, bool forceReca
 void Camera::set_position(const glm::vec3 &newPosition) {
 	view = glm::lookAt(newPosition, newPosition + cameraFront, cameraUp);
 	Transformable::set_position(newPosition);
+}
+
+glm::vec2 Camera::get_resolution() const {
+	return this->resolution;
+}
+
+void Camera::set_resolution(const glm::vec2 &newResolution) {
+	this->resolution = newResolution;
 }

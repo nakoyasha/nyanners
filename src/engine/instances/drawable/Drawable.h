@@ -1,5 +1,6 @@
 #pragma once
 
+#include "lua.h"
 #include "glad/glad.h"
 #include "instances/basic/Transformable.h"
 #include "instances/datatypes/Color3.h"
@@ -9,20 +10,19 @@
 namespace Nyanners::Instances {
   class Drawable : public Transformable {
   public:
-  	Resources::Material* material;
-  	Resources::Mesh* mesh;
-
-  	int indexCount;
+  	int indexCount = 0;
+  	bool isOpaque = true;
   	GLuint vertexArrayID {};
 
-  	bool isOpaque = true;
+  	Resources::Mesh* mesh;
+  	Resources::Material* material;
 
-		Drawable();
-		virtual ~Drawable();
+  	Drawable();
+  	~Drawable() override;
 
+  	DataTypes::Color3 get_color() const;
   	virtual void set_color(DataTypes::Color3 newColor);
-
-  	virtual bool isLegacy();
-    virtual void draw() {};
+    int lua_set_texture(lua_State *context);
+    virtual void draw() = 0;
   };
 }

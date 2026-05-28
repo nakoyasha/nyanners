@@ -6,13 +6,16 @@
 #include "core/Logger.h"
 #include "instances/Script.h"
 #include "instances/basic/Signal.h"
-#include "instances/drawable/TextLabel.h"
+#include "../ui/TextLabel.h"
 #include "instances/services/RunService.h"
 #include "scripting/data/UserdataTags.h"
 #include "scripting/reflections/DataTypes.h"
 #include "scripting/reflections/ReflectionPropertyReaders.h"
 #include "scripting/reflections/ReflectionTypes.h"
 #include <algorithm>
+
+#include "instances/container/BasicContainers.h"
+#include "instances/drawable/MeshPart.h"
 
 using namespace Nyanners::Services;
 using namespace Nyanners::Scripting::Reflection;
@@ -42,7 +45,7 @@ ReflectionService::get_properties(const std::shared_ptr<Instance> &instance) {
 	construct_family_tree(descriptor->second, parents);
 	std::ranges::reverse(parents.begin(), parents.end());
 
-	for (const auto &parent : descriptor->second.parents) {
+	for (const auto &parent : parents) {
 		for (const auto &property : parent->properties) {
 			newProperties.push_back(property);
 		}
@@ -60,7 +63,6 @@ void ReflectionService::reflect_class(
 	auto registry = ReflectionDescriptorRegistry::instance();
 	auto descriptor = registry->descriptors.find(instance->baseName);
 	auto instanceDescriptor = registry->descriptors.find("Instance");
-	// ReflectionDescriptor* descriptor = nullptr;
 
 	if (descriptor == registry->descriptors.end()) {
 		Core::Logger::log(std::format("Class {} is missing a Reflection descriptor", instance->baseName));
@@ -87,71 +89,29 @@ void ReflectionService::reflect_class(
 
 	lua_setuserdatatag(context, -1, LUA_SCRIPT_INSTANCE_TAG);
 
-	new (selfUser) ReflectionInstance{
+	new (selfUser) ReflectionInstance {
 	  .pointer = instance,
 	  .descriptor = &descriptor->second,
 	};
 
-	if (luaL_newmetatable(context, "instance")) {
-		constexpr luaL_Reg sRegs[] = {
-		  {"__index",
-		   [](lua_State *context) {
-			   auto *instance = get_instance_from_context(context, 1);
-			   if (instance == nullptr) {
-				   throw std::runtime_error(
-				     "Instance userdata is null or invalid userdata passed"
-				   );
-			   }
-
-			   return instance_index(context, instance);
-		   }},
-		  {"__newindex",
-		   [](lua_State *context) {
-			   auto *instance = get_instance_from_context(context, 1);
-			   if (instance == nullptr) {
-				   throw std::runtime_error(
-				     "Instance userdata is null or invalid userdata passed"
-				   );
-			   }
-
-			   return instance_new_index(context, instance);
-		   }},
-		  {
-		    "__tostring",
-		    [](lua_State *context) {
-			    lua_pushstring(context, "Instance");
-			    return 1;
-		    },
-		  },
-		  {nullptr, nullptr}
-		};
-
-		luaL_register(context, nullptr, sRegs);
+	if (const int type = luaL_getmetatable(context, "instance"); type != LUA_TTABLE) {
+		lua_pop(context, 1);
+		create_instance_metatable(context);
 	}
 
-	lua_setreadonly(context, -1, true);
 	lua_setmetatable(context, -2);
 }
 
 ReflectionDescriptor &ReflectionService::create_descriptor(
-  const std::string &className, const std::vector<std::string> &parents
-) {
+  const std::string &className, const std::vector<std::string> &parents, const std::vector<ReflectionInstanceFlags>& flags) {
 	const auto registry = ReflectionDescriptorRegistry::instance();
-	ReflectionDescriptor descriptor{className};
+	ReflectionDescriptor descriptor {className};
 
-	for (const auto &parent : parents) {
-		if (!does_descriptor_exist(parent)) {
-			Core::Logger::log_error(
-			"!Fake class warning! Uh-oh! This class created a descriptor either before the parent or with a non-existent parent!"
-			);
-			continue;
-		}
-		auto parentDescriptor = registry->descriptors.find(parent);
-
-		if (parentDescriptor != registry->descriptors.end()) {
-			descriptor.parents.push_back(&parentDescriptor->second);
-		}
+	for (const auto& flag : flags) {
+		descriptor.flags |= static_cast<uint8_t>(flag);
 	}
+
+	descriptor.pending_parents = parents;
 
 	const auto [iterator, _] =
 	  registry->descriptors.emplace(className, descriptor);
@@ -177,6 +137,10 @@ int ReflectionService::handle_property(
 				lua_pushnumber(context, std::get<double>(value));
 				return 1;
 			};
+			case (Integer): {
+				lua_pushnumber(context, std::get<int>(value));
+				return 1;
+			};
 			case (String): {
 				lua_pushstring(context, std::get<std::string>(value).c_str());
 				return 1;
@@ -193,6 +157,9 @@ int ReflectionService::handle_property(
 				push_color3(context, std::get<DataTypes::Color3>(value));
 				return 1;
 			}
+			case (ReflectionPropertyType::Null): {
+				lua_pushnil(context);
+			}
 			case (ReflectionPropertyType::Instance): {
 				reflect_class(context, std::get<std::shared_ptr<Instances::Instance>>(value));
 				return 1;
@@ -202,8 +169,6 @@ int ReflectionService::handle_property(
 				throw std::invalid_argument("Unknown property type");
 			};
 		}
-
-		return 0;
 	}
 
 	if (const auto& method = descriptor.get_method(propertyName.data()); method != std::nullopt) {
@@ -213,17 +178,17 @@ int ReflectionService::handle_property(
 			));
 		*methodData = &method->call;
 
-		lua_pushcclosure(
-		context,
-		[](lua_State *context) {
+		lua_pushcclosure( context, [](lua_State *context) {
 			auto **methodCallback =
 				static_cast<ReflectionMethodCallback **>(lua_touserdatatagged(
 				context, lua_upvalueindex(1), LUA_PROPERTY_METHOD_TAG
 				));
-			auto instance = get_instance_from_context(context, 1);
+			  const auto& instance = get_instance_from_context(context, 1);
 
 			return (**methodCallback)(instance->pointer.get(), context);
-		}, method->name.c_str(), 1);
+		}, method->name.c_str(), 1
+		);
+
 		return 1;
 	}
 
@@ -255,6 +220,10 @@ bool ReflectionService::handle_new_value(
 			};
 			case (Number): {
 				property->set(instance->pointer.get(), read_value<double>(context, -1), context);
+				return true;
+			};
+			case (Integer): {
+				property->set(instance->pointer.get(), read_value<int>(context, -1), context);
 				return true;
 			};
 			case (String): {
@@ -290,7 +259,17 @@ bool ReflectionService::handle_new_value(
 void ReflectionService::construct_family_tree(
   const ReflectionDescriptor& start, std::vector<ReflectionDescriptor*> &descriptors
 ) {
+	if (start.parents.empty()) {
+		return;
+	}
+
 	for (const auto& parent : start.parents) {
+		// avoid duplicate elements
+		if (std::ranges::find(descriptors, parent) != descriptors.end()) {
+			// Core::Logger::log_debug("BUG: Element has the same parent twice (inherited? element defines a parent that is the child of the first parent?)");
+			continue;
+		}
+
 		descriptors.push_back(parent);
 		construct_family_tree(*parent, descriptors);
 	}
@@ -323,15 +302,8 @@ int ReflectionService::instance_index(
 
 	luaL_error(
 	  context,
-	  std::format(
-	    "{}::{} is an invalid property and or child",
-	    instance->pointer->baseName,
-	    propertyName
-	  )
-	    .c_str()
+	  std::format("{}::{} is an invalid property and or child", instance->pointer->baseName, propertyName).c_str()
 	);
-
-	return 0;
 }
 
 int ReflectionService::instance_new_index(
@@ -355,32 +327,122 @@ int ReflectionService::instance_new_index(
 
 	if (handle_new_value(context, propertyName, instance, *instance->descriptor)) {
 		return 0;
+	}
+
+	luaL_error(context,std::format("{}::{} is an invalid property", instance->pointer->baseName, propertyName).c_str());
+}
+
+void ReflectionService::register_pending_parents() {
+	auto registry = ReflectionDescriptorRegistry::instance();
+
+	for (auto &descriptor: registry->descriptors | std::views::values) {
+		auto& pendingParents = descriptor.pending_parents;
+		std::vector<ReflectionDescriptor*> parents;
+
+		if (pendingParents.empty()) {
+			continue;
+		}
+
+		for (const auto &parent : pendingParents) {
+			if (!does_descriptor_exist(parent)) {
+				Core::Logger::log_error("!Fake class warning! Uh-oh! This class created a descriptor with a non-existent parent!");
+				continue;
+			}
+
+			const auto parentDescriptor = registry->descriptors.find(parent);
+
+			if (parentDescriptor != registry->descriptors.end()) {
+				descriptor.parents.push_back(&parentDescriptor->second);
+			}
+		}
+
+		std::vector<ReflectionDescriptor*> tree;
+		construct_family_tree(descriptor, parents);
+}
+}
+
+void ReflectionService::create_instance_metatable(lua_State* context) {
+	if (luaL_newmetatable(context, "instance")) {
+		constexpr luaL_Reg sRegs[] = {
+			{"__index",
+			 [](lua_State *context) {
+			 	auto *instance = get_instance_from_context(context, 1);
+			 	if (instance == nullptr) {
+			 		throw std::runtime_error(
+					   "Instance userdata is null or invalid userdata passed"
+					 );
+			 	}
+
+			 	return instance_index(context, instance);
+			}},
+		   {"__newindex",
+			[](lua_State *context) {
+				auto *instance = get_instance_from_context(context, 1);
+				if (instance == nullptr) {
+					throw std::runtime_error(
+					  "Instance userdata is null or invalid userdata passed"
+					);
+				}
+
+				return instance_new_index(context, instance);
+		   }},
+		  {
+		  	"__tostring",
+			  [](lua_State *context) {
+			  	lua_pushstring(context, "Instance");
+			  	return 1;
+		  	},
+			},
+			{nullptr, nullptr}
+		};
+
+		luaL_register(context, nullptr, sRegs);
+		lua_setreadonly(context, -1, true);
 	} else {
-		luaL_error(
-		  context,
-		  std::format("{}::{} is an invalid property", instance->pointer->baseName, propertyName).c_str()
-		);
+		Core::Logger::log_error("Could not create Instance metatable");
 	}
 }
 
 void ReflectionService::register_reflections() {
-	create_descriptor("Instance", {})
+	create_descriptor("Instance", {}, {ReflectionInstanceFlags::NotCreatable})
 		.add_property_chained<Instance, std::string, &Instance::get_name, &Instance::set_name>("Name", String)
-		.add_property_chained<Instance, bool, &Instance::get_active, &Instance::set_active>("Active", Boolean);
+		.add_property_chained<Instance, std::string, &Instance::get_basename>("ClassName", String)
+		.add_property_chained<Instance, bool, &Instance::get_active, &Instance::set_active>("Active", Boolean)
+		.add_property_chained<Instance, std::shared_ptr<Instance>, &Instance::get_parent, &Instance::set_parent>("Parent", ReflectionPropertyType::Instance)
+		.add_method<Instance, &Instance::clone_lua>("clone", ReflectionPropertyType::Instance)
+		.add_method<Instance, &Instance::destroy_lua>("Destroy", Null);
 
-	create_descriptor("DataModel", {"Instance"})
-	.add_method<Instances::DataModel, &Instances::DataModel::get_service_lua>("get_service", Boolean);
+	create_descriptor("DataModel", {"Instance"}, {ReflectionInstanceFlags::Service})
+		.add_method<Instances::DataModel, &Instances::DataModel::get_service_lua>("get_service", Boolean);
 
-	create_descriptor("Transformable", {"Instance"})
-	.add_property_chained<Instances::Transformable, glm::vec3, &Instances::Transformable::get_position, &Instances::Drawable::set_position>("Position", Vector3)
-	.add_property_chained<Instances::Transformable, glm::vec3, &Instances::Transformable::get_rotation, &Instances::Drawable::set_rotation>("Rotation", Vector3)
-	.add_property_chained<Instances::Transformable, glm::vec3, &Instances::Transformable::get_scale, &Instances::Drawable::set_scale>("Scale", Vector3);
+	create_descriptor("Transformable", {"Instance"}, {ReflectionInstanceFlags::NotCreatable})
+		.add_property_chained<Instances::Transformable, glm::vec3, &Instances::Transformable::get_position, &Instances::Drawable::set_position>("Position", Vector3)
+		.add_property_chained<Instances::Transformable, glm::vec3, &Instances::Transformable::get_rotation, &Instances::Drawable::set_rotation>("Rotation", Vector3)
+		.add_property_chained<Instances::Transformable, glm::vec3, &Instances::Transformable::get_scale, &Instances::Drawable::set_scale>("Scale", Vector3);
 
-	create_descriptor("MeshPart", {"Transformable"});
 
-	create_descriptor("RenderingService", {"Instance"})
-	.add_property<RenderingService, double, &RenderingService::get_fps>("FPS", Number);
+	create_descriptor("MeshPart", {"Transformable"})
+		.add_constructor<Instances::MeshPart>();
+	create_descriptor("RenderingService", {"Instance"}, {ReflectionInstanceFlags::NotCreatable, ReflectionInstanceFlags::Service})
+		.add_property_chained<RenderingService, double, &RenderingService::get_fps>("FPS", Number)
+		.add_property_chained<RenderingService, glm::vec2, &RenderingService::get_window_size>("ViewportSize", Vector2)
+		.add_method_anon("set_window_title", [](Instance* instance, lua_State* context) -> int {
+			const auto renderingService = Application::instance()->currentModel->get_service<RenderingService>("RenderingService");
+			const auto title = luaL_checkstring(context, -1);
+
+			renderingService->set_window_title(title);
+			return 0;
+		}, Null);
+
+	create_descriptor("RunService", {"Instance"}, {ReflectionInstanceFlags::NotCreatable, ReflectionInstanceFlags::Service})
+	.add_property<RunService, std::shared_ptr<Instances::SignalBase>, &RunService::get_on_tick>("Tick", ReflectionPropertyType::Instance);
+
+	create_descriptor("Signal", {"Instance"})
+	.add_method<Instances::SignalBase, &Instances::SignalBase::connectLua>("Connect", Unknown);
 
 	Instances::link_basic_containers();
 	ReflectionDescriptorRegistry::instance()->flush_registrators();
+	// parents have to be done separately, to ensure all descriptors are registered
+	// as otherwise this creates cases where e.g, Button has Drawable as a parent, but because Drawable is after Button, Button gets a "invalid parent" error.
+	register_pending_parents();
 }

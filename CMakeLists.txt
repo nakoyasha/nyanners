@@ -6,7 +6,7 @@ add_subdirectory(src/engine)
 
 add_executable(Nyanners.App src/app/main.cpp
 )
-target_link_libraries(Nyanners.App PUBLIC Nyanners)
+target_link_libraries(Nyanners.App PRIVATE "$<LINK_LIBRARY:WHOLE_ARCHIVE,Nyanners>")
 link_libraries(Nyanners.App Nyanners)
 
 add_custom_target(copy_assets ALL
@@ -16,4 +16,5 @@ add_custom_target(copy_assets ALL
         COMMENT "Copying resources directory to build directory"
 )
 
+target_link_options(Nyanners.App PRIVATE -static-libgcc -static-libstdc++)
 add_dependencies(Nyanners.App copy_assets)

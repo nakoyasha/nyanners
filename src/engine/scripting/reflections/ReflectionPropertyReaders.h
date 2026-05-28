@@ -17,6 +17,11 @@ namespace Nyanners::Scripting::Reflection {
 	};
 
 	template <>
+	inline int read_value<int>(lua_State *context, const int index) {
+		return static_cast<int>(luaL_checknumber(context, index));
+	};
+
+	template <>
 	inline std::string read_value<std::string>(lua_State *context, const int index) {
 		return luaL_checkstring(context, index);
 	};

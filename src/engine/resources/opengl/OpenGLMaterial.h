@@ -6,8 +6,8 @@ namespace Nyanners::Resources::OpenGL {
 	public:
 		OpenGLMaterial();
 
-		void use() override;
-		void release() override;
+		void use() const override;
+		void release() const override;
 
 		void set_color(DataTypes::Color3 newColor) override;
 		void set_texture(const std::shared_ptr<Texture> &newTexture) override;

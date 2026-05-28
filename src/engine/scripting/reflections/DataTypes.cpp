@@ -1,4 +1,6 @@
 #include "DataTypes.h"
+
+#include "lualib.h"
 #include "core/Logger.h"
 #include "scripting/data/UserdataTags.h"
 #include "third_party/luau/VM/src/ldo.h"
@@ -157,12 +159,12 @@ int Nyanners::Scripting::Reflection::push_vector2(
 ) {
 	ReflectionService::create_userdata(context, &vector, 0x07);
 
-	if (luaL_newmetatable(context, "Vector3")) {
+	if (luaL_newmetatable(context, "Vector2")) {
 		luaL_Reg sRegs[] = {
 		  {"__index",
 		   [](lua_State *context) {
 			   auto instance =
-			     ReflectionService::get_userdata_from_context<glm::vec3>(
+			     ReflectionService::get_userdata_from_context<glm::vec2>(
 			       context, 1, 0x07
 			     );
 			   const std::string propertyName = luaL_checkstring(context, -1);

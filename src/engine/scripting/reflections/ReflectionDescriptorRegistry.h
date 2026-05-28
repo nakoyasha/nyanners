@@ -17,7 +17,7 @@ namespace Nyanners::Scripting::Reflection {
 		static std::shared_ptr<ReflectionDescriptorRegistry> sInstance;
 		static std::shared_ptr<ReflectionDescriptorRegistry> instance();
 
-		ReflectionRegistrator create_registrator(const ReflectionRegistrator& registrator);
+		ReflectionRegistrator create_registrator(const ReflectionRegistrator &registrator);
 		void flush_registrators();
 	};
 }
