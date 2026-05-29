@@ -6,13 +6,16 @@ local Label = Instance.new("TextLabel")
 local Button = Instance.new("Button")
 local AspectRatio = Instance.new("UIAspectRatioComponent")
 local LayerCollector = Instance.new("LayerCollector")
+local Frame = Instance.new("Frame")
 
 RenderingService:set_window_title("world's shittiest cookie clicker")
 
 -- AspectRatio.AspectRatio = 1
-
-Label.Parent = LayerCollector
-Button.Parent = LayerCollector
+Frame.Parent = LayerCollector
+Frame.SizeScale = Vector2.new(1,1)
+Frame:set_texture("assets/textures/ichika.png")
+Label.Parent = Frame
+Button.Parent = Frame
 AspectRatio.Parent = Button
 LayerCollector.Parent = UIService
 

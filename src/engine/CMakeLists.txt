@@ -150,6 +150,8 @@ add_library(Nyanners
         instances/ui/components/UIAspectRatioComponent.h
         instances/ui/components/UIComponent.cpp
         core/rendering/Viewport.h
+        instances/ui/Frame.cpp
+        instances/ui/Frame.h
 )
 
 add_library(
@@ -168,7 +170,7 @@ add_library(
         third_party/glad/src/glad.c
 )
 
-set_property(TARGET Nyanners PROPERTY INTERPROCEDURAL_GENERATION TRUE)
+# set_property(TARGET Nyanners PROPERTY INTERPROCEDURAL_GENERATION TRUE)
 
 target_include_directories(Nyanners.ThirdParty.Glad PUBLIC third_party/glad/include)
 target_include_directories(Nyanners.ThirdParty PUBLIC third_party/dear-imgui third_party/dear-imgui/misc/cpp/ third_party/dear-imgui/backends/ third_party/stb/ third_party/glText/)
