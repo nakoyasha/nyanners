@@ -306,8 +306,14 @@ void ExplorerPanel::display_property(
 		display_color_property(color, property, instance);
 	} else if (property.type == ReflectionPropertyType::Instance) {
 		auto& instance = std::get<std::shared_ptr<Instance>>(value);
-		ImGui::Text(instance->name.c_str());
-		instance.reset();
+
+		if (instance != nullptr) {
+			ImGui::Text(instance->name.c_str());
+			instance.reset();
+		} else {
+			ImGui::TextUnformatted("none :(");
+		}
+
 	}
 	else {
 		ImGui::TextColored(
