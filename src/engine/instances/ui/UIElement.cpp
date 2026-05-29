@@ -8,7 +8,7 @@ using namespace Nyanners::Instances;
 
 namespace Nyanners::Scripting {
     static auto uiElement = ReflectionDescriptorRegistry::instance()->create_registrator([]() {
-        Services::ReflectionService::create_descriptor("UIElement", {"Instance"}, {ReflectionInstanceFlags::NotCreatable})
+        Services::ReflectionService::create_descriptor("UIElement", {"Drawable", "Instance"}, {ReflectionInstanceFlags::NotCreatable})
             .add_property_chained<UIElement, int, &UIElement::get_zindex, &UIElement::set_zindex>("ZIndex", Integer)
             .add_property_chained<UIElement, glm::vec2, &UIElement::get_anchor_point, &UIElement::set_anchor_point>("AnchorPoint", Vector2)
             .add_property_chained<UIElement, glm::vec2, &UIElement::get_absolute_size>("AbsoluteSize", Vector2)
@@ -95,5 +95,11 @@ glm::vec2 UIElement::get_absolute_position() const {
     const auto positionX = static_cast<int>(std::round(positionScale.x * viewportSize.x));
     const auto positionY = static_cast<int>(std::round(positionScale.y * viewportSize.y));
 
-    return glm::vec2(std::round(positionX + positionOffset.x), std::round(positionY + positionOffset.y));
+    auto vector = glm::vec2(std::round(positionX + positionOffset.x), std::round(positionY + positionOffset.y));
+
+    if (const auto& parent = std::dynamic_pointer_cast<UIElement>(this->parent.lock())) {
+        vector += parent->get_absolute_position();
+    }
+
+    return vector;
 }

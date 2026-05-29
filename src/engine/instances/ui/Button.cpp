@@ -6,7 +6,7 @@ using namespace Nyanners::Instances;
 
 namespace Nyanners::Scripting {
     static auto buttonRegistrator = ReflectionDescriptorRegistry::instance()->create_registrator([]() {
-        Services::ReflectionService::create_descriptor("Button", {"UIElement", "Drawable", "Transformable"})
+        Services::ReflectionService::create_descriptor("Button", {"UIElement","Transformable"})
         .add_property_chained<Button, std::shared_ptr<SignalBase>, &Button::get_activated>("Activated", ReflectionPropertyType::Instance)
         .add_property_chained<Button, std::shared_ptr<SignalBase>, &Button::get_hold>("Held", ReflectionPropertyType::Instance)
         .add_property_chained<Button, std::shared_ptr<SignalBase>, &Button::get_release>("Released", ReflectionPropertyType::Instance)

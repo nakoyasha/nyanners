@@ -10,7 +10,7 @@ using namespace Nyanners::Instances;
 namespace Nyanners::Instances {
 	auto registrator = ReflectionDescriptorRegistry::instance()->create_registrator([]() {
 		  Services::ReflectionService::create_descriptor(
-		    "TextLabel", {"UIElement", "Instance", "Transformable"}
+		    "TextLabel", {"UIElement","Transformable"}
 		  )
 		    .add_property_chained<
 		      TextLabel,
