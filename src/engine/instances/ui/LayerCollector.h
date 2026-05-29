@@ -6,7 +6,7 @@
 #include "instances/drawable/Drawable.h"
 
 namespace Nyanners::Instances::UI {
-    class LayerCollector : public Drawable, public Instance {
+    class LayerCollector : public UIElement {
     public:
         LayerCollector() : Instance("LayerCollector") {};
         bool dirty = false;

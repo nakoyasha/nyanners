@@ -42,8 +42,17 @@ void LayerCollector::remove_child(const std::shared_ptr<Instance> &child) {
 }
 
 void LayerCollector::draw() {
+    if (!this->active) {
+        return;
+    }
+
     for (auto it = elements.begin(); it != elements.end(); ++it) {
         std::shared_ptr<UIElement> ptr = it->second.lock();
+
+        if (!ptr->active) {
+            continue;
+        }
+
         ptr->draw();
         if (it->first != ptr->zIndex) {
             dirty = true;
