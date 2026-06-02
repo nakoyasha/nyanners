@@ -63,6 +63,8 @@ void Button::draw() {
     Services::RenderingService::renderer->enable_depth_buffer();
     Services::RenderingService::renderer->set_previous_depth_test();
     Services::RenderingService::renderer->set_renderer_feature(Core::Rendering::RendererFeature::FaceCulling, true);
+
+    UIElement::draw();
 }
 
 std::shared_ptr<SignalBase> Button::get_activated() const {
