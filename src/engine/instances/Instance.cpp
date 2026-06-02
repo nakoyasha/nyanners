@@ -8,7 +8,6 @@
 using namespace Nyanners::Instances;
 
 Instance::~Instance() {
-	Core::Logger::log_debug("Instance is being destroyed");
 }
 
 void Instance::add_child(const std::shared_ptr<Instance>& child) {
@@ -110,7 +109,7 @@ std::shared_ptr<Nyanners::Instances::Instance> Instance::clone() {
 		property.get(this, value, nullptr);
 
 		// for the best, it's probably a good idea to not do this
-		if (property.type != ReflectionPropertyType::Instance || property.type != ReflectionPropertyType::UserData) {
+		if (property.type != ReflectionPropertyType::Instance || property.type != UserData) {
 			property.set(instancePtr, value, nullptr);
 		}
 	};
