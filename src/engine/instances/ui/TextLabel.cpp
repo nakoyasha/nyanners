@@ -122,7 +122,7 @@ void TextLabel::draw() {
 			shadowMaterial->use();
 			shadowMaterial->set_texture(character.texture);
 
-			Services::RenderingService::renderer->render_quad(shadowMaterial, glm::translate(transform, glm::vec3(0.0f, -0.2f, 0.0f)));
+			Services::RenderingService::renderer->render_quad(shadowMaterial, glm::translate(transform, glm::vec3(0.0f, 0.2f, 0.0f)));
 			this->material->use();
 		}
 
@@ -185,8 +185,8 @@ bool TextLabel::get_draw_shadow() const {
 }
 
 void TextLabel::update(float deltaTime) {
-	// glyphs.clear();
-	// calculate_text(this->text);
+	glyphs.clear();
+	calculate_text(this->text);
 }
 
 void TextLabel::calculate_text(const std::string &newText) {
