@@ -11,11 +11,11 @@ void EngineService::panic(const std::string_view &panicMessage) {
   const auto& location = std::source_location::current();
   Core::Logger::log(std::format("PANIC! From {}\n {}", location.file_name(), panicMessage));
 
-	// #ifdef NDEBUG
+	#ifdef NDEBUG
+    std::terminate();
+	#else
 	__builtin_trap();
-	// #else
-  // std::terminate();
-	// #endif
+	#endif
 }
 
 Nyanners::Instances::Signal<Nyanners::DataTypes::Vector2> EngineService::onWindowResized;
