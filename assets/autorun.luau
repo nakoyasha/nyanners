@@ -1,6 +1,7 @@
 local UIService = DataModel.UIService
 local RunService = DataModel.RunService
 local RenderingService = DataModel:get_service("RenderingService")
+local SoundService = DataModel:get_service("SoundService")
 
 local Label = Instance.new("TextLabel")
 local Button = Instance.new("Button")
@@ -38,6 +39,7 @@ end)
 
 Button.Activated:Connect(function()
     print("omg im pressed... revolutionary...")
+    SoundService:play_sound("assets/sound/ui_click.ogg")
     cookieCount += 1
 end)
 

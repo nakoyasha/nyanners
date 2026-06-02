@@ -102,8 +102,6 @@ add_library(Nyanners
         instances/services/TextService.cpp
         instances/services/TextService.h
         utils/glCheck.h
-        debug/FrameCounter.cpp
-        debug/FrameCounter.h
         scripting/reflections/ReflectionTypes.h
         instances/services/user/InputService.cpp
         instances/services/user/InputService.h
@@ -113,11 +111,12 @@ add_library(Nyanners
         instances/container/BasicContainers.h
         instances/container/BasicContainers.cpp
 
-        # debugging
         debug/DebugUIService.h
         debug/DebugUIService.cpp
         debug/DebugWindow.h
         debug/DebugWindow.cpp
+        debug/FrameCounter.cpp
+        debug/FrameCounter.h
 
         debug/ExplorerPanel.cpp
         debug/ExplorerPanel.h
@@ -129,6 +128,7 @@ add_library(Nyanners
         debug/OutputPanel.h
         debug/MainMenubar.cpp
         debug/MainMenubar.h
+
         scripting/reflections/ReflectionDescriptorRegistry.cpp
         scripting/reflections/ReflectionDescriptorRegistry.h
         scripting/reflections/ReflectionDescriptor.cpp
@@ -138,7 +138,6 @@ add_library(Nyanners
         utils/ImGuiColor3.h
         scripting/reflections/ReflectionMethod.h
         instances/basic/ScriptConnection.h
-        instances/basic/Script.cpp
         instances/ui/Button.cpp
         instances/ui/Button.h
         instances/ui/UIElement.h
@@ -152,6 +151,8 @@ add_library(Nyanners
         core/rendering/Viewport.h
         instances/ui/Frame.cpp
         instances/ui/Frame.h
+        instances/services/SoundService.cpp
+        instances/services/SoundService.h
 )
 
 add_library(
@@ -169,13 +170,21 @@ add_library(
         Nyanners.ThirdParty.Glad
         third_party/glad/src/glad.c
 )
+target_include_directories(Nyanners.ThirdParty.Glad PUBLIC third_party/glad/include)
+
+add_library(
+        Nyanners.ThirdParty.Miniaudio
+        third_party/miniaudio/miniaudio.h
+        third_party/miniaudio/stb_vorbis.c
+)
+target_include_directories(Nyanners.ThirdParty.Miniaudio PUBLIC third_party/miniaudio)
+set_target_properties(Nyanners.ThirdParty.Miniaudio PROPERTIES LINKER_LANGUAGE CXX)
 
 # set_property(TARGET Nyanners PROPERTY INTERPROCEDURAL_GENERATION TRUE)
 
-target_include_directories(Nyanners.ThirdParty.Glad PUBLIC third_party/glad/include)
-target_include_directories(Nyanners.ThirdParty PUBLIC third_party/dear-imgui third_party/dear-imgui/misc/cpp/ third_party/dear-imgui/backends/ third_party/stb/ third_party/glText/)
+target_include_directories(Nyanners.ThirdParty PUBLIC third_party/dear-imgui third_party/dear-imgui/misc/cpp/ third_party/dear-imgui/backends/ third_party/stb/)
 target_include_directories(Nyanners PRIVATE third_party/glm/glm)
 
 target_link_options(Nyanners PRIVATE -static-libgcc -static-libstdc++)
-target_link_libraries(Nyanners Nyanners.ThirdParty Nyanners.ThirdParty.Glad Luau.VM Luau.Require Luau.Compiler glfw SFML::Window stdc++exp glm::glm freetype fast_obj fast_obj_lib)
+target_link_libraries(Nyanners Nyanners.ThirdParty Nyanners.ThirdParty.Glad Nyanners.ThirdParty.Miniaudio Luau.VM Luau.Require Luau.Compiler glfw SFML::Window stdc++exp glm::glm freetype fast_obj fast_obj_lib)
 target_include_directories(Nyanners PUBLIC .)

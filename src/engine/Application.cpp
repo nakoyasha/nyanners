@@ -6,6 +6,7 @@
 #include "instances/services/RunService.h"
 #include "instances/services/ScriptService.h"
 #include "instances/services/SelectionService.h"
+#include "instances/services/SoundService.h"
 #include "instances/services/UIService.h"
 #include "instances/services/user/InputService.h"
 #include "instances/world/World.h"
@@ -27,6 +28,7 @@ Nyanners::Application::Application(const DataTypes::Vector2 size, const std::str
   model->add_child(std::make_shared<Services::World>());
 	model->add_child(std::make_shared<Services::InputService>());
 	model->add_child(std::make_shared<Services::ScriptService>());
+  model->add_child(std::make_shared<Services::SoundService>());
 
   Services::ReflectionService::register_reflections();
 
