@@ -11,45 +11,45 @@ namespace Nyanners::Core {
 		const std::filesystem::path full_path(logLocation.file_name());
 		const std::string output = std::format("[{}:{}] {}", full_path.filename().string(), logLocation.line(), message);
 
-		log_internal(LogLevel::Info, output);
+		log_internal(Info, output);
 	}
 
 	void Logger::log_warning(const std::string_view message, const std::source_location logLocation) {
 		const std::filesystem::path full_path(logLocation.file_name());
 		const std::string output = std::format("[{}:{}] {}", full_path.filename().string(), logLocation.line(), message);
 
-		log_internal(LogLevel::Warning, output);
+		log_internal(Warning, output);
 	}
 
 	void Logger::log_error(const std::string_view message, const std::source_location logLocation) {
 		const std::filesystem::path full_path(logLocation.file_name());
 		const std::string output = std::format("[{}:{}] {}", full_path.filename().string(), logLocation.line(), message);
 
-		log_internal(LogLevel::Error, output);
+		log_internal(Error, output);
 	}
 
 	void Logger::log_debug(const std::string_view message, const std::source_location logLocation) {
 		const std::filesystem::path full_path(logLocation.file_name());
 		const std::string output = std::format("[{}:{}] {}", full_path.filename().string(), logLocation.line(), message);
 
-		log_internal(LogLevel::Debug, output);
+		log_internal(Debug, output);
 	}
 
 	std::string level_to_string(const LogLevel level) {
 		switch (level) {
-			case LogLevel::Info:
+			case Info:
 				return "Info";
-			case LogLevel::Warning:
+			case Warning:
 				return "Warning";
-			case LogLevel::Error:
+			case Error:
 				return "Error";
-			case LogLevel::Debug:
+			case Debug:
 				return "Debug";
 		}
 		return "Unknown";
 	};
 
-	void Logger::log_no_format(LogLevel level, const std::string_view message) {
+	void Logger::log_no_format(const LogLevel level, const std::string_view message) {
 		log_internal(level, message.data());
 	}
 
@@ -58,7 +58,7 @@ namespace Nyanners::Core {
 		const std::string output = std::format("[{}] {}", levelString, message);
 		ConsoleService::log(level, output);
 
-		if (level == LogLevel::Error) {
+		if (level == Error) {
 			std::println(stderr, "{}", output);
 		} else {
 			// eurgh
