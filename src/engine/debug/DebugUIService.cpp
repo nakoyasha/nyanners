@@ -24,7 +24,7 @@ DebugUIService::DebugUIService() : Instance("DebugUIService") {
 	style.FrameBorderSize = 1.0f;
 	ImVec4 *colors = style.Colors;
 
-	io.Fonts->AddFontFromFileTTF("assets/fonts/arial.ttf");
+	io.Fonts->AddFontFromFileTTF("assets/fonts/arial.ttf", 16.0f);
 
 	// NOTICE OF AI-GENERATED CODE:
 	// i could not be bothered to do this part, sorry!
