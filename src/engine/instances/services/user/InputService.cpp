@@ -255,9 +255,10 @@ bool InputService::is_key_down(const Input::KeyCode &key) {
 }
 
 bool InputService::is_mouse_over_button(const glm::vec2 &buttonPosition, const glm::vec2 &buttonSize) {
-	/* TODO: find a way to get viewport position out of imgui, this currently assumes there is no debug UI applied?
-	 * implement a Viewport struct maybe
-	 */
+	if (!RenderingService::renderer->currentWindow->hasFocus()) {
+		return false;
+	}
+
 	const auto& viewport = RenderingService::renderer->currentViewport;
 	const auto& mousePosition = sf::Mouse::getPosition(*RenderingService::renderer->currentWindow);
 
