@@ -4,7 +4,7 @@
 #include "instances/drawable/Drawable.h"
 
 namespace Nyanners::Instances {
-    class UIElement : virtual public Instance, public Drawable {
+    class UIElement : virtual public Instance, virtual public Drawable {
     public:
         UIElement() : Instance("UIElement") {};
 
@@ -29,6 +29,8 @@ namespace Nyanners::Instances {
         void set_sizeScale(const glm::vec2 &newSizeScale);
         [[nodiscard]] glm::vec2 get_sizeOffset() const;
         void set_sizeOffset(const glm::vec2 &newSizeOffset);
+
+        void draw() override;
 
         [[nodiscard]] glm::vec2 get_absolute_size() const;
         [[nodiscard]] glm::vec2 get_absolute_position() const;

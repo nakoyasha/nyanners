@@ -68,6 +68,12 @@ void UIElement::set_sizeOffset(const glm::vec2 &newSizeOffset) {
     this->sizeOffset = newSizeOffset;
 }
 
+void UIElement::draw() {
+    for (auto& child : renderableChildren) {
+        child.lock()->draw();
+    }
+}
+
 glm::vec2 UIElement::get_absolute_size() const {
     const auto& viewportSize = Services::RenderingService::renderer->currentViewport->size;
     const auto scaleX = static_cast<int>(std::round(sizeScale.x * viewportSize.x));
