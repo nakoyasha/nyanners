@@ -180,7 +180,22 @@ add_library(
 target_include_directories(Nyanners.ThirdParty.Miniaudio PUBLIC third_party/miniaudio)
 set_target_properties(Nyanners.ThirdParty.Miniaudio PROPERTIES LINKER_LANGUAGE CXX)
 
-# set_property(TARGET Nyanners PROPERTY INTERPROCEDURAL_GENERATION TRUE)
+
+find_package(Git REQUIRED)
+
+if (GIT_FOUND)
+    execute_process(
+            COMMAND ${GIT_EXECUTABLE} rev-parse --abbrev-ref HEAD
+            WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
+            OUTPUT_VARIABLE GIT_BRANCH
+            OUTPUT_STRIP_TRAILING_WHITESPACE
+            ERROR_QUIET
+    )
+    target_compile_definitions(Nyanners PRIVATE GIT_BRANCH=\"${GIT_BRANCH}\")
+else()
+    target_compile_definitions(Nyanners PRIVATE GIT_BRANCH=\"Unknown\")
+endif()
+
 
 target_include_directories(Nyanners.ThirdParty PUBLIC third_party/dear-imgui third_party/dear-imgui/misc/cpp/ third_party/dear-imgui/backends/ third_party/stb/)
 target_include_directories(Nyanners PRIVATE third_party/glm/glm)

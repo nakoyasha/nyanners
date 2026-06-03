@@ -4,10 +4,18 @@
 #include "instances/datatypes/Vector.h"
 #include "SFML/Window/Event.hpp"
 
+namespace Nyanners::Core {
+  struct EngineInfo {
+    std::string version;
+    std::string branch;
+    std::string buildTime;
+  };
+}
+
 namespace Nyanners::Services {
   class EngineService : public Instances::Instance {
   public:
-    explicit EngineService() : Instance("EngineService") {};
+    explicit EngineService();
 
     [[noreturn]]
     static void panic(const std::string_view& panicMessage);
@@ -15,6 +23,12 @@ namespace Nyanners::Services {
     static Instances::Signal<DataTypes::Vector2> onWindowResized;
     static Instances::Signal<const sf::Event*> onInternalEvent;
 
+    std::string get_version() const {return engineInfo.version;}
+    std::string get_branch() const {return engineInfo.branch;}
+    std::string get_build_time() const {return engineInfo.buildTime;}
+
     static void handle_event(const sf::Event* event);
+  private:
+    static Core::EngineInfo engineInfo;
   };
 }

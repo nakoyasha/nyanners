@@ -4,7 +4,27 @@
 #include <source_location>
 #include <format>
 
+#include "ReflectionService.h"
+#include "scripting/reflections/ReflectionDescriptorRegistry.h"
+
 using namespace Nyanners::Services;
+
+namespace Nyanners::Scripting {
+	static auto engineDescriptor = Reflection::ReflectionDescriptorRegistry::instance()->create_registrator([]() {
+		ReflectionService::create_descriptor("EngineService", {"Instance"})
+		.add_property_chained<EngineService, std::string, &EngineService::get_version>("EngineVersion", String)
+		.add_property_chained<EngineService, std::string, &EngineService::get_branch>("Branch", String)
+		.add_property_chained<EngineService, std::string, &EngineService::get_build_time>("BuildTime", String);
+	});
+}
+
+Nyanners::Core::EngineInfo EngineService::engineInfo;
+
+EngineService::EngineService(): Instance("EngineService") {
+	engineInfo.version = "0.2.5";
+	engineInfo.branch = GIT_BRANCH;
+	engineInfo.buildTime = __TIMESTAMP__;
+}
 
 [[noreturn]]
 void EngineService::panic(const std::string_view &panicMessage) {
