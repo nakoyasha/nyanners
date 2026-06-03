@@ -6,7 +6,6 @@
 using namespace Nyanners::Debug::UI;
 
 ViewportPanel::ViewportPanel(Resources::FrameBuffer* newFrameBuffer, Core::Rendering::Viewport* newViewport) : Instance("ViewportPanel") {
-	renderService = Application::instance()->currentModel->get_service<Services::RenderingService>("RenderingService");
 	framebuffer = newFrameBuffer;
 	viewport = newViewport;
 }

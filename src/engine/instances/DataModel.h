@@ -9,7 +9,7 @@
 namespace Nyanners::Instances {
   class DataModel : public Instance {
   public:
-    DataModel() : Instance("DataModel") {};
+    DataModel();
 
   	int test_lua_method(lua_State* context) {
   		lua_pushboolean(context, true);
@@ -39,7 +39,7 @@ namespace Nyanners::Instances {
 
   	int get_service_lua(lua_State* context) {
   		const std::string& name = luaL_checkstring(context, -1);
-  		auto service = get_service<Instance>(name);
+  		const auto service = get_service<Instance>(name);
 
   		if (service != nullptr) {
   			Services::ReflectionService::reflect_class(context, service);

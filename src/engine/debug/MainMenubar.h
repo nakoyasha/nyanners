@@ -1,17 +1,13 @@
 #pragma once
 #include "Application.h"
 #include "DebugWindow.h"
-#include "instances/services/RenderingService.h"
 
 namespace Nyanners::Debug::UI {
-	class MainMenubar : public Nyanners::Instances::DebugWindow {
+	class MainMenubar : public Instances::DebugWindow {
 	public:
-		MainMenubar() : Instance("MenubarPanel") {
-			renderService = Nyanners::Application::instance()->currentModel->get_service<Nyanners::Services::RenderingService>("RenderingService");
-		};
+		MainMenubar() : Instance("MenubarPanel") {};
 		void draw() override;
 	private:
-		std::shared_ptr<Nyanners::Services::RenderingService> renderService;
 		bool showTextureViewer = false;
 	};
 }

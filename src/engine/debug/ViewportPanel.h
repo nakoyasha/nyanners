@@ -9,7 +9,6 @@ namespace Nyanners::Debug::UI {
 		void draw() override;
 		void update(float deltaTime) override;
 	private:
-		std::shared_ptr<Services::RenderingService> renderService;
 		Resources::FrameBuffer* framebuffer;
 		Core::Rendering::Viewport* viewport;
 	};

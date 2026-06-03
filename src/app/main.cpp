@@ -27,13 +27,6 @@ public:
 		m_Instance = this;
 		editorViewport = new Core::Rendering::Viewport();
 
-		this->runService =
-		  currentModel->get_service<RunService>("RunService");
-		this->renderService =
-		  currentModel->get_service<RenderingService>("RenderingService");
-		this->world = currentModel->get_service<World>("World");
-		this->uiService =
-		  currentModel->get_service<UIService>("UIService");
 		this->debugUI =
 		  currentModel->get_service<DebugUIService>("DebugUIService");
 		this->camera = std::make_shared<Instances::Camera>();
@@ -48,10 +41,6 @@ protected:
 	void on_update() override;
 
 private:
-	std::shared_ptr<RunService> runService;
-	std::shared_ptr<RenderingService> renderService;
-	std::shared_ptr<World> world;
-	std::shared_ptr<UIService> uiService;
 	std::shared_ptr<DebugUIService> debugUI;
 };
 
@@ -60,10 +49,14 @@ void TestApplication::start() {
 	RenderingService::renderer->set_depth_test(Core::Rendering::Always);
 	RenderingService::renderer->disable_depth_buffer();
 
+	ScriptService::run_autorun();
 	Application::start();
 }
 
 void TestApplication::on_draw() const {
+	const auto world = currentModel->get_service<World>("World");
+	const auto uiService = currentModel->get_service<UIService>("UIService");
+
 	renderService->start_frame();
 
 	// ^ start_frame might involve the user closing the window

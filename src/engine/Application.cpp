@@ -11,33 +11,19 @@
 #include "instances/services/user/InputService.h"
 #include "instances/world/World.h"
 
-Nyanners::Application::Application(const DataTypes::Vector2 size, const std::string& windowTitle)
-{
-  auto model = std::make_shared<Instances::DataModel>();
-  const auto runService = std::make_shared<Services::RunService>();
-  runService->bind_model(model);
-  model->add_child(runService);
+Nyanners::Application::Application(const DataTypes::Vector2 size, const std::string &windowTitle) {
+	renderService = std::make_shared<Services::RenderingService>(size, windowTitle);
+	reflectionService = std::make_shared<Services::ReflectionService>();
+	soundService = std::make_shared<Services::SoundService>();
+	inputService = std::make_shared<Services::InputService>();
+	runService = std::make_shared<Services::RunService>();
+	engineService = std::make_shared<Services::EngineService>();
 
-  model->add_child(std::make_shared<Services::EngineService>());
-	model->add_child(std::make_shared<Services::SelectionService>());
-  model->add_child(std::make_shared<Services::IOService>());
-  model->add_child(std::make_shared<Services::RenderingService>(size, windowTitle));
-  model->add_child(std::make_shared<Services::ReflectionService>());
-	model->add_child(std::make_shared<Services::DebugUIService>());
-  model->add_child(std::make_shared<Services::UIService>());
-  model->add_child(std::make_shared<Services::World>());
-	model->add_child(std::make_shared<Services::InputService>());
-	model->add_child(std::make_shared<Services::ScriptService>());
-  model->add_child(std::make_shared<Services::SoundService>());
-
-  Services::ReflectionService::register_reflections();
-
-  this->currentModel = std::move(model);
+	Services::ReflectionService::register_reflections();
+	Application::set_datamodel(make_datamodel());
 }
 
 void Nyanners::Application::start() {
-	const auto renderService = this->currentModel->get_service<Services::RenderingService>("RenderingService");
-
 	while (renderService->is_window_open()) {
 		this->on_update();
 		this->on_draw();
@@ -45,15 +31,40 @@ void Nyanners::Application::start() {
 }
 
 void Nyanners::Application::shutdown() {
-  const auto renderingService = this->currentModel->get_service<Services::RenderingService>("RenderingService");
-  const auto runService = this->currentModel->get_service<Services::RunService>("RunService");
-  runService->stop();
-  renderingService->shutdown();
+	runService->stop();
+	renderService->shutdown();
 
 	this->currentModel.reset();
-  this->currentModel = nullptr;
+	this->currentModel = nullptr;
+}
+
+void Nyanners::Application::set_datamodel(std::shared_ptr<Instances::DataModel> model) {
+	this->currentModel = std::move(model);
+
+	runService->bind_model(currentModel);
+	currentModel->add_child(runService);
+
+	currentModel->add_child(renderService);
+	currentModel->add_child(soundService);
+	currentModel->add_child(reflectionService);
+	currentModel->add_child(inputService);
+	currentModel->add_child(runService);
+	currentModel->add_child(engineService);
+}
+
+std::shared_ptr<Nyanners::Instances::DataModel> Nyanners::Application::make_datamodel() {
+	const auto model = std::make_shared<Instances::DataModel>();
+
+	model->add_child(std::make_shared<Services::SelectionService>());
+	model->add_child(std::make_shared<Services::UIService>());
+	model->add_child(std::make_shared<Services::World>());
+	model->add_child(std::make_shared<Services::ScriptService>());
+	model->add_child(std::make_shared<Services::IOService>());
+	model->add_child(std::make_shared<Services::DebugUIService>());
+
+	return model;
 }
 
 Nyanners::Application::~Application() {
-  this->Application::shutdown();
+	this->Application::shutdown();
 }

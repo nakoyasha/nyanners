@@ -9,6 +9,7 @@
 using namespace Nyanners::Debug::UI;
 
 void MainMenubar::draw() {
+	const auto renderService = Application::instance()->renderService;
 	const auto fps = renderService->fps;
 	const auto frameTime = renderService->frameTime;
 	auto selectionService = Application::instance()->currentModel->get_service<Services::SelectionService>("SelectionService");
@@ -68,6 +69,15 @@ void MainMenubar::draw() {
 			}
 
 			ImGui::EndMenu();
+		}
+
+		ImGui::EndMenu();
+	}
+
+	if (ImGui::BeginMenu("🐞")) {
+		if (ImGui::MenuItem("Switch DM")) {
+			const auto newModel = Application::make_datamodel();
+			Application::instance()->set_datamodel(newModel);
 		}
 
 		ImGui::EndMenu();
