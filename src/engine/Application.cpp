@@ -39,6 +39,7 @@ void Nyanners::Application::shutdown() {
 }
 
 void Nyanners::Application::set_datamodel(std::shared_ptr<Instances::DataModel> model) {
+	assert(model != nullptr);
 	this->currentModel = std::move(model);
 
 	runService->bind_model(currentModel);
