@@ -9,6 +9,7 @@ namespace Nyanners {
   class Application {
   public:
     std::shared_ptr<Instances::DataModel> currentModel;
+
     virtual ~Application();
 
     static Application* instance() {

@@ -36,9 +36,12 @@ Nyanners::Application::Application(const DataTypes::Vector2 size, const std::str
 }
 
 void Nyanners::Application::start() {
-  Core::Logger::log(std::format("Nyanners running"));
-  const auto runService = this->currentModel->get_service<Services::RunService>("RunService");
-  runService->run();
+	const auto renderService = this->currentModel->get_service<Services::RenderingService>("RenderingService");
+
+	while (renderService->is_window_open()) {
+		this->on_update();
+		this->on_draw();
+	}
 }
 
 void Nyanners::Application::shutdown() {
