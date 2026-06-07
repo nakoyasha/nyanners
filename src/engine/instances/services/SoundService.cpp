@@ -41,6 +41,17 @@ void SoundService::play_sound(const std::string &path) {
     };
 }
 
+ma_sound* SoundService::create_handle(const std::string &path) {
+    auto* sound = new ma_sound();
+
+    if (const auto result = ma_sound_init_from_file(&soundEngine, path.c_str(), 0, nullptr, nullptr, sound); result != MA_SUCCESS) {
+        Core::Logger::log_debug(std::format("Failed loading sound {}: {}", path, ma_result_to_string(result)));
+        return nullptr;
+    }
+
+    return sound;
+}
+
 std::string SoundService::ma_result_to_string(const ma_result& result) {
     // NOTICE OF AI-GENERATED CODE: Filling this in manually would be a massive chore.
     switch (result) {
