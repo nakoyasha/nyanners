@@ -18,6 +18,7 @@ OutputPanel::OutputPanel(): Instance("OutputWindow") {
 void OutputPanel::draw() {
 	ImGui::Begin("Output");
 	ImGui::PushFont(font);
+	ImGui::SetWindowFontScale(1.2f);
 	ImGuiListClipper clipper;
 	clipper.Begin(messages.size());
 
