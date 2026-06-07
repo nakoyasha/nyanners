@@ -9,6 +9,11 @@ local AspectRatio = Instance.new("UIAspectRatioComponent")
 local LayerCollector = Instance.new("LayerCollector")
 local Frame = Instance.new("Frame")
 
+local ClickSound = Instance.new("Sound")
+ClickSound.SoundFile = "assets/sound/ui_click.ogg"
+ClickSound.Volume = 0.2
+ClickSound.Parent = Button
+
 RenderingService:set_window_title("world's shittiest cookie clicker")
 
 -- AspectRatio.AspectRatio = 1
@@ -39,7 +44,8 @@ end)
 
 Button.Activated:Connect(function()
     print("omg im pressed... revolutionary...")
-    SoundService:play_sound("assets/sound/ui_click.ogg")
+    -- SoundService:play_sound("assets/sound/ui_click.ogg")
+    ClickSound:play()
     cookieCount += 1
 end)
 
