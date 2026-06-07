@@ -7,6 +7,13 @@
 #include "ReflectionService.h"
 #include "scripting/reflections/ReflectionDescriptorRegistry.h"
 
+#if defined(_WIN32) || defined(_WIN64)
+	#define WIN32_MEAN_AND_LEAN;
+	#include "windows.h"
+#elif defined(__APPLE__) || defined(__MACH__)
+#elif defined(__linux__)
+#endif
+
 using namespace Nyanners::Services;
 
 namespace Nyanners::Scripting {
@@ -19,11 +26,21 @@ namespace Nyanners::Scripting {
 }
 
 Nyanners::Core::EngineInfo EngineService::engineInfo;
+Nyanners::Core::EnginePlatform EngineService::platform;
 
 EngineService::EngineService(): Instance("EngineService") {
 	engineInfo.version = "0.2.5";
 	engineInfo.branch = GIT_BRANCH;
 	engineInfo.buildTime = __TIMESTAMP__;
+#if defined(_WIN32) || defined(_WIN64)
+	platform = Core::EnginePlatform::Windows;
+#elif defined(__APPLE__) || defined(__MACH__)
+	platform = Core::EnginePlatform::Mac;
+#elif defined(__linux__)
+	platform = Core::EnginePlatform::Linux;
+#else
+	platform = Core::EnginePlatform::Unknown;
+#endif
 }
 
 [[noreturn]]
@@ -47,4 +64,14 @@ void EngineService::handle_event(const sf::Event *event) {
   if (const auto *resizedEvent = event->getIf<sf::Event::Resized>()) {
     onWindowResized.fire({resizedEvent->size.x, resizedEvent->size.y});
   }
+}
+
+void EngineService::open_url(const std::string &url) {
+#if defined(_WIN32) || defined(_WIN64)
+	ShellExecuteA(nullptr, "open", url.c_str(), nullptr, nullptr, SW_SHOWNORMAL);
+#elif defined(__APPLE__) || defined(__MACH__)
+	throw std::runtime_error("Unimplemented for current platform");
+#elif defined(__linux__)
+	throw std::runtime_error("Unimplemented for current platform");
+#endif
 }

@@ -10,6 +10,14 @@ namespace Nyanners::Core {
     std::string branch;
     std::string buildTime;
   };
+
+  enum class EnginePlatform {
+    Unknown = -1,
+    Windows = 0,
+    Linux = 1,
+    Mac = 2,
+    Android = 3,
+  };
 }
 
 namespace Nyanners::Services {
@@ -28,7 +36,9 @@ namespace Nyanners::Services {
     std::string get_build_time() const {return engineInfo.buildTime;}
 
     static void handle_event(const sf::Event* event);
+    static void open_url(const std::string& url);
   private:
     static Core::EngineInfo engineInfo;
+    static Core::EnginePlatform platform;
   };
 }
