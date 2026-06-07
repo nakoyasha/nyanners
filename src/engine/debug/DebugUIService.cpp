@@ -1,5 +1,6 @@
 #include "debug/DebugUIService.h"
 #include "imgui.h"
+#include "imgui_freetype.h"
 #include "imgui_impl_opengl3.h"
 #include "instances/services/RenderingService.h"
 #include "instances/services/user/InputService.h"
@@ -24,7 +25,17 @@ DebugUIService::DebugUIService() : Instance("DebugUIService") {
 	style.FrameBorderSize = 1.0f;
 	ImVec4 *colors = style.Colors;
 
-	io.Fonts->AddFontFromFileTTF("assets/fonts/arial.ttf", 16.0f);
+	static ImFontConfig fontConfig;
+	fontConfig.MergeMode = true;
+	fontConfig.OversampleH = fontConfig.OversampleV = 1;
+	fontConfig.FontLoaderFlags |= ImGuiFreeTypeBuilderFlags_LoadColor;
+
+	static constexpr ImWchar range[] = { 0x1, 0x1FFFF, 0 };
+
+	io.Fonts->AddFontDefault();
+
+	io.Fonts->AddFontFromFileTTF("assets/fonts/NotoSans.ttf", 16.0f);
+	io.Fonts->AddFontFromFileTTF("assets/fonts/NotoEmoji-Regular.ttf", 16.0f, &fontConfig, range);
 
 	// NOTICE OF AI-GENERATED CODE:
 	// i could not be bothered to do this part, sorry!

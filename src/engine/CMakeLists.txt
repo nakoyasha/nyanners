@@ -15,6 +15,7 @@ add_subdirectory(third_party/sfml EXCLUDE_FROM_ALL)
 add_subdirectory(third_party/glm EXCLUDE_FROM_ALL)
 add_subdirectory(third_party/fast_obj EXCLUDE_FROM_ALL)
 add_subdirectory(third_party/freetype EXCLUDE_FROM_ALL)
+add_subdirectory(third_party/plutosvg EXCLUDE_FROM_ALL)
 
 add_library(Nyanners
         Application.h
@@ -153,11 +154,15 @@ add_library(Nyanners
         instances/ui/Frame.h
         instances/services/SoundService.cpp
         instances/services/SoundService.h
+        instances/world/Sound.cpp
+        instances/world/Sound.h
 )
 
 add_library(
         Nyanners.ThirdParty
         third_party/dear-imgui/imgui.cpp
+        third_party/dear-imgui/misc/freetype/imgui_freetype.cpp
+        third_party/dear-imgui/misc/freetype/imgui_freetype.h
         third_party/dear-imgui/backends/imgui_impl_opengl3.cpp
         third_party/dear-imgui/imgui_demo.cpp
         third_party/dear-imgui/imgui_draw.cpp
@@ -165,6 +170,8 @@ add_library(
         third_party/dear-imgui/imgui_widgets.cpp
         third_party/dear-imgui/misc/cpp/imgui_stdlib.cpp
 )
+
+target_link_libraries(Nyanners.ThirdParty freetype plutosvg::plutosvg)
 
 add_library(
         Nyanners.ThirdParty.Glad
@@ -197,9 +204,10 @@ else()
 endif()
 
 
-target_include_directories(Nyanners.ThirdParty PUBLIC third_party/dear-imgui third_party/dear-imgui/misc/cpp/ third_party/dear-imgui/backends/ third_party/stb/)
+target_include_directories(Nyanners.ThirdParty PUBLIC third_party/dear-imgui third_party/dear-imgui/misc/cpp/ third_party/dear-imgui/backends/ third_party/dear-imgui/misc/freetype/ third_party/stb/)
 target_include_directories(Nyanners PRIVATE third_party/glm/glm)
 
 target_link_options(Nyanners PRIVATE -static-libgcc -static-libstdc++)
 target_link_libraries(Nyanners Nyanners.ThirdParty Nyanners.ThirdParty.Glad Nyanners.ThirdParty.Miniaudio Luau.VM Luau.Require Luau.Compiler glfw SFML::Window stdc++exp glm::glm freetype fast_obj fast_obj_lib)
+target_compile_definitions(Nyanners PRIVATE IMGUI_ENABLE_FREETYPE)
 target_include_directories(Nyanners PUBLIC .)
