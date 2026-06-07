@@ -165,7 +165,7 @@ namespace Nyanners::Scripting::Reflection {
 			return *this;
 		};
 
-		ReflectionMethod add_method_anon(const std::string& methodName, const ReflectionMethodCallback callback, const ReflectionPropertyType returnType)
+		ReflectionDescriptor& add_method_anon(const std::string& methodName, const ReflectionMethodCallback callback, const ReflectionPropertyType returnType)
 		{
 			ReflectionMethod methodObject {
 				.name = methodName,
@@ -175,7 +175,7 @@ namespace Nyanners::Scripting::Reflection {
 			};
 
 			methods.push_back(methodObject);
-			return methodObject;
+			return *this;
 		};
 
 		[[nodiscard]] std::shared_ptr<Instances::Instance> construct() const
