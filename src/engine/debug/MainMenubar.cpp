@@ -5,11 +5,26 @@
 #include "core/Logger.h"
 #include "instances/services/ReflectionService.h"
 #include "instances/services/SelectionService.h"
+#include "utils/ImGuiColor3.h"
 
 using namespace Nyanners::Debug::UI;
+using namespace Nyanners::Debug;
+
+MainMenubar::MainMenubar(): Instance("MenubarPanel") {
+	debugMenuIcon = Resources::Texture::create(Texture2D, "assets/textures/editor/bug.png");
+}
+
+static void push_credit(const std::string& projectName, const std::string& creator, const std::string& link) {
+	if (ImGui::TextLink(projectName.c_str())) {
+		Nyanners::Services::EngineService::open_url(link);
+	}
+	ImGui::SameLine();
+	ImGui::TextColored(color3_to_imvec4({0, 0, 0, 125}), "by %s", creator.c_str());
+}
 
 void MainMenubar::draw() {
-	const auto renderService = Application::instance()->renderService;
+	const auto app = Application::instance();
+	const auto renderService = app->renderService;
 	const auto fps = renderService->fps;
 	const auto frameTime = renderService->frameTime;
 	auto selectionService = Application::instance()->currentModel->get_service<Services::SelectionService>("SelectionService");
@@ -74,14 +89,26 @@ void MainMenubar::draw() {
 		ImGui::EndMenu();
 	}
 
-	if (ImGui::BeginMenu("🐞")) {
-		if (ImGui::MenuItem("Switch DM")) {
-			const auto newModel = Application::make_datamodel();
-			Application::instance()->set_datamodel(newModel);
+	if (ImGui::BeginMenu("Help")) {
+		if (ImGui::MenuItem("About Nyanners")) {
+			// ImGui::OpenPopup("About");
+			showAboutWindow = true;
 		}
 
 		ImGui::EndMenu();
 	}
+
+	if (ImGui::BeginMenu("##Debug")) {
+		if (ImGui::MenuItem("Switch DM")) {
+			const auto newModel = Application::make_datamodel();
+			newModel->name = "TempDM";
+			app->set_datamodel(newModel);
+		}
+
+		ImGui::EndMenu();
+	}
+
+	ImGui::Image(debugMenuIcon->get_texture_handle(), ImVec2(16, 16), ImVec2(0, 1), ImVec2(1, 0));
 
 	ImGui::SameLine(ImGui::GetWindowWidth() - 180.0f);
 	ImGui::Text("%d FPS (%fms)", fps, frameTime);
@@ -112,4 +139,34 @@ void MainMenubar::draw() {
 
 		ImGui::End();
 	}
+
+	if (showAboutWindow) {
+		ImGui::OpenPopup("About Nyanners");
+	}
+
+	ImGui::SetNextWindowPos(ImGui::GetMainViewport()->GetCenter(), ImGuiCond_Appearing, ImVec2(0.5f, 0.5f));
+	if (ImGui::BeginPopupModal("About Nyanners", nullptr, ImGuiWindowFlags_AlwaysAutoResize)) {
+		ImGui::Text("Open-source Roblox-like game engine.\nThis software utilizes the following libraries:");
+
+		push_credit("Luau", "Roblox Corporation and contributors", "https://luau.org");
+		push_credit("Dear ImGui", "ocornut", "https://github.com/ocornut/imgui");
+		push_credit("miniaudio", "mackron", "https://github.com/mackron/miniaudio");
+		push_credit("FreeType", "Multiple contributors", "https://freetype.org");
+		push_credit("SFML", "SFML Contributors", "https://freetype.org");
+
+		ImGui::Text("This software is licensed under the GPLv3 license. Please consult");
+		ImGui::SameLine();
+		if (ImGui::TextLink("the license")) {
+			Services::EngineService::open_url("https://www.gnu.org/licenses/gpl-3.0.en.html");
+		}
+		ImGui::SameLine();
+		ImGui::Text("prior to usage, especially when making commerical derivatives of the software.");
+
+		if (ImGui::Button("Close")) {
+			showAboutWindow = false;
+			ImGui::CloseCurrentPopup();
+		}
+
+		ImGui::EndPopup();
+	};
 }

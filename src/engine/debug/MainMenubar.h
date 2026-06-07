@@ -5,9 +5,11 @@
 namespace Nyanners::Debug::UI {
 	class MainMenubar : public Instances::DebugWindow {
 	public:
-		MainMenubar() : Instance("MenubarPanel") {};
+		MainMenubar();
 		void draw() override;
 	private:
 		bool showTextureViewer = false;
+		bool showAboutWindow = false;
+		std::shared_ptr<Resources::Texture> debugMenuIcon;
 	};
 }
