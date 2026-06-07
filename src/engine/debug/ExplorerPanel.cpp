@@ -11,9 +11,14 @@ using namespace Nyanners::Debug::UI;
 using namespace Nyanners::Services;
 
 ExplorerPanel::ExplorerPanel() : Instance("ExplorerPanel") {
-	activeDm = Nyanners::Application::instance()->currentModel;
+	activeDm = Application::instance()->currentModel;
 	selectionService =
 	  activeDm->get_service<SelectionService>("SelectionService");
+
+	Application::instance()->onDataModelSwitch.connect([this](const std::shared_ptr<Instances::DataModel>& newDM) {
+		this->activeDm = newDM;
+		this->selectionService = newDM->get_service<SelectionService>("SelectionService");
+	});
 }
 
 void ExplorerPanel::render_vector(

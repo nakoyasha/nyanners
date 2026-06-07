@@ -5,7 +5,6 @@
 #include "instances/services/IOService.h"
 #include <memory>
 
-#include "instances/services/ConsoleService.h"
 #include "instances/services/EngineService.h"
 #include "instances/services/RenderingService.h"
 #include "instances/services/RunService.h"
@@ -23,6 +22,8 @@ namespace Nyanners {
     std::shared_ptr<Services::EngineService> engineService;
     std::shared_ptr<Instances::DataModel> currentModel;
 
+    Instances::Signal<std::shared_ptr<Instances::DataModel>> onDataModelSwitch;
+
     virtual ~Application();
 
     static Application* instance() {
@@ -33,7 +34,7 @@ namespace Nyanners {
 
     virtual void start();
     virtual void shutdown();
-    virtual void set_datamodel(std::shared_ptr<Instances::DataModel> model);
+    virtual void set_datamodel(const std::shared_ptr<Instances::DataModel> &model);
 
     static std::shared_ptr<Instances::DataModel> make_datamodel();
   protected:

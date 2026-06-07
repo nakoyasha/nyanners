@@ -38,19 +38,20 @@ void Nyanners::Application::shutdown() {
 	this->currentModel = nullptr;
 }
 
-void Nyanners::Application::set_datamodel(std::shared_ptr<Instances::DataModel> model) {
+void Nyanners::Application::set_datamodel(const std::shared_ptr<Instances::DataModel>& model) {
 	assert(model != nullptr);
+	runService->bind_model(model);
+	model->add_child(runService);
+
+	model->add_child(renderService);
+	model->add_child(soundService);
+	model->add_child(reflectionService);
+	model->add_child(inputService);
+	model->add_child(runService);
+	model->add_child(engineService);
+
 	this->currentModel = std::move(model);
-
-	runService->bind_model(currentModel);
-	currentModel->add_child(runService);
-
-	currentModel->add_child(renderService);
-	currentModel->add_child(soundService);
-	currentModel->add_child(reflectionService);
-	currentModel->add_child(inputService);
-	currentModel->add_child(runService);
-	currentModel->add_child(engineService);
+	this->onDataModelSwitch.fire(this->currentModel);
 }
 
 std::shared_ptr<Nyanners::Instances::DataModel> Nyanners::Application::make_datamodel() {

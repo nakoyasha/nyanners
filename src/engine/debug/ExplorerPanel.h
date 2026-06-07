@@ -120,7 +120,7 @@ namespace Nyanners::Debug::UI {
 		   Texture::create(Texture2D, "assets/textures/editor/Instance.png")},
 		};
 		std::vector<StringValueCache> stringValueBuffers;
-		std::shared_ptr<Nyanners::Instances::DataModel> activeDm;
-		std::shared_ptr<Nyanners::Services::SelectionService> selectionService;
+		std::shared_ptr<Instances::DataModel> activeDm;
+		std::shared_ptr<Services::SelectionService> selectionService;
 	};
 }
