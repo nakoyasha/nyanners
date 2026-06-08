@@ -3,9 +3,9 @@ project(Nyanners.App)
 
 set(CMAKE_CXX_STANDARD 23)
 add_subdirectory(src/engine)
+add_subdirectory(src/ci_luau_types)
 
-add_executable(Nyanners.App src/app/main.cpp
-)
+add_executable(Nyanners.App src/app/main.cpp)
 target_link_libraries(Nyanners.App PRIVATE "$<LINK_LIBRARY:WHOLE_ARCHIVE,Nyanners>")
 link_libraries(Nyanners.App Nyanners)
 
