@@ -48,7 +48,6 @@ void ExplorerPanel::render_vector(
 }
 
 void ExplorerPanel::render_instance(const std::shared_ptr<Instance> &instance) {
-	const ImGuiStyle &style = ImGui::GetStyle();
 	auto alphabetically = instance->children;
 
 	std::ranges::sort(
@@ -130,6 +129,8 @@ void ExplorerPanel::render_instance(const std::shared_ptr<Instance> &instance) {
 
 		if (!instance->children.empty()) {
 			ImGui::TreePop();
+		} else {
+			isOpened = false;
 		}
 	}
 
