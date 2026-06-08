@@ -52,20 +52,22 @@ void ScriptService::take_ownership_of_state(
 }
 
 void ScriptService::run_autorun() {
-	auto script = std::make_shared<Instances::Script>();
+	const auto script = std::make_shared<Instances::Script>();
 
 	try {
-
-		if (!IOService::file_exists("assets/autorun.luau")) {
+		if (IOService::file_exists("assets/autorun.luau")) {
+			script->set_file("assets/autorun.luau");
+		} else if (IOService::file_exists("autorun.luau")) {
+			script->set_file("autorun.luau");
+		} else {
 			throw std::runtime_error("autorun script does not exist");
 		}
 
 		script->name = "autorun";
-		script->set_file("assets/autorun.luau");
 		script->initialize_script();
 		script->run_script();
 
-		auto instance = Application::instance()->currentModel->get_service<Services::ScriptService>("ScriptService");
+		const auto instance = Application::instance()->currentModel->get_service<ScriptService>("ScriptService");
 		instance->add_child(script);
 
 	} catch (std::runtime_error &e) {
