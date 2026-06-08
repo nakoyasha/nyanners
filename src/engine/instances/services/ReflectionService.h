@@ -75,6 +75,11 @@ namespace Nyanners::Services {
 
             new(selfUser) T(*data);
         }
+        int generate_lua_reflection_table(lua_State* context);
+
+        static void push_value(lua_State* context, const ReflectionValue& value);
+
+        static void push_struct(lua_State* context, const std::map<std::string, ReflectionValue>& map);
 
     private:
         static void construct_family_tree(const ReflectionDescriptor &start, std::vector<ReflectionDescriptor *> &descriptors);

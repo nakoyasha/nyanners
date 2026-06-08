@@ -20,6 +20,13 @@
 using namespace Nyanners::Services;
 using namespace Nyanners::Scripting::Reflection;
 
+namespace Nyanners::Scripting {
+	static auto reflectionServiceDescriptor = ReflectionDescriptorRegistry::instance()->create_registrator([]() {
+		ReflectionService::create_descriptor("ReflectionService", {"Instance"})
+		.add_method<ReflectionService, &ReflectionService::generate_lua_reflection_table>("get_descriptors", Null);
+	});
+}
+
 ReflectionInstance *
 ReflectionService::get_instance_from_context(lua_State *context, const int id) {
 	auto *instance = static_cast<ReflectionInstance *>(
@@ -256,6 +263,17 @@ bool ReflectionService::handle_new_value(
 	return false;
 }
 
+void ReflectionService::push_struct(lua_State *context, const std::map<std::string, ReflectionValue> &map) {
+	lua_newtable(context);
+	const int stackTop = lua_gettop(context);
+
+	for (const auto &[key, value] : map) {
+		lua_pushlstring(context, key.c_str(), key.size());
+		push_value(context, value);
+		lua_settable(context, stackTop);
+	}
+}
+
 void ReflectionService::construct_family_tree(
   const ReflectionDescriptor& start, std::vector<ReflectionDescriptor*> &descriptors
 ) {
@@ -359,6 +377,77 @@ void ReflectionService::register_pending_parents() {
 		std::vector<ReflectionDescriptor*> tree;
 		construct_family_tree(descriptor, parents);
 }
+}
+
+int ReflectionService::generate_lua_reflection_table(lua_State *context) {
+	lua_newtable(context);
+	const int mainTable = lua_gettop(context);
+	int descriptorCount = 1;
+
+	for (const auto& descriptor : ReflectionDescriptorRegistry::instance()->descriptors | std::views::values) {
+		lua_newtable(context);
+		const int descriptorTable = lua_gettop(context);
+		lua_pushstring(context, descriptor.name.c_str());
+		lua_setfield(context, descriptorTable, "Name");
+
+		lua_newtable(context);
+		const int parentTable = lua_gettop(context);
+		int parentIndex = 1;
+
+		for (const auto& parent : descriptor.parents) {
+			lua_pushstring(context, parent->name.c_str());
+			lua_rawseti(context, parentTable, parentIndex++);
+		}
+
+		lua_setfield(context, descriptorTable, "Parents");
+
+		lua_newtable(context);
+		const int propertiesTable = lua_gettop(context);
+		int propertiesIndex = 1;
+
+		for (const auto& property : descriptor.properties) {
+			push_struct(context, {
+				{"Name", property.name},
+				{"Type", reflection_property_type_to_string(property.type)}
+			});
+			lua_rawseti(context, propertiesTable, propertiesIndex++);
+		}
+		lua_setfield(context, descriptorTable, "Properties");
+
+		lua_newtable(context);
+		const int methodsTable = lua_gettop(context);
+		int methodsIndex = 1;
+
+		for (const auto& method : descriptor.methods) {
+			const auto type_string = reflection_property_type_to_string(method.returnType);
+			push_struct(context, {
+				{"Name", method.name},
+				{"Type", type_string},
+				{"Signature", std::format("{}:{}() -> {}", descriptor.name, method.name, type_string).c_str()},
+			});
+			lua_rawseti(context, methodsTable, methodsIndex++);
+		}
+
+		lua_setfield(context, descriptorTable, "Methods");
+		lua_rawseti(context, mainTable, descriptorCount++);
+	}
+
+	return 1;
+}
+
+void ReflectionService::push_value(lua_State *context, const ReflectionValue &value) {
+	if (std::holds_alternative<std::string>(value)) {
+		const std::string cStr = std::get<std::string>(value);
+		lua_pushlstring(context, cStr.c_str(), cStr.size());
+		return;
+	}
+	if (std::holds_alternative<int>(value)) {
+		lua_pushnumber(context, std::get<int>(value));
+		return;
+	}
+	if (std::holds_alternative<double>(value)) {
+		lua_pushnumber(context, std::get<double>(value));
+	}
 }
 
 void ReflectionService::create_instance_metatable(lua_State* context) {
