@@ -502,7 +502,11 @@ void ReflectionService::register_reflections() {
 		.add_method<Instance, &Instance::destroy_lua>("Destroy", Null);
 
 	create_descriptor("DataModel", {"Instance"}, {ReflectionInstanceFlags::Service})
-		.add_method<Instances::DataModel, &Instances::DataModel::get_service_lua>("get_service", Boolean);
+		.add_method<Instances::DataModel, &Instances::DataModel::get_service_lua>("get_service", Boolean)
+		.add_method_anon("shutdown", [](Instance*, lua_State* context) -> int {
+			Application::instance()->shutdown();
+			return 0;
+		}, Null);
 
 	create_descriptor("Transformable", {"Instance"}, {ReflectionInstanceFlags::NotCreatable})
 		.add_property_chained<Instances::Transformable, glm::vec3, &Instances::Transformable::get_position, &Instances::Drawable::set_position>("Position", Vector3)
