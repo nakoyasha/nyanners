@@ -2,10 +2,23 @@
 
 #include <filesystem>
 #include <fstream>
-#include <iostream>
-#include <sstream>
+
+#include "lualib.h"
+#include "ReflectionService.h"
 
 using namespace Nyanners::Services;
+
+namespace Nyanners::Scripting {
+  static auto ioServiceDescriptor = ReflectionDescriptorRegistry::instance()->create_registrator([]() {
+    ReflectionService::create_descriptor("IOService", {"Instance"})
+    .add_method_anon("write_file", [](Instances::Instance* instance, lua_State* context) -> int {
+      const std::string file = luaL_checkstring(context, -2);
+      const std::string content = luaL_checkstring(context, -1);
+      IOService::write_file(file, content);
+      return 0;
+    }, Null);
+  });
+}
 
 std::string IOService::read_file(const std::filesystem::path& path) {
     if (!file_exists(path)) {
@@ -36,10 +49,9 @@ bool IOService::file_exists(const std::filesystem::path& path) {
 }
 
 void IOService::write_file(const std::filesystem::path &path, const std::string &content) {
-  if (!file_exists(path)) {
-    throw std::runtime_error(std::format("Can't write file {} because it does not exist", path.string()));
-  }
-
+  // if (!file_exists(path)) {
+  //   throw std::runtime_error(std::format("Can't write file {} because it does not exist", path.string()));
+  // }
   std::ofstream file(path);
 
   if (!file.is_open()) {
