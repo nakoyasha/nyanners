@@ -25,6 +25,8 @@ add_library(Nyanners
         scripting/data/UserdataTags.h
         instances/basic/SignalBase.h
         instances/basic/Signal.h
+        instances/basic/Object.h
+        instances/basic/Object.cpp
         instances/datatypes/Color3.h
         instances/datatypes/UDim2.cpp
         instances/drawable/Drawable.h
@@ -96,6 +98,9 @@ add_library(Nyanners
         scripting/LibInstance.h
         scripting/reflections/DataTypes.h
         scripting/reflections/DataTypes.cpp
+        scripting/reflections/ReflectionEnum.h
+        scripting/reflections/ReflectionMethodTraits.h
+        scripting/reflections/ReflectionValueIO.h
         scripting/LibDatatype.cpp
         scripting/LibDatatype.h
         instances/services/ConsoleService.cpp

@@ -18,10 +18,20 @@ using namespace Nyanners::Services;
 
 namespace Nyanners::Scripting {
 	static auto engineDescriptor = Reflection::ReflectionDescriptorRegistry::instance()->create_registrator([]() {
+		ReflectionService::register_enum("EnginePlatform", {
+		  {"Unknown", static_cast<int>(Core::EnginePlatform::Unknown)},
+		  {"Windows", static_cast<int>(Core::EnginePlatform::Windows)},
+		  {"Linux", static_cast<int>(Core::EnginePlatform::Linux)},
+		  {"Mac", static_cast<int>(Core::EnginePlatform::Mac)},
+		  {"Android", static_cast<int>(Core::EnginePlatform::Android)}
+		});
 		ReflectionService::create_descriptor("EngineService", {"Instance"})
 		.add_property_chained<EngineService, std::string, &EngineService::get_version>("EngineVersion", String)
 		.add_property_chained<EngineService, std::string, &EngineService::get_branch>("Branch", String)
-		.add_property_chained<EngineService, std::string, &EngineService::get_build_time>("BuildTime", String);
+		.add_property_chained<EngineService, std::string, &EngineService::get_build_time>("BuildTime", String)
+		.add_enum_property_chained<EngineService, Core::EnginePlatform, &EngineService::get_platform>(
+		  "Platform", "EnginePlatform"
+		);
 	});
 }
 

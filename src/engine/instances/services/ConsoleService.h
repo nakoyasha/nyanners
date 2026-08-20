@@ -7,9 +7,13 @@
 // Core::Logger is supposed to call log
 
 namespace Nyanners::Services {
-	class ConsoleService {
+	class ConsoleService : public Instances::Object {
 	public:
+		ConsoleService() : Object("ConsoleService") {};
+
 		static Instances::Signal<Core::LogLevel, std::string> onMessage;
 		static void log(Core::LogLevel level, const std::string &message);
+
+		void log_lua(std::string message);
 	};
 }

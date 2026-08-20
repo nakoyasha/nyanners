@@ -1,9 +1,10 @@
-#include "ExplorerPanel.h"
 #include "Application.h"
+#include "ExplorerPanel.h"
 #include "imgui.h"
 #include "imgui_internal.h"
 #include "misc/cpp/imgui_stdlib.h"
 #include "scripting/reflections/DataTypes.h"
+#include "scripting/reflections/ReflectionEnum.h"
 #include "utils/ImGuiColor3.h"
 #include <algorithm>
 
@@ -15,10 +16,13 @@ ExplorerPanel::ExplorerPanel() : Instance("ExplorerPanel") {
 	selectionService =
 	  activeDm->get_service<SelectionService>("SelectionService");
 
-	Application::instance()->onDataModelSwitch.connect([this](const std::shared_ptr<Instances::DataModel>& newDM) {
-		this->activeDm = newDM;
-		this->selectionService = newDM->get_service<SelectionService>("SelectionService");
-	});
+	Application::instance()->onDataModelSwitch.connect(
+	  [this](const std::shared_ptr<Instances::DataModel> &newDM) {
+		  this->activeDm = newDM;
+		  this->selectionService =
+		    newDM->get_service<SelectionService>("SelectionService");
+	  }
+	);
 }
 
 void ExplorerPanel::render_vector(
@@ -77,10 +81,17 @@ void ExplorerPanel::render_instance(const std::shared_ptr<Instance> &instance) {
 			try {
 				const auto clone = instance->clone();
 				instance->parent.lock()->add_child(clone);
-			} catch (std::runtime_error& err) {
+			} catch (std::runtime_error &err) {
 				std::string error = err.what();
 
-				Core::Logger::log_error(std::format("Cloning of object {} ({}) failed: {}", instance->name, instance->baseName, error));
+				Core::Logger::log_error(
+				  std::format(
+				    "Cloning of object {} ({}) failed: {}",
+				    instance->name,
+				    instance->baseName,
+				    error
+				  )
+				);
 			}
 		}
 
@@ -97,7 +108,7 @@ void ExplorerPanel::render_instance(const std::shared_ptr<Instance> &instance) {
 	ImGui::SameLine();
 	ImGui::SetCursorPosX(ImGui::GetCursorPosX() - 8.0f);
 
-	const auto& icon = classIcons.find(instance->baseName);
+	const auto &icon = classIcons.find(instance->baseName);
 
 	if (icon != classIcons.end()) {
 		ImGui::ImageWithBg(
@@ -134,7 +145,6 @@ void ExplorerPanel::render_instance(const std::shared_ptr<Instance> &instance) {
 		}
 	}
 
-
 	ImGui::PopID();
 }
 
@@ -151,7 +161,7 @@ void ExplorerPanel::draw() {
 	if (selectionService->currentSelection != nullptr) {
 		std::shared_ptr<Instance> &selection = selectionService->currentSelection;
 		const auto properties =
-			ReflectionService::get_properties(selectionService->currentSelection);
+		  ReflectionService::get_properties(selectionService->currentSelection);
 
 		ImGui::PushID(selection.get());
 
@@ -179,8 +189,17 @@ void ExplorerPanel::draw() {
 		// 	}
 		// }
 
-		if (ImGui::BeginTable("editor", 2, ImGuiTableFlags_BordersOuter | ImGuiTableFlags_BordersV |  ImGuiTableFlags_RowBg | ImGuiTableFlags_Resizable)) {
-			ImGui::TableSetupColumn("property", ImGuiTableColumnFlags_WidthFixed, 100.0f);
+		if (
+		  ImGui::BeginTable(
+		    "editor",
+		    2,
+		    ImGuiTableFlags_BordersOuter | ImGuiTableFlags_BordersV |
+		      ImGuiTableFlags_RowBg | ImGuiTableFlags_Resizable
+		  )
+		) {
+			ImGui::TableSetupColumn(
+			  "property", ImGuiTableColumnFlags_WidthFixed, 100.0f
+			);
 			ImGui::TableSetupColumn("value", ImGuiTableColumnFlags_WidthStretch);
 			ImGui::TableHeadersRow();
 
@@ -200,20 +219,20 @@ void ExplorerPanel::draw() {
 		}
 
 		if (selection->baseName == "Script") {
-			const auto script = std::dynamic_pointer_cast<Instances::Script>(selection);
-			const float size = ImGui::CalcTextSize("Reload Script").x + ImGui::GetStyle().FramePadding.x * 2.0f;
+			const auto script =
+			  std::dynamic_pointer_cast<Instances::Script>(selection);
+			const float size = ImGui::CalcTextSize("Reload Script").x +
+			  ImGui::GetStyle().FramePadding.x * 2.0f;
 			const float avail = ImGui::GetContentRegionAvail().x;
 
 			const float off = (avail - size) * 0.5f;
-			if (off > 0.0f)
-				ImGui::SetCursorPosX(ImGui::GetCursorPosX() + off);
+			if (off > 0.0f) ImGui::SetCursorPosX(ImGui::GetCursorPosX() + off);
 
 			if (ImGui::Button("Reload Script", ImVec2(100.0f, 0))) {
 				Core::Logger::log(std::format("Trying to reload {}", script->name));
 				script->reload();
 			}
 		}
-
 
 		ImGui::PopID();
 	} else {
@@ -255,7 +274,7 @@ StringValueCache &ExplorerPanel::get_or_make_string_cache(
 void ExplorerPanel::display_property(
   const std::shared_ptr<Instance> &selection, const ReflectionProperty &property
 ) {
-	const auto& instance = selection.get();
+	const auto &instance = selection.get();
 
 	ImGui::PushID(property.name.c_str());
 	ImGui::PushItemWidth(ImGui::GetWindowWidth() * 0.50f);
@@ -275,12 +294,14 @@ void ExplorerPanel::display_property(
 		  selection, property.name, std::get<std::string>(value)
 		);
 
-		if (ImGui::InputText(
-		      "##TextInput",
-		      buffer.buffer.data(),
-		      buffer.buffer.size(),
-		      ImGuiInputTextFlags_EnterReturnsTrue
-		    )) {
+		if (
+		  ImGui::InputText(
+		    "##TextInput",
+		    buffer.buffer.data(),
+		    buffer.buffer.size(),
+		    ImGuiInputTextFlags_EnterReturnsTrue
+		  )
+		) {
 			property.set(instance, buffer.buffer.data(), nullptr);
 		}
 	} else if (property.type == Boolean) {
@@ -301,6 +322,35 @@ void ExplorerPanel::display_property(
 		if (ImGui::InputInt("##NumberInput", &number, 1)) {
 			property.set(instance, number, nullptr);
 		};
+	} else if (property.type == ReflectionPropertyType::Enum) {
+		int enumValue = std::get<int>(value);
+		std::string preview = "Unknown";
+		const auto enumValues =
+		  Nyanners::Scripting::Reflection::ReflectionEnumRegistry::instance()
+		    .find_values(property.enumName);
+
+		if (enumValues != nullptr) {
+			for (const auto &[name, number] : *enumValues) {
+				if (number == enumValue) {
+					preview = name;
+					break;
+				}
+			}
+
+			if (ImGui::BeginCombo("##EnumInput", preview.c_str())) {
+				for (const auto &[name, number] : *enumValues) {
+					const bool selected = number == enumValue;
+					if (ImGui::Selectable(name.c_str(), selected)) {
+						enumValue = number;
+						property.set(instance, enumValue, nullptr);
+					}
+					if (selected) ImGui::SetItemDefaultFocus();
+				}
+				ImGui::EndCombo();
+			}
+		} else {
+			ImGui::TextUnformatted("Unknown enum");
+		}
 	} else if (property.type == Vector3) {
 		const auto vector = std::get<glm::vec3>(value);
 		render_vector(vector, property, instance);
@@ -311,7 +361,7 @@ void ExplorerPanel::display_property(
 		const auto color = std::get<DataTypes::Color3>(value);
 		display_color_property(color, property, instance);
 	} else if (property.type == ReflectionPropertyType::Instance) {
-		auto& instance = std::get<std::shared_ptr<Instance>>(value);
+		auto &instance = std::get<std::shared_ptr<Instances::Object>>(value);
 
 		if (instance != nullptr) {
 			ImGui::Text(instance->name.c_str());
@@ -320,8 +370,7 @@ void ExplorerPanel::display_property(
 			ImGui::TextUnformatted("none :(");
 		}
 
-	}
-	else {
+	} else {
 		ImGui::TextColored(
 		  color3_to_imvec4({255, 0, 0, 255}), "No compatible value"
 		);
@@ -330,7 +379,6 @@ void ExplorerPanel::display_property(
 	if (property.has_flag(ReflectionPropertyFlags::ReadOnly)) {
 		ImGui::EndDisabled();
 	}
-
 
 	ImGui::PopID();
 }

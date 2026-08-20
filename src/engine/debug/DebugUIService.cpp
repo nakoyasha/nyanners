@@ -30,7 +30,7 @@ DebugUIService::DebugUIService() : Instance("DebugUIService") {
 	fontConfig.OversampleH = fontConfig.OversampleV = 1;
 	fontConfig.FontLoaderFlags |= ImGuiFreeTypeBuilderFlags_LoadColor;
 
-	static constexpr ImWchar range[] = { 0x1, 0x1FFFF, 0 };
+	static constexpr ImWchar range[] = { 0x1, 0x1FFF, 0 };
 
 	io.Fonts->AddFontDefault();
 

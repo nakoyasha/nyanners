@@ -31,6 +31,7 @@ namespace Nyanners::Scripting::Reflection {
 		Integer,
 		Boolean,
 		Instance,
+		Enum,
 		// Method,
 		Vector3,
 		Vector2,
@@ -64,6 +65,9 @@ namespace Nyanners::Scripting::Reflection {
 			}
 			case (Instance): {
 				return "Instance";
+			}
+			case (Enum): {
+				return "enum";
 			}
 			case (Null): {
 				return "()";

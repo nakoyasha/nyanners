@@ -5,6 +5,8 @@
 #include "instances/Instance.h"
 #include <map>
 
+#include "instances/Script.h"
+
 #define LUA_SCRIPT_REGISTRY_INDEX "current_script"
 
 namespace Nyanners::Scripting::Scheduler {
@@ -12,6 +14,10 @@ namespace Nyanners::Scripting::Scheduler {
 		sf::Clock timeLeft;
 		sf::Time pausedFor;
 	};
+}
+
+namespace Nyanners::Instances {
+	class Script;
 }
 
 namespace Nyanners::Services {
@@ -26,6 +32,7 @@ namespace Nyanners::Services {
   	static lua_State *make_context();
 
   	static void take_ownership_of_state(lua_State* context, Instance* owner);
+  	static std::shared_ptr<Instances::Script> load_script_file(const std::string &path);
 
   	static void run_autorun();
     static int handle_lua_console(lua_State* context);

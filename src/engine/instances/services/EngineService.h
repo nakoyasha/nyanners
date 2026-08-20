@@ -34,6 +34,7 @@ namespace Nyanners::Services {
     std::string get_version() const {return engineInfo.version;}
     std::string get_branch() const {return engineInfo.branch;}
     std::string get_build_time() const {return engineInfo.buildTime;}
+    Core::EnginePlatform get_platform() const {return platform;}
 
     static void handle_event(const sf::Event* event);
     static void open_url(const std::string& url);

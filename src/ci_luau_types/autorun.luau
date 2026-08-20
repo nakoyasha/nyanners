@@ -26,11 +26,14 @@ for _, descriptor in descriptors do
 	end
 
 	for _, method in descriptor.Methods do
-		typesFile ..= `\tfunction {method.Name}(self) : {method.Type}\n`
+		typesFile ..= `\tfunction {method.Name}(self`
+		for _, parameter in method.Parameters do
+			typesFile ..= `, {parameter.Name} : {parameter.Type}`
+		end
+		typesFile ..= `) : {method.Type}\n`
 	end
 	typesFile ..= "end\n"
 end
 
 print("Generated types successfully")
 IOService:write_file("nyanners.d.luau", typesFile)
-

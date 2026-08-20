@@ -51,6 +51,18 @@ void ScriptService::take_ownership_of_state(
 
 }
 
+std::shared_ptr<Nyanners::Instances::Script> ScriptService::load_script_file(const std::string &path) {
+	if (IOService::file_exists(path)) {
+		throw std::runtime_error("Script file does not exist");
+	}
+
+	const auto script = std::make_shared<Instances::Script>();
+	script->set_file(path);
+	script->initialize_script();
+
+	return script;
+}
+
 void ScriptService::run_autorun() {
 	const auto script = std::make_shared<Instances::Script>();
 
@@ -77,7 +89,7 @@ void ScriptService::run_autorun() {
 
 int ScriptService::handle_lua_console(lua_State *context) {
     const int argumentCount = lua_gettop(context);
-    const Core::LogLevel logLevel = static_cast<Core::LogLevel>(luaL_checknumber(context, lua_upvalueindex(1)));
+    const auto logLevel = static_cast<Core::LogLevel>(luaL_checknumber(context, lua_upvalueindex(1)));
 
     lua_getfield(context, LUA_REGISTRYINDEX, "current_script");
 

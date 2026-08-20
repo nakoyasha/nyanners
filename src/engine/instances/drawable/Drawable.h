@@ -22,7 +22,7 @@ namespace Nyanners::Instances {
 
   	DataTypes::Color3 get_color() const;
   	virtual void set_color(DataTypes::Color3 newColor);
-    int lua_set_texture(lua_State *context);
+    void lua_set_texture(std::string path);
     virtual void draw() = 0;
   };
 }

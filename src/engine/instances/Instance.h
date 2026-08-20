@@ -1,88 +1,93 @@
 #pragma once
+#include "lua.h"
+#include "basic/Object.h"
+#include "core/Logger.h"
 #include "drawable/Drawable.h"
 #include <memory>
-#include "lua.h"
 #include <utility>
 #include <vector>
 
-#include "core/Logger.h"
-
 namespace Nyanners::Instances {
-  class Instance : public std::enable_shared_from_this<Instance> {
-    public:
-    const std::string baseName;
-    std::string name;
-    bool active = true;
+	class Instance : public Object,
+	                 public std::enable_shared_from_this<Instance> {
+	public:
+		explicit Instance(std::string name) : Object(std::move(name)) {};
 
-    explicit Instance(std::string name) : baseName(std::move(name)), name(baseName) {};
+		virtual ~Instance();
+		;
+		std::weak_ptr<Instance> parent;
 
-    virtual ~Instance();;
-    std::weak_ptr<Instance> parent;
+		std::vector<std::shared_ptr<Instance>> children;
+		std::vector<std::weak_ptr<Drawable>> renderableChildren;
 
-    std::vector<std::shared_ptr<Instance>> children;
-  	std::vector<std::weak_ptr<Drawable>> renderableChildren;
+		virtual void add_child(const std::shared_ptr<Instance> &child);
+		template <typename... Children>
+		void add_child(
+		  const std::shared_ptr<Instance> &child, const Children &...children
+		) {
+			add_child(child);
+			(add_child(children), ...);
+		}
+		virtual void remove_child(const std::shared_ptr<Instance> &child);
+		virtual void update(const float deltaTime);
 
-    virtual void add_child(const std::shared_ptr<Instance>& child);
-  	template <typename... Children>
-		void add_child(const std::shared_ptr<Instance>& child, const Children&... children)
-  	{
-  		add_child(child);
-  		(add_child(children), ...);
-  	}
-    virtual void remove_child(const std::shared_ptr<Instance> &child);
-    virtual void update(const float deltaTime);
+		bool get_active() const {
+			return this->active;
+		};
 
-  	bool get_active() const {
-  		return this->active;
-  	};
+		std::shared_ptr<Instance> clone();
+		int clone_lua(lua_State *context);
+		int destroy_lua(lua_State *context);
 
-  	[[nodiscard]] std::string get_name() const;
-  	[[nodiscard]] std::string get_basename() const;
+		template <typename T>
+		std::shared_ptr<T> find_first_child(const std::string &childName) const {
+			for (auto &child : children) {
+				if (child->name == childName) {
+					return std::dynamic_pointer_cast<T>(child);
+				}
+			}
 
-  	void set_name(const std::string& name) {
-  		this->name = name;
-  	}
+			return nullptr;
+		}
 
-    virtual void set_active(const bool newActiveState);
-  	std::shared_ptr<Instance> clone();
-  	int clone_lua(lua_State* context);
-  	int destroy_lua(lua_State* context);
+		template <typename T>
+		std::vector<std::weak_ptr<T>>
+		peek_at(const std::string &className, const int expectedSize = 0) const {
+			std::vector<std::weak_ptr<T>> peek;
 
-    template <typename T>
-    std::shared_ptr<T> find_first_child(const std::string& childName) const {
-      for (auto& child : children) {
-        if (child->name == childName) {
-          return std::dynamic_pointer_cast<T>(child);
-        }
-      }
+			if (expectedSize != 0) {
+				peek.reserve(expectedSize);
+			}
 
-      return nullptr;
-    }
+			for (auto &child : children) {
+				if (child->name == className) {
+					peek.push_back(std::dynamic_pointer_cast<T>(child));
+				}
+			}
 
-  	template <typename T>
-  	std::vector<std::weak_ptr<T>> peek_at(const std::string& className, const int expectedSize = 0) const {
-	    std::vector<std::weak_ptr<T>> peek;
+			return peek;
+		}
 
-    	if (expectedSize != 0) {
-    		peek.reserve(expectedSize);
-    	}
+		std::shared_ptr<Instance> get_parent() const {
+			return this->parent.lock();
+		};
 
-    	for (auto& child : children) {
-    		if (child->name == className) {
-    			peek.push_back(std::dynamic_pointer_cast<T>(child));
-    		}
-    	}
+		std::shared_ptr<Object> get_parent_object() const {
+			return std::static_pointer_cast<Object>(this->parent.lock());
+		}
 
-    	return peek;
-    }
+		void set_parent(const std::shared_ptr<Instance> &parent) {
+			parent->add_child(
+			  std::enable_shared_from_this<Instance>::shared_from_this()
+			);
+		}
 
-
-  	std::shared_ptr<Instance> get_parent() const {
-	    return this->parent.lock();
-    };
-
-  	void set_parent(const std::shared_ptr<Instance>& parent) {
-  		parent->add_child(shared_from_this());
-  	}
-  };
+		void set_parent_object(const std::shared_ptr<Object> &parent) {
+			if (
+			  const auto instanceParent = std::dynamic_pointer_cast<Instance>(parent)
+			) {
+				set_parent(instanceParent);
+			}
+		}
+	};
 }
