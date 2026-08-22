@@ -47,7 +47,10 @@ void Nyanners::Application::start() {
 void Nyanners::Application::shutdown() {
 	running = false;
 	Services::ServiceProvider::instance()->get_service<Services::RunService>("RunService")->stop();
-	Services::RenderingService::instance()->shutdown();
+
+	if (has_rendering) {
+		Services::RenderingService::instance()->shutdown();
+	}
 
 	this->currentModel.reset();
 	this->currentModel = nullptr;

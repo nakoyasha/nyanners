@@ -20,6 +20,7 @@ for _, descriptor in descriptors do
 	end
 
 	typesFile ..= "\n"
+	typesFile ..= `ClassName: {descriptor.Name}\n`
 
 	for _, property in descriptor.Properties do
 		typesFile ..= `\t{property.Name} : {property.Type}\n`
