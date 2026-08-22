@@ -11,7 +11,6 @@
 
 using namespace Nyanners::Services;
 
-Nyanners::Resources::Shader RenderingService::defaultShader;
 std::unique_ptr<Nyanners::Core::Renderer> RenderingService::renderer;
 std::vector<std::shared_ptr<Nyanners::Resources::Texture>> RenderingService::textures;
 Nyanners::Rendering::RenderingBackend RenderingService::backend;

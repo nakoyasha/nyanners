@@ -16,7 +16,6 @@ namespace Nyanners::Rendering {
 namespace Nyanners::Services {
     class RenderingService : public Instances::Instance, public Service<RenderingService> {
     public:
-        static Resources::Shader defaultShader;
         static Rendering::RenderingBackend backend;
         static std::vector<std::shared_ptr<Resources::Texture> > textures;
 
