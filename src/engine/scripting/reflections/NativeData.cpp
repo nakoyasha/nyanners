@@ -73,6 +73,14 @@ int NativeData::serialize(lua_State* context) {
 			}, "NativeData:__tostring");
 			lua_setfield(context, metatable, "__tostring");
 
+			lua_pushcfunction(context, [](lua_State* context) -> int {
+				const auto* data = Services::ReflectionService::get_userdata_from_context<NativeData>(context, 1, 0x09);
+				lua_pushinteger(context, data->children.size());
+
+				return 1;
+			}, "NativeData:__len");
+			lua_setfield(context, metatable, "__len");
+
 			lua_setmetatable(context, dataIndex);
 		} else {
 			luaL_error(context, "Failed creating metatable for NativeData");
@@ -109,7 +117,7 @@ int NativeData::lua_index(lua_State *context) {
 			luaL_error(context, "Invalid NativeData property");
 		}
 
-		Services::ReflectionService::push_value(context, field->second);
+		push_child(context, field->second);
 		return 1;
 	}
 
@@ -120,21 +128,20 @@ int NativeData::lua_index(lua_State *context) {
 int NativeData::lua_iterate(lua_State* context) {
 	const auto index = lua_tointeger(context, lua_upvalueindex(2));
 
-	if (index >= static_cast<lua_Integer>(children.size())) {
+	if (index >= static_cast<int>(children.size())) {
 		return 0;
+	} else {
+		const auto child = children[index];
+		lua_pushinteger(context, index + 1);
+		lua_replace(context, lua_upvalueindex(2));
+		lua_pushinteger(context, index + 1);
+		push_child(context, child);
 	}
-
-	const auto child = children[index];
-
-	lua_pushinteger(context, index + 1);
-	lua_replace(context, lua_upvalueindex(2));
-	lua_pushinteger(context, index + 1);
-	push_child(context, child);
 
 	return 2;
 }
 
-void NativeData::set_value(const std::string& keyName, const ReflectionValue& value) {
+void NativeData::set_value(const std::string& keyName, const NativeDataChild& value) {
 	this->fields[keyName] = value;
 }
 
