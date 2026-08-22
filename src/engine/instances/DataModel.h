@@ -4,7 +4,12 @@
 #include <ranges>
 
 #include "lualib.h"
+#include "core/ServiceProvider.h"
 #include "services/ReflectionService.h"
+
+namespace Nyanners {
+	class Application;
+}
 
 namespace Nyanners::Instances {
   class DataModel : public Instance {
@@ -29,6 +34,12 @@ namespace Nyanners::Instances {
 	      }
   		}
 
+  		try {
+  			return Services::ServiceProvider::instance()->get_service<T>(name);
+  		} catch (std::runtime_error& e) {
+  			Core::Logger::log_error(e.what());
+  		}
+
       for (const auto& descriptor : ReflectionDescriptorRegistry::instance()->descriptors | std::views::values)
       {
         if (descriptor.name == name)
@@ -36,21 +47,26 @@ namespace Nyanners::Instances {
           return std::dynamic_pointer_cast<T>(descriptor.construct());
         }
       }
-
-      return nullptr;
+  		return nullptr;
     }
 
   	int get_service_lua(lua_State* context) {
   		const std::string& name = luaL_checkstring(context, -1);
-  		const auto service = get_service<Object>(name);
 
-  		if (service != nullptr) {
-  			Services::ReflectionService::reflect_class(context, service);
-  		} else {
-  			luaL_error(context, "No such service exists");
+  		try {
+  			const auto service = get_service<Object>(name);
+
+  			if (service != nullptr) {
+  				Services::ReflectionService::reflect_class(context, service);
+  				return 1;
+  			} else {
+  				luaL_error(context, "No such service exists");
+  			}
+  		} catch (std::runtime_error& e) {
+  			luaL_error(context, e.what());
   		}
 
-			return 1;
-		}
+	    return 0;
+  	}
   };
 }

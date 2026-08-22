@@ -3,7 +3,7 @@
 #include "instances/Instance.h"
 
 namespace Nyanners::Services {
-    class SoundService : public Instances::Instance {
+    class SoundService : public Instances::Instance, public Service<SoundService> {
     public:
         double volume = 1.0f;
 

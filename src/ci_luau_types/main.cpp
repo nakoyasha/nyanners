@@ -3,7 +3,7 @@
 
 class TypeBuilderApplication : public Nyanners::Application {
 public:
-	TypeBuilderApplication() : Application({1, 1}, "TypeBuilder") {
+	TypeBuilderApplication() {
 		m_Instance = this;
 	};
 	void start() override;

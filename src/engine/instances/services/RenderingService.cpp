@@ -16,9 +16,8 @@ std::unique_ptr<Nyanners::Core::Renderer> RenderingService::renderer;
 std::vector<std::shared_ptr<Nyanners::Resources::Texture>> RenderingService::textures;
 Nyanners::Rendering::RenderingBackend RenderingService::backend;
 
-RenderingService::RenderingService(
-  const DataTypes::Vector2 size, const std::optional<std::string> &windowTitle, Rendering::RenderingBackend withBackend
-) : Instance("RenderingService") {
+void RenderingService::initialize(DataTypes::Vector2 size, const std::optional<std::string> &windowTitle,
+	Rendering::RenderingBackend withBackend) {
 	sf::ContextSettings settings;
 	settings.depthBits = 24;
 	settings.stencilBits = 8;
@@ -27,7 +26,7 @@ RenderingService::RenderingService(
 	settings.minorVersion = 6;
 	settings.attributeFlags = sf::ContextSettings::Core;
 
-	auto videoMode = sf::VideoMode({size.x, size.y});
+	const auto videoMode = sf::VideoMode({size.x, size.y});
 
 	if (windowTitle.has_value()) {
 		window = new sf::Window(

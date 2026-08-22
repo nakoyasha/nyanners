@@ -1,4 +1,6 @@
 #include "debug/DebugUIService.h"
+
+#include "Application.h"
 #include "imgui.h"
 #include "imgui_freetype.h"
 #include "imgui_impl_opengl3.h"
@@ -11,11 +13,16 @@ bool DebugUIService::renderWindows = true;
 namespace Nyanners::Scripting {
 	auto debugUIService = ReflectionDescriptorRegistry::instance()->create_registrator([]() {
 		ReflectionService::create_descriptor("DebugUIService", {"Instance"})
-			.add_property_chained<DebugUIService, bool, &DebugUIService::get_demo_open, &DebugUIService::set_demo_open>("DemoWindowEnabled", Boolean);
+			.add_property_chained<DebugUIService, bool, &DebugUIService::get_demo_open, &DebugUIService::set_demo_open>("DemoWindowEnabled", Boolean)
+			.add_constructor<DebugUIService>();
 	});
 }
 
 DebugUIService::DebugUIService() : Instance("DebugUIService") {
+	if (!Application::instance()->is_rendering_enabled()) {
+		return;
+	}
+
 	ImGuiIO &io = ImGui::GetIO();
 	ImGui::StyleColorsLight();
 	io.ConfigFlags |= ImGuiConfigFlags_DockingEnable;
@@ -135,11 +142,18 @@ DebugUIService::DebugUIService() : Instance("DebugUIService") {
 }
 
 DebugUIService::~DebugUIService() {
+	if (!Application::instance()->is_rendering_enabled()) {
+		return;
+	}
 	ImGui_ImplOpenGL3_Shutdown();
 	ImGui::DestroyContext();
 }
 
 void DebugUIService::draw_imgui() const {
+	if (!Application::instance()->is_rendering_enabled()) {
+		return;
+	}
+
 	ImGuiIO &io = ImGui::GetIO();
 	const auto size = RenderingService::renderer->get_window_size();
 
@@ -180,6 +194,10 @@ void DebugUIService::set_demo_open(const bool isOpened) {
 }
 
 void DebugUIService::on_frame_end() {
+	if (!Application::instance()->is_rendering_enabled()) {
+		return;
+	}
+
 	ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
 	ImGui::UpdatePlatformWindows();
 	ImGui::RenderPlatformWindowsDefault();
@@ -237,6 +255,9 @@ static ImGuiKey toImGuiKey(const sf::Keyboard::Key key) {
 void DebugUIService::handle_event(
   const sf::Window *window, const sf::Event *event
 ) {
+	if (!Application::instance()->is_rendering_enabled()) {
+		return;
+	}
 	ImGuiIO &io = ImGui::GetIO();
 
 	if (const auto *moved = event->getIf<sf::Event::MouseMoved>()) {

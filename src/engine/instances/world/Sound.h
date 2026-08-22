@@ -1,5 +1,6 @@
 #pragma once
 #include "Application.h"
+#include "miniaudio.h"
 #include "instances/Instance.h"
 
 namespace Nyanners::Instances {

@@ -14,7 +14,7 @@ namespace Nyanners::Rendering {
 }
 
 namespace Nyanners::Services {
-    class RenderingService : public Instances::Instance {
+    class RenderingService : public Instances::Instance, public Service<RenderingService> {
     public:
         static Resources::Shader defaultShader;
         static Rendering::RenderingBackend backend;
@@ -27,7 +27,9 @@ namespace Nyanners::Services {
         float frameTime = 0.0f;
         int fps = 0.0f;
 
-        RenderingService(DataTypes::Vector2, const std::optional<std::string> &windowTitle,
+        RenderingService() : Instance("RenderingService") {};
+
+        void initialize(DataTypes::Vector2, const std::optional<std::string> &windowTitle,
                          Rendering::RenderingBackend withBackend = Rendering::RenderingBackend::OpenGL);
 
         void set_window_title(const std::string &newWindowTitle) const;

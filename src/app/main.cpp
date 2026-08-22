@@ -6,7 +6,6 @@
 #include "debug/MainMenubar.h"
 #include "debug/OutputPanel.h"
 #include "debug/ViewportPanel.h"
-#include "instances/Script.h"
 #include "instances/services/EngineService.h"
 #include "instances/services/RenderingService.h"
 #include "instances/services/RunService.h"
@@ -23,16 +22,16 @@ public:
 	FrameBuffer *framebuffer = nullptr;
 	Core::Rendering::Viewport* editorViewport;
 
-	TestApplication() : Application({1280, 720}, "TestApp") {
+	TestApplication() {
 		m_Instance = this;
+		this->init_rendering({1280, 720}, "TestApp");
 		editorViewport = new Core::Rendering::Viewport();
 
-		this->debugUI =
-		  currentModel->get_service<DebugUIService>("DebugUIService");
+		this->debugUI = ServiceProvider::instance()->add_service<DebugUIService>();
 		this->camera = std::make_shared<Instances::Camera>();
 
 		camera->name = "MainCamera";
-		renderService->add_child(camera);
+		RenderingService::instance()->add_child(camera);
 	}
 
 	void start() override;
@@ -56,6 +55,7 @@ void TestApplication::start() {
 void TestApplication::on_draw() const {
 	const auto world = currentModel->get_service<World>("World");
 	const auto uiService = currentModel->get_service<UIService>("UIService");
+	const auto renderService = RenderingService::instance();
 
 	renderService->start_frame();
 
@@ -87,18 +87,27 @@ void TestApplication::on_draw() const {
 }
 
 void TestApplication::on_update() {
-	while (const auto event = renderService->window->pollEvent()) {
-		if (!event.has_value()) {
-			continue;
-		}
+	const auto runService = ServiceProvider::instance()->get_service<RunService>("RunService");
 
-		// TODO: better way of doing this. idk
-		auto *value = &event.value();
 
-		EngineService::handle_event(value);
-		renderService->handle_window_event(event);
-		if (renderService->window->hasFocus()) {
-			InputService::instance()->handle_event(value);
+	if (has_rendering) {
+		const auto renderService = RenderingService::instance();
+
+
+		// TODO: Decouple event polling from RenderingService, somehow? maybe? if possible at all even
+		while (const auto event = renderService->window->pollEvent()) {
+			if (!event.has_value()) {
+				continue;
+			}
+
+			// TODO: better way of doing this. idk
+			auto *value = &event.value();
+
+			EngineService::handle_event(value);
+			renderService->handle_window_event(event);
+			if (renderService->window->hasFocus()) {
+				InputService::instance()->handle_event(value);
+			}
 		}
 	}
 

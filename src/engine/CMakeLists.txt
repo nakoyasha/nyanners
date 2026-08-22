@@ -165,6 +165,10 @@ add_library(Nyanners
         core/Service.h
         instances/services/user/InputObject.h
         instances/services/user/InputObject.cpp
+        core/ServiceProvider.cpp
+        core/ServiceProvider.h
+        scripting/reflections/NativeData.cpp
+        scripting/reflections/NativeData.h
 )
 
 add_library(

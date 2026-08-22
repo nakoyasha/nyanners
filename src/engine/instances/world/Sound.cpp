@@ -1,5 +1,7 @@
 #include "Sound.h"
 
+#include "instances/services/SoundService.h"
+
 using namespace Nyanners::Instances;
 
 namespace Nyanners::Scripting {
@@ -45,7 +47,7 @@ void Sound::set_sound(const std::string &file) {
 		return;
 	}
 
-	soundInternal = Application::instance()->soundService->create_handle(file);
+	soundInternal = Services::SoundService::instance()->create_handle(file);
 
 	if (soundInternal == nullptr) {
 		Core::Logger::log_error(

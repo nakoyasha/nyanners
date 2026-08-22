@@ -3,6 +3,7 @@
 #include "MainMenubar.h"
 #include "imgui.h"
 #include "core/Logger.h"
+#include "instances/services/EngineService.h"
 #include "instances/services/ReflectionService.h"
 #include "instances/services/SelectionService.h"
 #include "scripting/reflections/ReflectionDescriptorRegistry.h"
@@ -32,7 +33,7 @@ static void push_credit(
 
 void MainMenubar::draw() {
 	const auto app = Application::instance();
-	const auto renderService = app->renderService;
+	const auto renderService = Services::RenderingService::instance();
 	const auto fps = renderService->fps;
 	const auto frameTime = renderService->frameTime;
 	auto selectionService =
