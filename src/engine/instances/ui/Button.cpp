@@ -35,6 +35,7 @@ void Button::draw() {
 
     const auto size = get_absolute_size();
     const auto absolutePosition = get_absolute_position();
+    const auto input = Services::InputService::instance();
 
     glm::mat4 transform = glm::translate(glm::mat4(1.0f), glm::vec3(absolutePosition.x, absolutePosition.y, 0.0f));
     transform = glm::translate(transform, -glm::vec3(anchorPoint, 0.0f));
@@ -44,8 +45,9 @@ void Button::draw() {
 
     const auto position2 = glm::vec2(transform[3][0], transform[3][1]);
 
-    if (Services::InputService::is_mouse_over_button(position2, size)) {
-        if (Services::InputService::is_key_down(Input::KeyCode::Mouse0)) {
+
+    if (input->is_mouse_over_button(position2, size)) {
+        if (input->is_key_down(Input::KeyCode::Mouse0)) {
             if (isPressed == false) {
                 isPressed = true;
                 onHold->fire();

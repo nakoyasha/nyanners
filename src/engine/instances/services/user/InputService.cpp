@@ -1,12 +1,17 @@
 #include "InputService.h"
 
-#include "imgui.h"
 #include "instances/services/RenderingService.h"
 
 using namespace Nyanners;
 using namespace Nyanners::Services;
 
-Instances::Signal<Input::InputEvent> InputService::onInput;
+namespace Nyanners::Scripting {
+	static auto inputRegistrator = ReflectionDescriptorRegistry::instance()->create_registrator([]() {
+		ReflectionService::create_descriptor("InputService", {"Instance"})
+		.add_property_chained<InputService, std::shared_ptr<Instances::SignalBase>, &InputService::get_on_input>("OnInput", Instance);
+	});
+}
+
 
 inline Input::KeyCode sfmlToUs(const sf::Keyboard::Key &key) {
 	using K = sf::Keyboard::Key;
@@ -226,21 +231,22 @@ inline sf::Mouse::Button usToSFMLMouse(const Input::KeyCode& key) {
     }
 }
 
+std::shared_ptr<Instances::SignalBase> InputService::get_on_input() const {
+	return this->onInput;
+}
 
-void InputService::handle_event(const sf::Event *event) {
+void InputService::handle_event(const sf::Event *event) const {
+
 	// TODO: mouse input and etc
 	if (const auto *inputStarted = event->getIf<sf::Event::KeyPressed>()) {
-		onInput.fire({
-			.state = Input::InputState::Began,
-			.source = Input::InputSource::Keyboard,
-			.key = sfmlToUs(inputStarted->code)
-		});
+		// onInput->fire(std::make_shared<Instances::InputObject>({
+		// 	Input::InputState::Began,
+		// 	Input::InputSource::Keyboard,
+		// 	sfmlToUs(inputStarted->code)
+		// });
+		onInput->fire(std::make_shared<Instances::InputObject>(Input::InputState::Began, Input::InputSource::Keyboard, sfmlToUs(inputStarted->code)));
 	} else if (const auto *inputEnded = event->getIf<sf::Event::KeyReleased>()) {
-		onInput.fire({
-			.state = Input::InputState::Ended,
-			.source = Input::InputSource::Keyboard,
-			.key = sfmlToUs(inputEnded->code)
-		});
+		onInput->fire(std::make_shared<Instances::InputObject>(Input::InputState::Ended, Input::InputSource::Keyboard, sfmlToUs(inputEnded->code)));
 	}
 }
 

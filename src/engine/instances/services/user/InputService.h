@@ -2,88 +2,11 @@
 #include "SFML/Window/Event.hpp"
 #include "instances/Instance.h"
 #include "instances/basic/Signal.h"
+#include "scripting/reflections/ReflectionDescriptorRegistry.h"
+
+#include "InputObject.h"
 
 namespace Nyanners::Input {
-	enum class InputState {
-		Began = 0,
-		Ended = 1,
-		Changed = 2,
-	};
-
-	enum class InputSource {
-		Mouse = 0,
-		Keyboard = 6,
-	};
-
-	enum class KeyCode {
-		Unknown,
-		A,
-		B,
-		C,
-		D,
-		E,
-		F,
-		G,
-		H,
-		I,
-		J,
-		K,
-		L,
-		M,
-		N,
-		O,
-		P,
-		Q,
-		R,
-		S,
-		T,
-		U,
-		V,
-		W,
-		X,
-		Y,
-		Z,
-		One,
-		Two,
-		Three,
-		Four,
-		Five,
-		Six,
-		Seven,
-		Eight,
-		Nine,
-		Zero,
-		Backspace,
-		Backquote,
-		F1,
-		F2,
-		F3,
-		F4,
-		F5,
-		F6,
-		F7,
-		F8,
-		F9,
-		F10,
-		F11,
-		F12,
-		Space,
-		LeftCtrl,
-		RightCtrl,
-		LeftAlt,
-		RightAlt,
-		Tab,
-		LeftShift,
-		RightShift,
-
-		Mouse0,
-		Mouse1,
-		Mouse2,
-		Mouse3,
-		Mouse4,
-		Mouse5,
-	};
-
 	struct InputEvent {
 		const InputState state;
 		const InputSource source;
@@ -92,13 +15,19 @@ namespace Nyanners::Input {
 }
 
 namespace Nyanners::Services {
-	class InputService : public Instances::Instance {
+	class InputService : public Instances::Instance, public Service<InputService> {
 	public:
-		static Instances::Signal<Input::InputEvent> onInput;
-		InputService() : Instance("InputService") {};
+		std::shared_ptr<Instances::Signal<std::shared_ptr<Instances::InputObject>>> onInput;
 
-		static void handle_event(const sf::Event *event);
-		static bool is_key_down(const Input::KeyCode &key);
-		static bool is_mouse_over_button(const glm::vec2 &buttonPosition, const glm::vec2 &buttonSize);
+		static std::shared_ptr<Instances::InputObject> make_input_object(const Input::InputState state, const Input::InputSource source, const Input::KeyCode keycode);
+
+		InputService() : Instance("InputService") {
+			onInput = std::make_shared<Instances::Signal<std::shared_ptr<Instances::InputObject>>>();
+		};
+
+		std::shared_ptr<Instances::SignalBase> get_on_input() const;
+		void handle_event(const sf::Event *event) const;
+		bool is_key_down(const Input::KeyCode &key);
+		bool is_mouse_over_button(const glm::vec2 &buttonPosition, const glm::vec2 &buttonSize);
 	};
 }
