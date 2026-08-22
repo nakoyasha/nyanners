@@ -95,7 +95,7 @@ namespace Nyanners::Services {
 			new (selfUser) T(*data);
 		}
 
-		void generate_lua_reflection_table();
+		NativeData* generate_lua_reflection_table();
 
 		static void push_value(lua_State *context, const ReflectionValue &value);
 

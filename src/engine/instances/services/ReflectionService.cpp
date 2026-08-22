@@ -502,91 +502,62 @@ void ReflectionService::register_pending_parents() {
 	}
 }
 
-void ReflectionService::generate_lua_reflection_table() {
-	const auto context = ScriptService::get_active_context();
-
-	lua_newtable(context);
-	const int mainTable = lua_gettop(context);
-	int descriptorCount = 1;
+NativeData* ReflectionService::generate_lua_reflection_table() {
+	auto* root = new NativeData();
 
 	for (const auto &descriptor:
 	     ReflectionDescriptorRegistry::instance()->descriptors |
 	     std::views::values) {
-		lua_newtable(context);
-		const int descriptorTable = lua_gettop(context);
-		lua_pushstring(context, descriptor.name.c_str());
-		lua_setfield(context, descriptorTable, "Name");
 
-		lua_newtable(context);
-		const int parentTable = lua_gettop(context);
-		int parentIndex = 1;
+		auto* descriptorData = new NativeData();
+		descriptorData->set_value("Name", descriptor.name);
+		descriptorData->set_value("Flags", descriptor.flags);
 
-		for (const auto &parent: descriptor.parents) {
-			lua_pushstring(context, parent->name.c_str());
-			lua_rawseti(context, parentTable, parentIndex++);
-		}
-
-		lua_setfield(context, descriptorTable, "Parents");
-
-		lua_newtable(context);
-		const int propertiesTable = lua_gettop(context);
-		int propertiesIndex = 1;
+		auto* propertiesData = new NativeData();
+		auto* parentsData = new NativeData();
+		auto* methodsData = new NativeData();
 
 		for (const auto &property: descriptor.properties) {
-			push_struct(
-				context,
-				{
-					{"Name", property.name},
-					{"Type", reflection_property_type_to_string(property.type)}
-				}
-			);
-			lua_rawseti(context, propertiesTable, propertiesIndex++);
-		}
-		lua_setfield(context, descriptorTable, "Properties");
+			auto propertyData = new NativeData();
 
-		lua_newtable(context);
-		const int methodsTable = lua_gettop(context);
-		int methodsIndex = 1;
+			propertyData->set_value("Name", property.name);
+			propertyData->set_value("Type", reflection_property_type_to_string(property.type));
+
+			propertiesData->add_child(propertyData);
+		}
+
+		for (const auto &parent: descriptor.parents) {
+			parentsData->add_child(parent->name);
+		}
 
 		for (const auto &method: descriptor.methods) {
-			const auto type_string =
-					reflection_property_type_to_string(method.returnType);
-			push_struct(
-				context,
-				{
-					{"Name", method.name},
-					{"Type", type_string},
-					{
-						"Signature",
-						std::format(
-							"{}:{}() -> {}", descriptor.name, method.name, type_string
-						)
-						.c_str()
-					},
-				}
-			);
-			lua_newtable(context);
-			const int parametersTable = lua_gettop(context);
-			int parameterIndex = 1;
+			auto* methodData = new NativeData();
+			methodData->set_value("Name", method.name);
+			methodData->set_value("Type", reflection_property_type_to_string(method.returnType));
+			methodData->set_value("Signature", std::format("{}:{}() -> {}", descriptor.name, method.name, reflection_property_type_to_string(method.returnType)));
+
+			auto* parametersData = new NativeData();
 
 			for (const auto &parameter: method.parameters) {
-				push_struct(
-					context,
-					{
-						{"Name", parameter.name},
-						{"Type", reflection_property_type_to_string(parameter.type)}
-					}
-				);
-				lua_rawseti(context, parametersTable, parameterIndex++);
+				auto* parameterData = new NativeData();
+				parameterData->set_value("Name", parameter.name);
+				parameterData->set_value("Type", reflection_property_type_to_string(parameter.type));
+
+				parametersData->add_child(parameterData);
 			}
 
-			lua_setfield(context, -2, "Parameters");
-			lua_rawseti(context, methodsTable, methodsIndex++);
+			methodData->set_value("Parameters", parametersData);
+			methodsData->add_child(methodData);
 		}
 
-		lua_setfield(context, descriptorTable, "Methods");
-		lua_rawseti(context, mainTable, descriptorCount++);
+		descriptorData->set_value("Properties", propertiesData);
+		descriptorData->set_value("Parents", parentsData);
+		descriptorData->set_value("Methods", methodsData);
+
+		root->add_child(descriptorData);
 	}
+
+	return root;
 }
 
 void ReflectionService::push_value(
