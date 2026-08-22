@@ -13,7 +13,9 @@ namespace Nyanners::Scripting {
 			                                 {"Warning", static_cast<int>(Core::LogLevel::Warning)},
 			                                 {"Error", static_cast<int>(Core::LogLevel::Error)},
 		                                 });
-		ReflectionService::create_descriptor("ConsoleService", {"Instance"})
+		ReflectionService::create_descriptor("ConsoleService", {"Instance"}, {
+			ReflectionInstanceFlags::Service
+		})
 				.add_method<&ConsoleService::log_lua>(
 					"log", Null, {
 						{
