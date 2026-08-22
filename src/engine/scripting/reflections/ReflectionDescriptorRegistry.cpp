@@ -1,16 +1,16 @@
 #include "ReflectionDescriptorRegistry.h"
 using namespace Nyanners::Scripting::Reflection;
 
-std::shared_ptr<ReflectionDescriptorRegistry> ReflectionDescriptorRegistry::sInstance;
+// std::shared_ptr<ReflectionDescriptorRegistry> ReflectionDescriptorRegistry::sInstance;
 
-std::shared_ptr<ReflectionDescriptorRegistry>
-ReflectionDescriptorRegistry::instance() {
-	if (sInstance == nullptr) {
-		sInstance = std::make_shared<ReflectionDescriptorRegistry>();
-	}
+// std::shared_ptr<ReflectionDescriptorRegistry>
+// ReflectionDescriptorRegistry::instance() {
+	// if (sInstance == nullptr) {
+		// sInstance = std::make_shared<ReflectionDescriptorRegistry>();
+	// }
 
-	return sInstance;
-}
+	// return sInstance;
+// }
 
 ReflectionRegistrator ReflectionDescriptorRegistry::create_registrator(
   const ReflectionRegistrator &registrator

@@ -127,8 +127,8 @@ DebugUIService::DebugUIService() : Instance("DebugUIService") {
 	//
 	colors[ImGuiCol_DragDropTarget] = accent;
 
-	InputService::onInput.connect([this](Input::InputEvent event) {
-		if (event.key == Input::KeyCode::F8 && event.state == Input::InputState::Began) {
+	InputService::instance()->onInput->connect([](const std::shared_ptr<Instances::InputObject> &event) {
+		if (event->keyCode == Input::KeyCode::F8 && event->state == Input::InputState::Began) {
 			renderWindows = !renderWindows;
 		}
 	});

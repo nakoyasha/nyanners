@@ -36,7 +36,7 @@ namespace Nyanners::Instances {
 		};
 
 		std::shared_ptr<Instance> clone();
-		int clone_lua(lua_State *context);
+		std::shared_ptr<Object> clone_lua();
 		int destroy_lua(lua_State *context);
 
 		template <typename T>

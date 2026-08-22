@@ -27,6 +27,9 @@ namespace Nyanners::Services {
   	static std::map<lua_State*, Instance*> luaToInstance;
   	static lua_State* mainContext;
 
+  	static lua_State* get_active_context();
+  	static void set_active_context(lua_State* context);
+
     ScriptService();
     static lua_State *make_main_context();
   	static lua_State *make_context();
@@ -39,5 +42,7 @@ namespace Nyanners::Services {
 
   	static void pause_context(lua_State *context, const sf::Time &duration);
   	void update(const float deltaTime) override;
+  private:
+  	static lua_State* active_context;
   };
 }

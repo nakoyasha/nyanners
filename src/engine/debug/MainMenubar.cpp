@@ -89,14 +89,14 @@ void MainMenubar::draw() {
 			if (!canClone) ImGui::BeginDisabled();
 			if (ImGui::Button("Perform Mitosis")) {
 				auto selection = selectionService->currentSelection;
-				try {
-					auto instance = selection->clone();
-					selection->parent.lock()->add_child(instance);
-				} catch (const std::exception &error) {
-					Core::Logger::log_error(
-					  std::format("Unable to clone {}: {}", selection->name, error.what())
-					);
-				}
+				// try {
+				auto instance = selection->clone();
+				selection->parent.lock()->add_child(instance);
+				// } catch (const std::exception &error) {
+					// Core::Logger::log_error(
+					  // std::format("Unable to clone {}: {}", selection->name, error.what())
+					// );
+				// }
 			}
 			if (!canClone) ImGui::EndDisabled();
 		}

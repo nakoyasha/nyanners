@@ -5,6 +5,25 @@
 
 using namespace Nyanners::Resources;
 
+namespace Nyanners::Scripting {
+	static auto shaderDescriptor = ReflectionDescriptorRegistry::instance()->create_registrator([]() {
+		Services::ReflectionService::register_enum("ShaderStage", {
+			{"GeometryOpaque", static_cast<int>(ShaderStage::GeometryOpaque)},
+			{"GeometryTransparent", static_cast<int>(ShaderStage::GeometryTransparent)},
+			{"Lighting", static_cast<int>(ShaderStage::Lighting)},
+			{"PostLighting", static_cast<int>(ShaderStage::PostLighting)},
+			{"PostProcessing", static_cast<int>(ShaderStage::PostProcessing)},
+		});
+
+			Services::ReflectionService::create_descriptor("Shader", {"Object"})
+			.add_constructor<Resources::Shader>()
+			.add_enum_property_chained<Shader, ShaderStage, &Shader::get_shader_stage, &Shader::set_shader_stage>("RunStage", "ShaderStage")
+			.add_method<&Resources::Shader::compile>(
+				"compile", Null, {{"forceCompile", Boolean}}
+			);
+	});
+}
+
 void Shader::load_from_file(
   const std::filesystem::path &vertexPath,
   const std::filesystem::path &fragmentPath
@@ -47,6 +66,14 @@ void Shader::setColor(
 	  value.b / 255.0f,
 	  value.alpha / 255.0f
 	));
+}
+
+ShaderStage Shader::get_shader_stage() const {
+	return stage;
+}
+
+void Shader::set_shader_stage(const ShaderStage& stage) {
+	this->stage = stage;
 }
 
 Shader::~Shader() {

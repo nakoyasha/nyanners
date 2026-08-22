@@ -8,6 +8,8 @@
 #include <functional>
 #include <format>
 
+#include "scripting/reflections/ReflectionValueIO.h"
+
 struct LuaScriptConnection {
     lua_State* context;
     int referenceId;
@@ -53,6 +55,8 @@ namespace Nyanners::Instances {
 
         void fire(Args... args)
         {
+            auto tuple = std::make_tuple(args...);
+
             for (auto connection : connections) {
                 if (connection == nullptr) {
                     continue;
@@ -62,8 +66,6 @@ namespace Nyanners::Instances {
 
             for (auto luaConnection : luaConnections) {
                 int refId = luaConnection.referenceId;
-                // Logger::log(std::format("{} function id", refId));
-
                 // get the lua function
                 if (refId == LUA_REFNIL || refId == LUA_NOREF) {
                     continue;
@@ -76,7 +78,14 @@ namespace Nyanners::Instances {
 
                 lua_getref(luaConnection.context, refId);
 
-                if (auto result = lua_pcall(luaConnection.context, 0, 0, 0)) {
+                // push arguments
+                std::apply([luaConnection](const auto&... args) {
+                    ([&](const auto& item) {
+                        Nyanners::Scripting::Reflection::push_value(luaConnection.context, item);
+                    }(args), ...);
+                }, tuple);
+
+                if (auto result = lua_pcall(luaConnection.context, std::tuple_size_v<decltype(tuple)>, 0, 0)) {
                     if (result != LUA_OK) {
                         const char* errorMessage = lua_tostring(luaConnection.context, -1);
 
@@ -85,7 +94,6 @@ namespace Nyanners::Instances {
                         } else {
                             Core::Logger::log_error(std::format("Script ran away while processing signal {}", this->name));
                         }
-
                     }
 
                     lua_pop(luaConnection.context, 1);

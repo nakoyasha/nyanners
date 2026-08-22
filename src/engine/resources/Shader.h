@@ -6,10 +6,20 @@
 #include <filesystem>
 
 namespace Nyanners::Resources {
+	enum class ShaderStage {
+		GeometryOpaque = 0,
+		GeometryTransparent = 1,
+		Lighting = 2,
+		PostLighting = 3,
+		PostProcessing = 4,
+	};
+
 	class Shader : public Nyanners::Instances::Object {
 	public:
 		Shader() : Object("Shader") {}
 		~Shader();
+
+		ShaderStage stage;
 
 		void use();
 		void release() const;
@@ -26,6 +36,9 @@ namespace Nyanners::Resources {
 		void setColor(
 		  const std::string &name, const Nyanners::DataTypes::Color3 value
 		) const;
+
+		ShaderStage get_shader_stage() const;
+		void set_shader_stage(const ShaderStage& stage);
 
 	private:
 		GLuint shaderId = 0xDEADBEEF;

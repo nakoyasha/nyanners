@@ -98,7 +98,7 @@ add_library(Nyanners
         scripting/LibInstance.h
         scripting/reflections/DataTypes.h
         scripting/reflections/DataTypes.cpp
-        scripting/reflections/ReflectionEnum.h
+        scripting/reflections/ReflectionEnumRegistry.h
         scripting/reflections/ReflectionMethodTraits.h
         scripting/reflections/ReflectionValueIO.h
         scripting/LibDatatype.cpp
@@ -161,6 +161,10 @@ add_library(Nyanners
         instances/services/SoundService.h
         instances/world/Sound.cpp
         instances/world/Sound.h
+        scripting/reflections/ReflectionEnumRegistry.cpp
+        core/Service.h
+        instances/services/user/InputObject.h
+        instances/services/user/InputObject.cpp
 )
 
 add_library(

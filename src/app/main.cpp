@@ -98,7 +98,7 @@ void TestApplication::on_update() {
 		EngineService::handle_event(value);
 		renderService->handle_window_event(event);
 		if (renderService->window->hasFocus()) {
-			InputService::handle_event(value);
+			InputService::instance()->handle_event(value);
 		}
 	}
 

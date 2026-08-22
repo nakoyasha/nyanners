@@ -14,6 +14,8 @@ using namespace Nyanners::Scripting::Scheduler;
 std::map<lua_State*, ScriptResumptionDate> ScriptService::scheduled;
 lua_State* ScriptService::mainContext;
 
+lua_State* ScriptService::active_context;
+
 ScriptService::ScriptService() : Instance("ScriptService") {
 }
 
@@ -61,6 +63,14 @@ std::shared_ptr<Nyanners::Instances::Script> ScriptService::load_script_file(con
 	script->initialize_script();
 
 	return script;
+}
+
+lua_State * ScriptService::get_active_context() {
+	return active_context;
+}
+
+void ScriptService::set_active_context(lua_State *context) {
+	active_context = context;
 }
 
 void ScriptService::run_autorun() {
@@ -138,12 +148,12 @@ void ScriptService::pause_context(lua_State *context, const sf::Time& duration) 
 	auto schedule = ScriptResumptionDate {sf::Clock(), std::move(duration)};
 	schedule.timeLeft.start();
 
-	scheduled.emplace(std::make_pair(context, schedule));
+	scheduled.emplace(context, schedule);
 }
 
 void ScriptService::update(const float deltaTime) {
 	for (auto [context, schedule] : scheduled) {
-		auto data = std::move(schedule);
+		auto data = schedule;
 
 		if (data.timeLeft.isRunning()) {
 			data.timeLeft.start();

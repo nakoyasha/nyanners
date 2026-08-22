@@ -10,9 +10,12 @@
 #include <optional>
 #include <string>
 #include <type_traits>
-#include <utility>
 #include <variant>
 #include <vector>
+
+namespace Nyanners::Services {
+	class ReflectionService;
+}
 
 namespace Nyanners::Scripting::Reflection {
 	// anyone is welcome to come up with a better idea to do this. i'm tired
@@ -226,6 +229,7 @@ namespace Nyanners::Scripting::Reflection {
 			return *this;
 		};
 
+
 		template <
 		  typename object,
 		  typename T,
@@ -246,6 +250,7 @@ namespace Nyanners::Scripting::Reflection {
 			return *this;
 		};
 
+		// old, only rlly used now because it takes a context
 		template <typename object, int (object::*method)(lua_State *context)>
 		ReflectionDescriptor &add_method(
 		  const std::string &methodName, const ReflectionPropertyType returnType

@@ -74,7 +74,6 @@ namespace Nyanners::Services {
 		static void register_enum(
 		  const std::string &enumName, const std::map<std::string, int> &values
 		);
-		static void attach_enums(lua_State *context);
 
 		template <typename T>
 		static T *get_userdata_from_context(
@@ -95,7 +94,8 @@ namespace Nyanners::Services {
 
 			new (selfUser) T(*data);
 		}
-		int generate_lua_reflection_table(lua_State *context);
+
+		void generate_lua_reflection_table();
 
 		static void push_value(lua_State *context, const ReflectionValue &value);
 

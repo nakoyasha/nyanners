@@ -4,7 +4,7 @@
 #include "imgui_internal.h"
 #include "misc/cpp/imgui_stdlib.h"
 #include "scripting/reflections/DataTypes.h"
-#include "scripting/reflections/ReflectionEnum.h"
+#include "scripting/reflections/ReflectionEnumRegistry.h"
 #include "utils/ImGuiColor3.h"
 #include <algorithm>
 
@@ -326,7 +326,7 @@ void ExplorerPanel::display_property(
 		int enumValue = std::get<int>(value);
 		std::string preview = "Unknown";
 		const auto enumValues =
-		  Nyanners::Scripting::Reflection::ReflectionEnumRegistry::instance()
+		  ReflectionEnumRegistry::instance()
 		    .find_values(property.enumName);
 
 		if (enumValues != nullptr) {

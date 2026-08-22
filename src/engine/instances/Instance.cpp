@@ -64,9 +64,8 @@ std::shared_ptr<Nyanners::Instances::Instance> Instance::clone() {
 		Core::Logger::log_debug(
 		  "Terrible copy will be made because this instance LACKS A REFLECTION DESCRIPTOR!! PLEASE ADD ONE"
 		);
-		auto defaultDescriptor = descriptors.find("Instance");
 
-		if (defaultDescriptor == descriptors.end()) {
+		if (auto defaultDescriptor = descriptors.find("Instance"); defaultDescriptor == descriptors.end()) {
 			Services::EngineService::panic(
 			  "Attempt to clone while... there's no reflection information at all...?"
 			);
@@ -118,11 +117,8 @@ std::shared_ptr<Nyanners::Instances::Instance> Instance::clone() {
 	return instance;
 }
 
-int Instance::clone_lua(lua_State *context) {
-	auto instance = this->clone();
-	Services::ReflectionService::reflect_class(context, instance);
-
-	return 1;
+std::shared_ptr<Object> Instance::clone_lua() {
+	return this->clone();
 }
 
 int Instance::destroy_lua(lua_State *context) {

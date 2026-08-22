@@ -3,6 +3,14 @@ local RunService = DataModel.RunService
 local RenderingService = DataModel:get_service("RenderingService")
 local SoundService = DataModel:get_service("SoundService")
 
+local InputService = DataModel:get_service("InputService")
+
+InputService.OnInput:Connect(function(object)
+	if (object.InputState == Enum.InputState.Began and object.KeyCode == Enum.KeyCode.Space) then
+		print("hi")
+	end
+end)
+
 local Label = Instance.new("TextLabel")
 local Button = Instance.new("Button")
 local AspectRatio = Instance.new("UIAspectRatioComponent")
@@ -49,7 +57,7 @@ Button.Activated:Connect(function()
     cookieCount += 1
 end)
 
-RunService.Tick:Connect(function()
+RunService.Tick:Connect(function(deltaTime)
    -- local window_size = DataModel.RenderingService.ViewportSize
    -- Label.Position = Vector3.new(0, window_size.y - 48, 0)
     Label.Text = string.format("%d cookies", cookieCount)

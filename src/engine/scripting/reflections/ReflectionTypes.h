@@ -37,6 +37,7 @@ namespace Nyanners::Scripting::Reflection {
 		Vector2,
 		Color,
 		UserData,
+		Anything,
 	};
 
 

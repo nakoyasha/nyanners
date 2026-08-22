@@ -16,12 +16,12 @@
 [submodule "src/engine/third_party/glText"]
 	path = src/engine/third_party/glText
 	url = https://github.com/vallentin/glText
-[submodule "src/engine/third_party/imgui-sfml"]
-	path = src/engine/third_party/imgui-sfml
-	url = https://github.com/SFML/imgui-sfml
 [submodule "src/engine/third_party/glfw"]
 	path = src/engine/third_party/glfw
 	url = https://github.com/glfw/glfw
+[submodule "src/engine/third_party/sfml"]
+	path = src/engine/third_party/sfml
+	url = https://github.com/SFML/SFML
 [submodule "src/engine/third_party/freetype"]
 	path = src/engine/third_party/freetype
 	url = https://gitlab.freedesktop.org/freetype/freetype

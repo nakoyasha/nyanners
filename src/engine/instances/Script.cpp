@@ -10,6 +10,8 @@
 #include <format>
 #include <ranges>
 
+#include "scripting/reflections/ReflectionEnumRegistry.h"
+
 using namespace Nyanners::Instances;
 
 namespace Nyanners::Scripting {
@@ -90,7 +92,7 @@ void Script::run_script() {
 
 	Scripting::LibInstance::attach(context);
 	lua_setglobal(context, "Instance");
-	Services::ReflectionService::attach_enums(context);
+	ReflectionEnumRegistry::instance().push_to_lua(context);
 	Scripting::LibDatatype::attach(context);
 
 	if (result != LUA_OK) {

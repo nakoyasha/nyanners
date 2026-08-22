@@ -15,7 +15,7 @@ Nyanners::Application::Application(const DataTypes::Vector2 size, const std::str
 	renderService = std::make_shared<Services::RenderingService>(size, windowTitle);
 	reflectionService = std::make_shared<Services::ReflectionService>();
 	soundService = std::make_shared<Services::SoundService>();
-	inputService = std::make_shared<Services::InputService>();
+	inputService = Services::InputService::instance();
 	runService = std::make_shared<Services::RunService>();
 	engineService = std::make_shared<Services::EngineService>();
 
