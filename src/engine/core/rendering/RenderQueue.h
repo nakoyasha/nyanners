@@ -1,5 +1,7 @@
 #pragma once
 #include <vector>
+
+#include "resources/Material.h"
 #include "resources/Mesh.h"
 
 namespace Nyanners::Core {

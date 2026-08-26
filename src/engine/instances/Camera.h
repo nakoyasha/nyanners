@@ -3,6 +3,7 @@
 #include "instances/Instance.h"
 #include <glm/gtc/matrix_transform.hpp>
 
+#include "basic/Transformable.h"
 #include "datatypes/Vector.h"
 
 namespace Nyanners::Instances {

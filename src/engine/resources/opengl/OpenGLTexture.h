@@ -2,6 +2,8 @@
 #include "resources/Texture.h"
 #include "glad/glad.h"
 
+#include <source_location>
+
 namespace Nyanners::Resources::OpenGL {
 	class OpenGLTexture : public Texture {
 	public:

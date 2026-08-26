@@ -1,9 +1,10 @@
 #pragma once
 #include "glad/glad.h"
-#include "instances/basic/Object.h"
+#include "instances/Instance.h"
 #include "instances/datatypes/Color3.h"
 #include <glm/gtc/matrix_transform.hpp>
 #include <filesystem>
+
 
 namespace Nyanners::Resources {
 	enum class ShaderStage {
@@ -14,9 +15,9 @@ namespace Nyanners::Resources {
 		PostProcessing = 4,
 	};
 
-	class Shader : public Nyanners::Instances::Object {
+	class Shader : public Instances::Instance {
 	public:
-		Shader() : Object("Shader") {}
+		Shader() : Instance("Shader") {}
 		~Shader();
 
 		ShaderStage stage;

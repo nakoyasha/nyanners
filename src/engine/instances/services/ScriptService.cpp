@@ -4,6 +4,7 @@
 #include "lua.h"
 #include "lualib.h"
 #include "Luau/Compiler.h"
+#include <cassert>
 #include "core/Logger.h"
 #include "instances/Script.h"
 #include <format>
@@ -54,7 +55,7 @@ void ScriptService::take_ownership_of_state(
 }
 
 std::shared_ptr<Nyanners::Instances::Script> ScriptService::load_script_file(const std::string &path) {
-	if (IOService::file_exists(path)) {
+	if (IOService::instance()->file_exists(path)) {
 		throw std::runtime_error("Script file does not exist");
 	}
 
@@ -65,7 +66,18 @@ std::shared_ptr<Nyanners::Instances::Script> ScriptService::load_script_file(con
 	return script;
 }
 
+Nyanners::Instances::Script* ScriptService::get_script_from_context(lua_State *context) {
+	auto *script = static_cast<Instances::Script*>(lua_tolightuserdatatagged(context, -1, 0x02));
+
+	if (script == nullptr || script->context == nullptr) {
+		EngineService::panic("lua_State* with no Script attached");
+	}
+
+	return script;
+}
+
 lua_State * ScriptService::get_active_context() {
+	assert(active_context != nullptr);
 	return active_context;
 }
 
@@ -75,11 +87,12 @@ void ScriptService::set_active_context(lua_State *context) {
 
 void ScriptService::run_autorun() {
 	const auto script = std::make_shared<Instances::Script>();
+	const auto io = IOService::instance();
 
 	try {
-		if (IOService::file_exists("assets/autorun.luau")) {
+		if (io->file_exists("assets/autorun.luau")) {
 			script->set_file("assets/autorun.luau");
-		} else if (IOService::file_exists("autorun.luau")) {
+		} else if (io->file_exists("autorun.luau")) {
 			script->set_file("autorun.luau");
 		} else {
 			throw std::runtime_error("autorun script does not exist");
@@ -103,12 +116,8 @@ int ScriptService::handle_lua_console(lua_State *context) {
 
     lua_getfield(context, LUA_REGISTRYINDEX, "current_script");
 
-    const auto *script = static_cast<Instances::Script*>(lua_tolightuserdatatagged(context, -1, 0x02));
-    if (script == nullptr || script->context == nullptr) {
-        EngineService::panic("Got output from a VM with no attached Script, wtf???");
-    }
-
-		lua_pop(context, 1);
+    const auto script = get_script_from_context(context);
+	lua_pop(context, 1);
 
     std::string scriptPath = script->name;
     std::string output;

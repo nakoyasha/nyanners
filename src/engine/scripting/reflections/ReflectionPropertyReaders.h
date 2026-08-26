@@ -2,6 +2,8 @@
 #include "lua.h"
 #include "lualib.h"
 #include "instances/datatypes/Color3.h"
+#include <glm/gtc/matrix_transform.hpp>
+#include <filesystem>
 #include <string>
 
 namespace Nyanners::Scripting::Reflection {
@@ -39,6 +41,10 @@ namespace Nyanners::Scripting::Reflection {
 	template <>
 	inline glm::vec2 read_value<glm::vec2>(lua_State *context, const int index) {
 		return *get_vector2_from_lua(context, index);
+	};
+
+	template <> inline std::filesystem::path read_value<std::filesystem::path>(lua_State *context, const int index) {
+		return luaL_checkstring(context, index);
 	};
 
 	template <>

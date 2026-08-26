@@ -40,7 +40,7 @@ namespace Nyanners::Scripting {
 }
 
 void Sound::set_sound(const std::string &file) {
-	if (!Services::IOService::file_exists(file)) {
+	if (!Services::IOService::instance()->file_exists(file)) {
 		Core::Logger::log_error(
 		  std::format("Cannot load sound {}: Invalid sound file", file)
 		);

@@ -8,11 +8,10 @@
 
 using namespace Nyanners::Debug;
 
-FrameCounter::FrameCounter() : Instance("FrameCounter") {
-    renderService = Application::instance()->currentModel->get_service<Services::RenderingService>("RenderingService");
-}
+FrameCounter::FrameCounter() : Instance("FrameCounter") {}
 
 void FrameCounter::draw() {
+    const auto renderService = Services::RenderingService::instance();
     const auto fps = renderService->fps;
     const auto windowSize = renderService->renderer->get_window_size();
     this->set_text(std::format("FPS: {}", fps));

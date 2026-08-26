@@ -16,9 +16,9 @@ namespace Nyanners::Scripting {
 		});
 
 			Services::ReflectionService::create_descriptor("Shader", {"Object"})
-			.add_constructor<Resources::Shader>()
+			.add_constructor<Shader>()
 			.add_enum_property_chained<Shader, ShaderStage, &Shader::get_shader_stage, &Shader::set_shader_stage>("RunStage", "ShaderStage")
-			.add_method<&Resources::Shader::compile>(
+			.add_method<&Shader::compile>(
 				"compile", Null, {{"forceCompile", Boolean}}
 			);
 	});

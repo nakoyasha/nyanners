@@ -2,7 +2,7 @@
 
 #include "instances/DataModel.h"
 #include "instances/datatypes/Vector.h"
-#include "instances/services/IOService.h"
+#include "instances/services/io/IOService.h"
 #include <memory>
 
 #include "instances/services/RenderingService.h"

@@ -1,7 +1,7 @@
 #define STB_IMAGE_IMPLEMENTATION
 #include "RenderingService.h"
 #include "Application.h"
-#include "IOService.h"
+#include "io/IOService.h"
 #include "RunService.h"
 #include "stb_image.h"
 #include "debug/DebugUIService.h"
@@ -145,10 +145,9 @@ void RenderingService::remove_texture(
 GLuint RenderingService::compile_shader(
   const int shaderType, const std::filesystem::path &path
 ) {
+	const GLuint shaderID = glCreateShader(shaderType);
+	const std::string vertexShaderCode = IOService::instance()->read_file(path);
 	Core::Logger::log(std::format("Shader compilation: {}", path.string()));
-
-	GLuint shaderID = glCreateShader(shaderType);
-	std::string vertexShaderCode = IOService::read_file(path);
 
 	const char *sourceRaw = vertexShaderCode.c_str();
 	glShaderSource(shaderID, 1, &sourceRaw, nullptr);
@@ -182,7 +181,7 @@ GLuint RenderingService::compile_shader(
 
 GLuint
 RenderingService::compile_program(const GLuint vertex, const GLuint fragment) {
-	GLuint program = glCreateProgram();
+	const GLuint program = glCreateProgram();
 	glAttachShader(program, vertex);
 	glAttachShader(program, fragment);
 	glLinkProgram(program);

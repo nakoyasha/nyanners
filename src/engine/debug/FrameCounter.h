@@ -7,7 +7,5 @@ namespace Nyanners::Debug {
     public:
         FrameCounter();
         void draw() override;
-    private:
-        std::shared_ptr<Services::RenderingService> renderService;
     };
 }

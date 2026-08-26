@@ -24,7 +24,7 @@ namespace Nyanners::Services {
 
         float deltaTime = 0.0f;
         float frameTime = 0.0f;
-        int fps = 0.0f;
+        double fps = 0;
 
         RenderingService() : Instance("RenderingService") {};
 

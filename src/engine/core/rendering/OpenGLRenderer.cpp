@@ -105,11 +105,6 @@ void OpenGLRenderer::render(
 				continue;
 			}
 
-			drawable->material->shader->use();
-			drawable->material->shader->setMatrix("uModel", drawable->get_transform());
-			drawable->material->shader->setMatrix("uView", camera->view);
-			drawable->material->shader->setMatrix("uProjection", camera->projection);
-
 			drawable->draw();
 		}
 	}
@@ -240,9 +235,11 @@ void OpenGLRenderer::set_renderer_feature(Rendering::RendererFeature feature, bo
 
 }
 
-void OpenGLRenderer::render_mesh(const Resources::Material* material, const Resources::Mesh *mesh) {
+void OpenGLRenderer::render_mesh(const Resources::Material* material, const Resources::Mesh *mesh, const glm::mat4& transform) {
 	mesh->bind();
 	material->use();
+
+	material->shader->setMatrix("uModel", transform);
 
 	if (mesh->indexCount == 0) {
 		GL_CHECK(
@@ -258,6 +255,11 @@ void OpenGLRenderer::render_mesh(const Resources::Material* material, const Reso
 	material->release();
 
 }
+
+void OpenGLRenderer::render_mesh(const Resources::Material *material, const Resources::Mesh *mesh) {
+	Renderer::render_mesh(material, mesh);
+}
+
 void OpenGLRenderer::render_quad(
   Resources::Material *material,
   const glm::vec2 &position,
@@ -270,9 +272,7 @@ void OpenGLRenderer::render_quad(
 	material->shader->setMatrix("uView", glm::mat4(1.0f));
 	material->shader->setMatrix("uProjection", projection2D);
 
-	quadMesh->bind();
 	render_mesh(material, quadMesh);
-	quadMesh->unbind();
 }
 
 void OpenGLRenderer::render_quad(
@@ -286,6 +286,7 @@ void OpenGLRenderer::render_quad(
 
 void OpenGLRenderer::render_quad(Resources::Material *material, const glm::mat4 &transform) {
 	material->use();
+
 	material->shader->setMatrix("uTransform", transform);
 	material->shader->setMatrix("uView", camera->view);
 	material->shader->setMatrix("uProjection", projection2D);

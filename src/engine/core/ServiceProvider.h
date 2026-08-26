@@ -22,8 +22,8 @@ namespace Nyanners::Services {
 			auto service = std::make_shared<T>();
 
 			// if (services.find(service->get_name()) != nullptr) {
-			// ~service();
-			// throw std::runtime_error("Service already exists");
+			// 	~service();
+			// 	throw std::runtime_error("Service already exists");
 			// }
 
 			services.insert({ service->get_name(), service });

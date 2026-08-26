@@ -1,5 +1,4 @@
 #pragma once
-#include <cstdint>
 
 namespace Nyanners::DataTypes {
   struct Color3 {

@@ -4,6 +4,7 @@
 #include <ranges>
 
 #include "lualib.h"
+#include "core/Logger.h"
 #include "core/ServiceProvider.h"
 #include "services/ReflectionService.h"
 

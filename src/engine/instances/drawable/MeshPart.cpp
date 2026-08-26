@@ -27,7 +27,7 @@ void MeshPart::update(const float deltaTime) {
 
 void MeshPart::draw() {
 	Services::RenderingService::renderer->set_renderer_feature(Core::Rendering::RendererFeature::FaceCulling, !noCulling);
-	Services::RenderingService::renderer->render_mesh(this->material, this->mesh);
+	Services::RenderingService::renderer->render_mesh(this->material, this->mesh, get_transform());
 	Services::RenderingService::renderer->set_renderer_feature(Core::Rendering::RendererFeature::FaceCulling, noCulling);
 }
 

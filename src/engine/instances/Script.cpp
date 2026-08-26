@@ -5,7 +5,7 @@
 #include "core/Logger.h"
 #include "scripting/LibDatatype.h"
 #include "scripting/LibInstance.h"
-#include "services/IOService.h"
+#include "services/io/IOService.h"
 #include "services/ReflectionService.h"
 #include <format>
 #include <ranges>
@@ -43,11 +43,11 @@ std::string Script::get_file_path() const {
 void Script::set_file(const std::string &scriptPath) {
 	this->filePath = scriptPath;
 
-	if (!Services::IOService::file_exists(scriptPath)) {
+	if (!Services::IOService::instance()->file_exists(scriptPath)) {
 		throw std::runtime_error("Attempt to load non-existent script file");
 	}
 
-	std::string newSource = Services::IOService::read_file(scriptPath);
+	std::string newSource = Services::IOService::instance()->read_file(scriptPath);
 	this->set_source(newSource);
 }
 

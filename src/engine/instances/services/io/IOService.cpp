@@ -1,6 +1,5 @@
 #include "IOService.h"
-#include "ReflectionService.h"
-#include "lualib.h"
+#include "instances/services/ReflectionService.h"
 #include <filesystem>
 #include <fstream>
 
@@ -10,16 +9,9 @@ namespace Nyanners::Scripting {
 	static auto ioServiceDescriptor =
 	  ReflectionDescriptorRegistry::instance()->create_registrator([]() {
 		  ReflectionService::create_descriptor("IOService", {"Instance"})
-		    .add_method_anon(
-		      "write_file",
-		      [](Instances::Object *instance, lua_State *context) -> int {
-			      const std::string file = luaL_checkstring(context, -2);
-			      const std::string content = luaL_checkstring(context, -1);
-			      IOService::write_file(file, content);
-			      return 0;
-		      },
-		      Null
-		    );
+		    .add_method<&IOService::write_file>("write_file", Null,{})
+	  		.add_method<&IOService::read_file>("read_file", Null,{})
+	  		.add_method<&IOService::file_exists>("file_exists", Null,{});
 	  });
 }
 

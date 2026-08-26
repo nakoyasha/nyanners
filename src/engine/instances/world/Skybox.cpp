@@ -116,7 +116,7 @@ void Skybox::draw() {
 	glCullFace(GL_FRONT);
 
 	// glBindVertexArray(vertexArrayID);
-	Services::RenderingService::renderer->render_mesh(this->material, this->mesh);
+	Services::RenderingService::renderer->render_mesh(this->material, this->mesh, get_transform());
 	// glBindVertexArray(0);
 
 	// glDepthFunc(GL_LESS);

@@ -6,7 +6,6 @@
 #include <memory>
 #include <string>
 
-
 namespace Nyanners::DataTypes {
 	struct Character {
 		std::shared_ptr<Resources::Texture> texture;

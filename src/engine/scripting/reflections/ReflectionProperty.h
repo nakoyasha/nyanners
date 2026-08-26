@@ -6,6 +6,9 @@
 #include <string>
 #include <variant>
 
+#include <glm/gtc/matrix_transform.hpp>
+#include "instances/datatypes/Color3.h"
+
 namespace Nyanners::Scripting::Reflection {
 	using ReflectionValue = std::variant<
 	  std::monostate, // void

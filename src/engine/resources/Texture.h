@@ -1,6 +1,5 @@
 #pragma once
 #include <filesystem>
-#include <source_location>
 
 enum TextureType {
 	Texture2D = 0,

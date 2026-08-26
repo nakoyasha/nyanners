@@ -4,6 +4,7 @@
 #include "imgui.h"
 #include "imgui_freetype.h"
 #include "imgui_impl_opengl3.h"
+#include "instances/drawable/Drawable.h"
 #include "instances/services/RenderingService.h"
 #include "instances/services/user/InputService.h"
 

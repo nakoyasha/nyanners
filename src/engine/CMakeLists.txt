@@ -43,8 +43,8 @@ add_library(Nyanners
         instances/Script.cpp
         instances/services/EngineService.h
         instances/services/EngineService.cpp
-        instances/services/IOService.h
-        instances/services/IOService.cpp
+        instances/services/io/IOService.h
+        instances/services/io/IOService.cpp
         instances/services/ReflectionService.h
         instances/services/ReflectionService.cpp
         instances/services/RenderingService.h
@@ -169,6 +169,9 @@ add_library(Nyanners
         core/ServiceProvider.h
         scripting/reflections/NativeData.cpp
         scripting/reflections/NativeData.h
+        debug/editor/ScriptEditor.cpp
+        debug/editor/ScriptEditor.h
+        instances/services/io/FileSystem.h
 )
 
 add_library(

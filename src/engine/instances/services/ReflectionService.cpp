@@ -685,6 +685,7 @@ void ReflectionService::register_reflections() {
 				&Instances::Drawable::set_scale>("Scale", Vector3);
 
 	create_descriptor("MeshPart", {"Transformable"})
+			.add_method<&Instances::MeshPart::load_from_obj_file>("load_from_file", Null, {{"ModelPath", String}})
 			.add_constructor<Instances::MeshPart>();
 	create_descriptor(
 				"RenderingService",

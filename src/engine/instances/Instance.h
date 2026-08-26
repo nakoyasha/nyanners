@@ -1,13 +1,13 @@
 #pragma once
 #include "lua.h"
 #include "basic/Object.h"
-#include "core/Logger.h"
-#include "drawable/Drawable.h"
 #include <memory>
 #include <utility>
 #include <vector>
 
 namespace Nyanners::Instances {
+	class Drawable;
+
 	class Instance : public Object,
 	                 public std::enable_shared_from_this<Instance> {
 	public:

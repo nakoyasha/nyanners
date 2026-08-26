@@ -36,6 +36,7 @@ namespace Nyanners::Services {
 
   	static void take_ownership_of_state(lua_State* context, Instance* owner);
   	static std::shared_ptr<Instances::Script> load_script_file(const std::string &path);
+  	static Instances::Script* get_script_from_context(lua_State* context);
 
   	static void run_autorun();
     static int handle_lua_console(lua_State* context);

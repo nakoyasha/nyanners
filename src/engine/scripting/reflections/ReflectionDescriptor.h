@@ -30,7 +30,7 @@ namespace Nyanners::Scripting::Reflection {
 	public:
 		std::string name;
 		ReflectionDescriptorInstance constructorInstance;
-		uint8_t flags{};
+		uint8_t flags = (0 | static_cast<int>(ReflectionInstanceFlags::NotCreatable));
 
 		std::vector<ReflectionProperty> properties;
 		std::vector<ReflectionMethod> methods;
@@ -250,6 +250,32 @@ namespace Nyanners::Scripting::Reflection {
 			return *this;
 		};
 
+		template <typename object, typename T, T object::*member>
+		ReflectionDescriptor &add_property_chained(
+		  const std::string &propertyName, const ReflectionPropertyType type
+		) {
+			ReflectionProperty property{
+				.name = propertyName, .type = type, .flags =  static_cast<uint8_t>(ReflectionPropertyFlags::ReadOnly)
+			  };
+
+			property.get = [](
+							 Instances::Object *instance,
+							 ReflectionValue &refValue,
+							 lua_State *context
+						   ) {
+				auto *obj = dynamic_cast<object *>(instance);
+				refValue = static_cast<T>(obj->*member);
+			};
+
+			property.set = [](Instances::Object *, const ReflectionValue &, lua_State *) {
+				throw std::logic_error("Attempt to set a read-only enum property");
+			};
+
+			properties.push_back(property);
+
+			return *this;
+		};
+
 		// old, only rlly used now because it takes a context
 		template <typename object, int (object::*method)(lua_State *context)>
 		ReflectionDescriptor &add_method(
@@ -311,6 +337,8 @@ namespace Nyanners::Scripting::Reflection {
 			constructorInstance.constructor = []() {
 				return std::make_shared<object>();
 			};
+
+			this->flags = this->flags &~ static_cast<int>(ReflectionInstanceFlags::NotCreatable);
 
 			return *this;
 		}
