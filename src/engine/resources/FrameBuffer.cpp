@@ -99,7 +99,9 @@ void FrameBuffer::resize(const int width, const int height) {
 		return;
 	}
 
-	Core::Logger::log(std::format("Resizing framebuffer to {},{}", normalizedWidth, normalizedHeight));
+#ifdef FRAMEBUFFER_BE_ANNOYING
+	Core::Logger::log_debug(std::format("Resizing framebuffer to {},{}", normalizedWidth, normalizedHeight));
+#endif
 
 	this->use();
 	framebufferTexture->use();

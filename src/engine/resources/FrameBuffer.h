@@ -1,7 +1,6 @@
 #pragma once
 #include "Texture.h"
 #include "glad/glad.h"
-#include "instances/datatypes/Vector.h"
 #include <glm/gtc/matrix_transform.hpp>
 
 namespace Nyanners::Resources {
