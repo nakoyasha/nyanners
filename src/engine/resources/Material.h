@@ -16,7 +16,7 @@ namespace Nyanners::Resources {
 		virtual void set_texture(const std::shared_ptr<Texture> &newTexture) = 0;
 		virtual void set_texture(const std::filesystem::path& newTexturePath) = 0;
 
-		virtual void set_shader(Resources::Shader* newShader) = 0;
+		virtual void set_shader(Shader* newShader) = 0;
 		virtual void set_shader(const std::filesystem::path& vertexPath, const std::filesystem::path& fragmentPath) = 0;
 
 		virtual ~Material() = default;
