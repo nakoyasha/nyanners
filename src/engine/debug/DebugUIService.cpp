@@ -9,7 +9,7 @@
 #include "instances/services/user/InputService.h"
 
 using namespace Nyanners::Services;
-bool DebugUIService::renderWindows = true;
+bool DebugUIService::renderWindows = false;
 
 namespace Nyanners::Scripting {
 	auto debugUIService = ReflectionDescriptorRegistry::instance()->create_registrator([]() {
