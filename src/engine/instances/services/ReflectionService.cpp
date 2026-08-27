@@ -39,7 +39,7 @@ void ReflectionService::register_enum(
 
 
 // required here due to import quirks. yayy
-std::shared_ptr<Nyanners::Instances::Object>
+Ref<Nyanners::Instances::Object>
 Nyanners::Scripting::Reflection::get_object_from_lua(
 	lua_State *context, const int index
 ) {
@@ -50,7 +50,7 @@ Nyanners::Scripting::Reflection::get_object_from_lua(
 }
 
 void Nyanners::Scripting::Reflection::push_object_to_lua(
-	lua_State *context, const std::shared_ptr<Nyanners::Instances::Object> &object
+	lua_State *context, const Ref<Nyanners::Instances::Object> &object
 ) {
 	if (object == nullptr) {
 		lua_pushnil(context);
@@ -73,7 +73,7 @@ ReflectionService::get_instance_from_context(lua_State *context, const int id) {
 }
 
 std::vector<ReflectionProperty> ReflectionService::get_properties(
-	const std::shared_ptr<Instances::Object> &instance
+	const Ref<Instances::Object> &instance
 ) {
 	const auto registry = ReflectionDescriptorRegistry::instance();
 	const auto defaultDescriptor = registry->descriptors.find("Object");
@@ -102,7 +102,7 @@ std::vector<ReflectionProperty> ReflectionService::get_properties(
 }
 
 void ReflectionService::reflect_class(
-	lua_State *context, const std::shared_ptr<Instances::Object> &instance
+	lua_State *context, const Ref<Instances::Object> &instance
 ) {
 	if (instance == nullptr) {
 		throw std::runtime_error("Attempt to reflect a class that is null");
@@ -227,7 +227,7 @@ int ReflectionService::handle_property(
 			}
 			case (ReflectionPropertyType::Instance): {
 				reflect_class(
-					context, std::get<std::shared_ptr<Instances::Object> >(value)
+					context, std::get<Ref<Instances::Object> >(value)
 				);
 				return 1;
 			}
@@ -472,7 +472,7 @@ int ReflectionService::instance_new_index(
 }
 
 void ReflectionService::register_pending_parents() {
-	auto registry = ReflectionDescriptorRegistry::instance();
+	const auto registry = ReflectionDescriptorRegistry::instance();
 
 	for (auto &descriptor: registry->descriptors | std::views::values) {
 		auto &pendingParents = descriptor.pending_parents;
@@ -625,98 +625,36 @@ void ReflectionService::create_instance_metatable(lua_State *context) {
 
 void ReflectionService::register_reflections() {
 	create_descriptor("Object", {}, {ReflectionInstanceFlags::NotCreatable})
-			.add_property_chained<
-				Instances::Object,
-				std::string,
-				&Instances::Object::get_name,
-				&Instances::Object::set_name>("Name", String)
-			.add_property_chained<
-				Instances::Object,
-				std::string,
-				&Instances::Object::get_basename>("ClassName", String)
-			.add_property_chained<
-				Instances::Object,
-				bool,
-				&Instances::Object::get_active,
-				&Instances::Object::set_active>("Active", Boolean);
-
-	create_descriptor(
-				"Instance", {"Object"}, {ReflectionInstanceFlags::NotCreatable}
-			)
-			.add_property_chained<Instance, std::shared_ptr<Instances::Object>, &Instance::get_parent_object, &
-				Instance::set_parent_object>("Parent", ReflectionPropertyType::Instance)
-			.add_method<&Instance::clone_lua>(
-				"clone", ReflectionPropertyType::Instance, {}
-			)
-			.add_method<Instance, &Instance::destroy_lua>("Destroy", Null);
-
-	create_descriptor(
-				"DataModel", {"Instance"}, {ReflectionInstanceFlags::Service}
-			)
-			.add_method<Instances::DataModel, &Instances::DataModel::get_service_lua>(
-				"get_service", Boolean
-			)
-			.add_method_anon(
-				"shutdown",
-				[](Instances::Object *, lua_State *context) -> int {
-					Application::instance()->shutdown();
-					return 0;
-				},
-				Null
-			);
-
-	create_descriptor(
-				"Transformable", {"Instance"}, {ReflectionInstanceFlags::NotCreatable}
-			)
-			.add_property_chained<
-				Instances::Transformable,
-				glm::vec3,
-				&Instances::Transformable::get_position,
-				&Instances::Drawable::set_position>("Position", Vector3)
-			.add_property_chained<
-				Instances::Transformable,
-				glm::vec3,
-				&Instances::Transformable::get_rotation,
-				&Instances::Drawable::set_rotation>("Rotation", Vector3)
-			.add_property_chained<
-				Instances::Transformable,
-				glm::vec3,
-				&Instances::Transformable::get_scale,
-				&Instances::Drawable::set_scale>("Scale", Vector3);
+			.add_property_chained<Object, bool, &Object::get_active, &Object::set_active>("Active", Boolean)
+			.add_property_chained<Object, std::string, &Object::get_name, &Object::set_name>("Name", String)
+			.add_property_chained<Object, std::string, &Object::get_basename>("ClassName", String);
+	create_descriptor("Instance", {"Object"}, {ReflectionInstanceFlags::NotCreatable})
+			.add_property_chained<Instance, Ref<Object>, &Instance::get_parent_object, &Instance::set_parent_object>("Parent", ReflectionPropertyType::Instance)
+			.add_method<&Instance::clone>("clone", ReflectionPropertyType::Instance, {})
+			.add_method<Instance, &Instance::destroy_lua>("destroy", Null);
+	create_descriptor("DataModel", {"Instance"}, {ReflectionInstanceFlags::Service})
+			.add_method<Instances::DataModel, &Instances::DataModel::get_service_lua>("get_service", ReflectionPropertyType::Instance)
+			.add_method_anon("shutdown",[](Object*, lua_State*) -> int {
+				Application::instance()->shutdown();
+				return 0;
+			},Null);
+	create_descriptor("Transformable", {"Instance"}, {ReflectionInstanceFlags::NotCreatable})
+			.add_property_chained<Instances::Transformable, glm::vec3, &Instances::Transformable::get_position, &Instances::Drawable::set_position>("Position", Vector3)
+			.add_property_chained<Instances::Transformable, glm::vec3, &Instances::Transformable::get_rotation, &Instances::Drawable::set_rotation>("Rotation", Vector3)
+			.add_property_chained<Instances::Transformable, glm::vec3, &Instances::Transformable::get_scale, &Instances::Drawable::set_scale>("Scale", Vector3);
 
 	create_descriptor("MeshPart", {"Transformable"})
 			.add_method<&Instances::MeshPart::load_from_obj_file>("load_from_file", Null, {{"ModelPath", String}})
 			.add_constructor<Instances::MeshPart>();
-	create_descriptor(
-				"RenderingService",
-				{"Instance"},
-				{ReflectionInstanceFlags::NotCreatable, ReflectionInstanceFlags::Service}
-			)
-			.add_property_chained<RenderingService, double, &RenderingService::get_fps>(
-				"FPS", Number
-			)
-			.add_property_chained<
-				RenderingService,
-				glm::vec2,
-				&RenderingService::get_window_size>("ViewportSize", Vector2)
+	create_descriptor("RenderingService",{"Instance"},{ReflectionInstanceFlags::NotCreatable, ReflectionInstanceFlags::Service})
+			.add_property_chained<RenderingService, double, &RenderingService::get_fps>("FPS", Number)
+			.add_property_chained<RenderingService, glm::vec2, &RenderingService::get_window_size>("ViewportSize", Vector2)
 			.add_method<&RenderingService::set_window_title>("set_window_title", Null, {});
-	create_descriptor(
-				"RunService",
-				{"Instance"},
-				{ReflectionInstanceFlags::NotCreatable, ReflectionInstanceFlags::Service}
-			)
-			.add_property<
-				RunService,
-				std::shared_ptr<Instances::SignalBase>,
-				&RunService::get_on_tick>("Tick", ReflectionPropertyType::Instance);
+	create_descriptor("RunService", {"Instance"}, {ReflectionInstanceFlags::NotCreatable, ReflectionInstanceFlags::Service})
+			.add_property<RunService, Ref<Instances::SignalBase>, &RunService::get_on_tick>("Tick", ReflectionPropertyType::Instance);
 
 	create_descriptor("Signal", {"Instance"})
-			.add_method<&Instances::SignalBase::connectLua>(
-				"Connect", Unknown, {
-					{
-						"Arguments", Anything
-					}}
-			);
+			.add_method<&Instances::SignalBase::connectLua>("Connect", Unknown, {{"Arguments", Anything}});
 	Instances::link_basic_containers();
 	ReflectionDescriptorRegistry::instance()->flush_registrators();
 	// parents have to be done separately, to ensure all descriptors are registered
