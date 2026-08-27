@@ -9,6 +9,8 @@
 #include "instances/Script.h"
 #include <format>
 
+#include "AssetService.h"
+
 using namespace Nyanners::Services;
 using namespace Nyanners::Scripting::Scheduler;
 
@@ -55,7 +57,7 @@ void ScriptService::take_ownership_of_state(
 }
 
 std::shared_ptr<Nyanners::Instances::Script> ScriptService::load_script_file(const std::string &path) {
-	if (IOService::instance()->file_exists(path)) {
+	if (AssetService::instance()->asset_file_exists(path)) {
 		throw std::runtime_error("Script file does not exist");
 	}
 
@@ -87,12 +89,13 @@ void ScriptService::set_active_context(lua_State *context) {
 
 void ScriptService::run_autorun() {
 	const auto script = std::make_shared<Instances::Script>();
-	const auto io = IOService::instance();
+	const auto assets = AssetService::instance();
+	const auto scriptsService = Application::instance()->currentModel->get_service<ScriptService>("ScriptService");
 
 	try {
-		if (io->file_exists("assets/autorun.luau")) {
+		if (assets->asset_file_exists("assets/autorun.luau")) {
 			script->set_file("assets/autorun.luau");
-		} else if (io->file_exists("autorun.luau")) {
+		} else if (assets->asset_file_exists("autorun.luau")) {
 			script->set_file("autorun.luau");
 		} else {
 			throw std::runtime_error("autorun script does not exist");
@@ -102,9 +105,7 @@ void ScriptService::run_autorun() {
 		script->initialize_script();
 		script->run_script();
 
-		const auto instance = Application::instance()->currentModel->get_service<ScriptService>("ScriptService");
-		instance->add_child(script);
-
+		scriptsService->add_child(script);
 	} catch (std::runtime_error &e) {
 		throw std::runtime_error(std::format("Failed to run autorun.luau: {}", e.what()));
 	}

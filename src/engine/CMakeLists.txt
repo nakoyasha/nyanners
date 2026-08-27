@@ -9,6 +9,7 @@ set(LUAU_BUILD_TESTS false)
 set(SFML_BUILD_NETWORK false)
 set(LUAU_STATIC_CRT true)
 
+
 add_subdirectory(third_party/luau EXCLUDE_FROM_ALL)
 add_subdirectory(third_party/glfw EXCLUDE_FROM_ALL)
 add_subdirectory(third_party/sfml EXCLUDE_FROM_ALL)
@@ -45,6 +46,8 @@ add_library(Nyanners
         instances/services/EngineService.cpp
         instances/services/io/IOService.h
         instances/services/io/IOService.cpp
+        instances/services/AssetService.cpp
+        instances/services/AssetService.h
         instances/services/ReflectionService.h
         instances/services/ReflectionService.cpp
         instances/services/RenderingService.h
@@ -135,6 +138,7 @@ add_library(Nyanners
         debug/MainMenubar.cpp
         debug/MainMenubar.h
 
+
         scripting/reflections/ReflectionDescriptorRegistry.cpp
         scripting/reflections/ReflectionDescriptorRegistry.h
         scripting/reflections/ReflectionDescriptor.cpp
@@ -172,7 +176,9 @@ add_library(Nyanners
         debug/editor/ScriptEditor.cpp
         debug/editor/ScriptEditor.h
         instances/services/io/FileSystem.h
+        core/Aliases.h
 )
+target_compile_definitions(Nyanners PUBLIC INCLUDE_DEBUG_UI_SERVICE)
 
 add_library(
         Nyanners.ThirdParty
@@ -203,7 +209,6 @@ add_library(
 target_include_directories(Nyanners.ThirdParty.Miniaudio PUBLIC third_party/miniaudio)
 set_target_properties(Nyanners.ThirdParty.Miniaudio PROPERTIES LINKER_LANGUAGE CXX)
 
-
 find_package(Git REQUIRED)
 
 if (GIT_FOUND)
@@ -219,11 +224,38 @@ else()
     target_compile_definitions(Nyanners PRIVATE GIT_BRANCH=\"Unknown\")
 endif()
 
-
 target_include_directories(Nyanners.ThirdParty PUBLIC third_party/dear-imgui third_party/dear-imgui/misc/cpp/ third_party/dear-imgui/backends/ third_party/dear-imgui/misc/freetype/ third_party/stb/)
 target_include_directories(Nyanners PRIVATE third_party/glm/glm)
 
 target_link_options(Nyanners PRIVATE -static-libgcc -static-libstdc++)
 target_link_libraries(Nyanners Nyanners.ThirdParty Nyanners.ThirdParty.Glad Nyanners.ThirdParty.Miniaudio Luau.VM Luau.Require Luau.Compiler glfw SFML::Window stdc++exp glm::glm freetype fast_obj fast_obj_lib)
+
+
+#if (CMAKE_BUILD_TYPE STREQUAL "Debug")
+#    message("${CMAKE_BUILD_TYPE}")
+#    target_compile_definitions(Nyanners PUBLIC INCLUDE_DEBUG_UI_SERVICE=1)
+#    target_sources(
+#            Nyanners
+#            PUBLIC
+#            debug/DebugUIService.h
+#            debug/DebugUIService.cpp
+#            debug/DebugWindow.h
+#            debug/DebugWindow.cpp
+#            debug/FrameCounter.cpp
+#            debug/FrameCounter.h
+#
+#            debug/ExplorerPanel.cpp
+#            debug/ExplorerPanel.h
+#            debug/ViewportPanel.cpp
+#            debug/ViewportPanel.h
+#            debug/CommandBar.cpp
+#            debug/CommandBar.h
+#            debug/OutputPanel.cpp
+#            debug/OutputPanel.h
+#            debug/MainMenubar.cpp
+#            debug/MainMenubar.h
+#    )
+#endif()
+
 target_compile_definitions(Nyanners PRIVATE IMGUI_ENABLE_FREETYPE)
 target_include_directories(Nyanners PUBLIC .)

@@ -6,6 +6,7 @@
 #include "debug/MainMenubar.h"
 #include "debug/OutputPanel.h"
 #include "debug/ViewportPanel.h"
+#include "instances/services/AssetService.h"
 #include "instances/services/EngineService.h"
 #include "instances/services/RenderingService.h"
 #include "instances/services/RunService.h"
@@ -26,8 +27,10 @@ public:
 		m_Instance = this;
 		this->init_rendering({1280, 720}, "TestApp");
 		editorViewport = new Core::Rendering::Viewport();
-
+		AssetService::instance()->set_asset_root("examples/ccraft/");
+#ifdef INCLUDE_DEBUG_UI_SERVICE
 		this->debugUI = ServiceProvider::instance()->add_service<DebugUIService>();
+#endif
 		this->camera = std::make_shared<Instances::Camera>();
 
 		camera->name = "MainCamera";
@@ -40,7 +43,10 @@ protected:
 	void on_update() override;
 
 private:
+
+#ifdef INCLUDE_DEBUG_UI_SERVICE
 	std::shared_ptr<DebugUIService> debugUI;
+#endif
 };
 
 void TestApplication::start() {
@@ -65,7 +71,9 @@ void TestApplication::on_draw() const {
 		return;
 	}
 
+#ifdef INCLUDE_DEBUG_UI_SERVICE
 	debugUI->draw_imgui();
+#endif
 
 	if (!renderService->active) {
 		renderService->end_frame();

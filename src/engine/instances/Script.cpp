@@ -11,6 +11,7 @@
 #include <ranges>
 
 #include "scripting/reflections/ReflectionEnumRegistry.h"
+#include "services/AssetService.h"
 
 using namespace Nyanners::Instances;
 
@@ -23,6 +24,8 @@ namespace Nyanners::Scripting {
 		      std::string,
 		      &Script::get_file_path,
 		      &Script::set_file>("Path", String)
+	  		.add_method<&Script::set_file>("set_file", Null, {{"FilePath", String}})
+	  		.add_method<&Script::reload>("reload", Null, {})
 		    .add_constructor<Script>();
 	  });
 }
@@ -41,13 +44,14 @@ std::string Script::get_file_path() const {
 }
 
 void Script::set_file(const std::string &scriptPath) {
+	const auto asset = Services::AssetService::instance();
 	this->filePath = scriptPath;
 
-	if (!Services::IOService::instance()->file_exists(scriptPath)) {
+	if (!asset->asset_file_exists(scriptPath)) {
 		throw std::runtime_error("Attempt to load non-existent script file");
 	}
 
-	std::string newSource = Services::IOService::instance()->read_file(scriptPath);
+	std::string newSource = asset->read_file_from_assets(scriptPath);
 	this->set_source(newSource);
 }
 
