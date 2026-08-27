@@ -5,13 +5,13 @@ class TypeBuilderApplication : public Nyanners::Application {
 public:
 	TypeBuilderApplication() {
 		m_Instance = this;
-	};
+	}
 	void start() override;
 };
 
 void TypeBuilderApplication::start() {
 	Nyanners::Services::ScriptService::run_autorun();
-	// Application::start();
+	Application::start();
 	Application::shutdown();
 }
 
