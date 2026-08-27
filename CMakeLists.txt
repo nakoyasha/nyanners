@@ -16,5 +16,12 @@ add_custom_target(copy_assets ALL
         COMMENT "Copying resources directory to build directory"
 )
 
+add_custom_target(copy_examples ALL
+        COMMAND ${CMAKE_COMMAND} -E copy_directory
+        "${CMAKE_CURRENT_SOURCE_DIR}/examples"
+        "${CMAKE_BINARY_DIR}/examples"
+        COMMENT "Copying examples directory to build directory"
+)
+
 target_link_options(Nyanners.App PRIVATE -static-libgcc -static-libstdc++)
-add_dependencies(Nyanners.App copy_assets)
+add_dependencies(Nyanners.App copy_assets copy_examples)
