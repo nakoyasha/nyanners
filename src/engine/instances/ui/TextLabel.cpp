@@ -188,9 +188,10 @@ double TextLabel::get_text_size() const {
 	return this->textSize;
 }
 
+// this has to be double because Lua:tm:
 void TextLabel::set_text_size(double newTextSize) {
 	this->textSize = newTextSize;
-	this->font->fontHeight = newTextSize;
+	this->font->set_font_size(newTextSize);
 	calculate_text(this->text);
 }
 
@@ -220,6 +221,7 @@ void TextLabel::calculate_text(const std::string &newText) {
 			break;
 		}
 
+
 		const auto result = font->characters.find(iterator);
 
 		if (result == font->characters.end()) {
@@ -238,7 +240,7 @@ void TextLabel::calculate_text(const std::string &newText) {
 			continue;
 		}
 
-		if (iterator == ' ') {
+		if (std::isspace(iterator)) {
 			globalPositionX += static_cast<float>(character.advance >> 6) * textScale;
 			continue;
 		}

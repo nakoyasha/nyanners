@@ -27,6 +27,10 @@ namespace Nyanners::Resources {
 		std::map<char, DataTypes::Character> characters;
 
 		Font(const std::filesystem::path path);
+
+		void set_font_size(int newSize);
+
+
 		~Font() {
 			FT_Done_Face(fontFace);
 			FT_Done_FreeType(ft);
