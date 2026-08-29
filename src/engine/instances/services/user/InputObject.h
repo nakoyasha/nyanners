@@ -74,6 +74,7 @@ namespace Nyanners::Input {
 		Tab,
 		LeftShift,
 		RightShift,
+		Enter,
 
 		Mouse0,
 		Mouse1,

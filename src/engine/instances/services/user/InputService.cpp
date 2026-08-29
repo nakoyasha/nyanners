@@ -111,6 +111,8 @@ inline Input::KeyCode sfmlToUs(const sf::Keyboard::Key &key) {
 			return Input::KeyCode::Backspace;
 		case K::Grave:
 			return Input::KeyCode::Backquote;
+		case K::Enter:
+			return Input::KeyCode::Enter;
 
 		case K::F1:
 			return Input::KeyCode::F1;
@@ -198,6 +200,7 @@ inline sf::Keyboard::Key usToSFML(const Input::KeyCode& key) {
         case K::RightAlt:       return S::RAlt;
         case K::Backspace:  return S::Backspace;
         case K::Backquote:      return S::Grave;
+    	case K::Enter:      return S::Enter;
 
         // Function keys
         case K::F1: return S::F1;

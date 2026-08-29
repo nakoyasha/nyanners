@@ -61,6 +61,8 @@ namespace Nyanners::Scripting {
                 {"Nine", static_cast<int>(Input::KeyCode::Nine)},
                 {"Zero", static_cast<int>(Input::KeyCode::Zero)},
 
+
+
                 {"Backspace", static_cast<int>(Input::KeyCode::Backspace)},
                 {"Backquote", static_cast<int>(Input::KeyCode::Backquote)},
 
@@ -85,6 +87,7 @@ namespace Nyanners::Scripting {
                 {"Tab", static_cast<int>(Input::KeyCode::Tab)},
                 {"LeftShift", static_cast<int>(Input::KeyCode::LeftShift)},
                 {"RightShift", static_cast<int>(Input::KeyCode::RightShift)},
+				{"Enter", static_cast<int>(Input::KeyCode::Enter)},
 
                 {"Mouse0", static_cast<int>(Input::KeyCode::Mouse0)},
                 {"Mouse1", static_cast<int>(Input::KeyCode::Mouse1)},
