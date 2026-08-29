@@ -52,7 +52,7 @@ namespace Nyanners::Instances {
 			}
 
 			for (auto &child : children) {
-				if (child->name == className) {
+				if (child->baseName == className) {
 					peek.push_back(std::dynamic_pointer_cast<T>(child));
 				}
 			}
