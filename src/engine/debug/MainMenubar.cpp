@@ -5,6 +5,7 @@
 #include "core/Logger.h"
 #include "instances/services/EngineService.h"
 #include "instances/services/ReflectionService.h"
+#include "instances/services/RenderingService.h"
 #include "instances/services/SelectionService.h"
 #include "scripting/reflections/ReflectionDescriptorRegistry.h"
 #include "utils/ImGuiColor3.h"
@@ -117,7 +118,7 @@ void MainMenubar::draw() {
 		if (ImGui::BeginMenu("Switch main camera...")) {
 			for (auto &child : renderService->children) {
 				if (child->baseName != "Camera") continue;
-				auto camera = dynamic_pointer_cast<Instances::Camera>(child);
+				auto camera = dynamic_pointer_cast<Camera>(child);
 				auto isCurrentCamera =
 				  camera == Services::RenderingService::renderer->camera;
 

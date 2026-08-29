@@ -6,7 +6,7 @@
 namespace Nyanners::Resources {
 		class FrameBuffer {
 		public:
-			std::shared_ptr<Resources::Texture> framebufferTexture;
+			std::shared_ptr<Texture> framebufferTexture;
 			glm::vec2 size {};
 
 			FrameBuffer(const int width, const int height);

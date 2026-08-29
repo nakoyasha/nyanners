@@ -51,8 +51,8 @@ FrameBuffer::FrameBuffer(const int width, const int height) {
 	this->framebufferTexture->unuse();
 	GL_CHECK(glBindRenderbuffer(GL_RENDERBUFFER, 0));
 
-	size.x = width;
-	size.y = height;
+	size.x = normalizedWidth;
+	size.y = normalizedHeight;
 }
 
 FrameBuffer::~FrameBuffer() {
@@ -156,8 +156,8 @@ void FrameBuffer::construct_framebuffer(const int width, const int height) {
 	this->framebufferTexture->unuse();
 	GL_CHECK(glBindRenderbuffer(GL_RENDERBUFFER, 0));
 
-	size.x = width;
-	size.y = height;
+	size.x = normalizedWidth;
+	size.y = normalizedHeight;
 }
 
 void FrameBuffer::check_status() {

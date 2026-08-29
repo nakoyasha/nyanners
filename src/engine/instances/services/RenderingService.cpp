@@ -45,7 +45,7 @@ void RenderingService::initialize(DataTypes::Vector2 size, const std::optional<s
 	backend = withBackend;
 
 	renderer = Core::Renderer::create(window);
-	renderer->initialize();
+	renderer->initialize(size);
 }
 
 void RenderingService::start_frame() {

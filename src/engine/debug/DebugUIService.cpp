@@ -1,9 +1,14 @@
 #include "debug/DebugUIService.h"
 
 #include "Application.h"
+#include "CommandBar.h"
+#include "ExplorerPanel.h"
 #include "imgui.h"
 #include "imgui_freetype.h"
 #include "imgui_impl_opengl3.h"
+#include "MainMenubar.h"
+#include "OutputPanel.h"
+#include "ViewportPanel.h"
 #include "instances/drawable/Drawable.h"
 #include "instances/services/RenderingService.h"
 #include "instances/services/user/InputService.h"
@@ -140,9 +145,17 @@ DebugUIService::DebugUIService() : Instance("DebugUIService") {
 			renderWindows = !renderWindows;
 		}
 	});
+
+	debugViewport = new Core::Rendering::Viewport();
+	viewportFramebuffer = new Resources::FrameBuffer(1280, 720);
 }
 
 DebugUIService::~DebugUIService() {
+	if (viewportFramebuffer != nullptr) {
+		delete viewportFramebuffer;
+		viewportFramebuffer = nullptr;
+	}
+
 	if (!Application::instance()->is_rendering_enabled()) {
 		return;
 	}
@@ -157,6 +170,7 @@ void DebugUIService::draw_imgui() const {
 
 	ImGuiIO &io = ImGui::GetIO();
 	const auto size = RenderingService::renderer->get_window_size();
+	debugViewport->size = {size.x, size.y};
 
 	io.DisplaySize =
 	  ImVec2(static_cast<float>(size.x), static_cast<float>(size.y));
@@ -167,9 +181,10 @@ void DebugUIService::draw_imgui() const {
 	ImGui::DockSpaceOverViewport(
 	  0, ImGui::GetMainViewport(), ImGuiDockNodeFlags_PassthruCentralNode
 	);
+
 	if (renderWindows) {
 		for (const auto &child : children) {
-			const auto drawable = std::dynamic_pointer_cast<Instances::Drawable>(child);
+			const auto drawable = std::dynamic_pointer_cast<Drawable>(child);
 
 			if (drawable == nullptr) {
 				continue;
@@ -192,6 +207,22 @@ bool DebugUIService::get_demo_open() const {
 
 void DebugUIService::set_demo_open(const bool isOpened) {
 	this->demoWindowOpen = isOpened;
+}
+
+void DebugUIService::add_standard_elements(FrameBuffer *framebuffer) {
+	if (framebuffer == nullptr) {
+		framebuffer = viewportFramebuffer;
+	}
+	if (framebuffer == nullptr) {
+		framebuffer = new Resources::FrameBuffer(1280, 720);
+		viewportFramebuffer = framebuffer;
+	}
+
+	add_child(std::make_shared<Debug::UI::ExplorerPanel>());
+	add_child(std::make_shared<Debug::UI::ViewportPanel>(framebuffer, debugViewport));
+	add_child(std::make_shared<Debug::UI::CommandBar>());
+	add_child(std::make_shared<Debug::UI::OutputPanel>());
+	add_child(std::make_shared<Debug::UI::MainMenubar>());
 }
 
 void DebugUIService::on_frame_end() {

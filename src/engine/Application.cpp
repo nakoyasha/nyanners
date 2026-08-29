@@ -1,6 +1,9 @@
 #include "Application.h"
 
 #include "core/ServiceProvider.h"
+#ifdef INCLUDE_DEBUG_UI_SERVICE
+#include "debug/DebugUIService.h"
+#endif
 #include "instances/services/EngineService.h"
 #include "instances/services/RenderingService.h"
 #include "instances/services/RunService.h"
@@ -8,15 +11,11 @@
 #include "instances/services/SelectionService.h"
 #include "instances/services/SoundService.h"
 #include "instances/services/UIService.h"
+#include "instances/services/io/IOService.h"
 #include "instances/services/user/InputService.h"
 #include "instances/world/World.h"
 
 Nyanners::Application::Application() {
-	// reflectionService = std::make_shared<Services::ReflectionService>();
-	// soundService = std::make_shared<Services::SoundService>();
-	// runService = std::make_shared<Services::RunService>();
-	// engineService = std::make_shared<Services::EngineService>();
-
 	const auto provider = Services::ServiceProvider::instance();
 
 	provider->add_service<Services::ReflectionService>();
@@ -34,8 +33,22 @@ void Nyanners::Application::start() {
 
 	while (running) {
 		this->on_update();
-		if (has_rendering && Services::RenderingService::instance()->is_window_open()) {
+		if (has_rendering) {
+			const auto render = Services::RenderingService::instance();
+			if (!render->is_window_open()) {
+				return;
+			}
+
+			render->start_frame();
+
+			// ^ start_frame might involve the user closing the window
+			// therefore we stop here
+			if (!render->is_window_open()) {
+				return;
+			}
+
 			this->on_draw();
+			render->end_frame();
 		} else {
 			break;
 		}
@@ -55,7 +68,7 @@ void Nyanners::Application::shutdown() {
 	this->currentModel = nullptr;
 }
 
-void Nyanners::Application::set_datamodel(const std::shared_ptr<Instances::DataModel>& model) {
+void Nyanners::Application::set_datamodel(const std::shared_ptr<DataModel>& model) {
 	assert(model != nullptr);
 	const auto provider = Services::ServiceProvider::instance();
 	provider->get_service<Services::RunService>("RunService")->bind_model(model);
@@ -78,14 +91,19 @@ void Nyanners::Application::init_rendering(const DataTypes::Vector2 &size, const
 
 	// this should probably be handled better, but whatever...
 	this->currentModel->add_child(service);
+
+#ifdef INCLUDE_DEBUG_UI_SERVICE
+	const auto debug = provider->add_service<Services::DebugUIService>();
+	debug->add_standard_elements();
+#endif
 }
 
 bool Nyanners::Application::is_rendering_enabled() const {
 	return this->has_rendering;
 }
 
-std::shared_ptr<Nyanners::Instances::DataModel> Nyanners::Application::make_datamodel() {
-	const auto model = std::make_shared<Instances::DataModel>();
+std::shared_ptr<DataModel> Nyanners::Application::make_datamodel() {
+	const auto model = std::make_shared<DataModel>();
 
 	model->add_child(std::make_shared<Services::SelectionService>());
 	model->add_child(std::make_shared<Services::UIService>());
@@ -93,10 +111,66 @@ std::shared_ptr<Nyanners::Instances::DataModel> Nyanners::Application::make_data
 	model->add_child(std::make_shared<Services::ScriptService>());
 	model->add_child(std::make_shared<Services::IOService>());
 
-	// model->add_child(std::make_shared<Services::DebugUIService>());
-
-
 	return model;
+}
+
+void Nyanners::Application::on_update() {
+	const auto runService = Services::ServiceProvider::instance()->get_service<Services::RunService>("RunService");
+
+	if (has_rendering) {
+		const auto renderService = Services::RenderingService::instance();
+
+		// TODO: Decouple event polling from RenderingService, somehow? maybe? if possible at all even
+		while (const auto event = renderService->window->pollEvent()) {
+			if (!event.has_value()) {
+				continue;
+			}
+
+			// TODO: better way of doing this. idk
+			auto *value = &event.value();
+
+			Services::EngineService::handle_event(value);
+			renderService->handle_window_event(event);
+			if (renderService->window->hasFocus()) {
+				Services::InputService::instance()->handle_event(value);
+			}
+		}
+	}
+
+	runService->tick();
+}
+
+void Nyanners::Application::on_draw() const {
+	const auto world = currentModel->get_service<Services::World>("World");
+	const auto uiService = currentModel->get_service<Services::UIService>("UIService");
+	const auto renderService = Services::RenderingService::instance();
+
+#ifdef INCLUDE_DEBUG_UI_SERVICE
+	const auto debugUI = currentModel->get_service<Services::DebugUIService>("DebugUIService");
+	debugUI->draw_imgui();
+#endif
+
+	if (!renderService->active) {
+		renderService->end_frame();
+		return;
+	}
+
+#ifdef INCLUDE_DEBUG_UI_SERVICE
+	if (debugUI->renderWindows) {
+		renderService->renderer->set_viewport(debugUI->debugViewport);
+		if (debugUI->viewportFramebuffer != nullptr) {
+			debugUI->viewportFramebuffer->clear();
+			Services::RenderingService::renderer->render_from(world, nullptr, debugUI->viewportFramebuffer);
+			Services::RenderingService::renderer->render_from(uiService, nullptr, debugUI->viewportFramebuffer);
+		}
+	} else {
+#endif
+		Services::RenderingService::renderer->reset_viewport();
+		Services::RenderingService::renderer->render_from(world, nullptr, nullptr);
+		Services::RenderingService::renderer->render_from(uiService, nullptr, nullptr);
+#ifdef INCLUDE_DEBUG_UI_SERVICE
+	}
+#endif
 }
 
 Nyanners::Application::~Application() {

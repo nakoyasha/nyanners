@@ -17,7 +17,7 @@ ExplorerPanel::ExplorerPanel() : Instance("ExplorerPanel") {
 	  activeDm->get_service<SelectionService>("SelectionService");
 
 	Application::instance()->onDataModelSwitch.connect(
-	  [this](const std::shared_ptr<Instances::DataModel> &newDM) {
+	  [this](const std::shared_ptr<DataModel> &newDM) {
 		  this->activeDm = newDM;
 		  this->selectionService =
 		    newDM->get_service<SelectionService>("SelectionService");

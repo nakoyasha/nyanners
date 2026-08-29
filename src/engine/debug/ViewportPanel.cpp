@@ -2,6 +2,7 @@
 #include "Application.h"
 #include "imgui.h"
 #include "core/Logger.h"
+#include "instances/services/RenderingService.h"
 
 using namespace Nyanners::Debug::UI;
 
@@ -14,15 +15,22 @@ void ViewportPanel::draw() {
 	const auto& frameBufferSize = framebuffer->size;
 	ImGui::Begin(std::format("Viewport ({}, {})###Viewport", frameBufferSize.x, frameBufferSize.y).c_str());
 
-	const float window_width = ImGui::GetContentRegionAvail().x;
-	const float window_height = ImGui::GetContentRegionAvail().y;
-
+	const auto window_width = std::max(1.0f, ImGui::GetContentRegionAvail().x);
+	const auto window_height = std::max(1.0f, ImGui::GetContentRegionAvail().y);
 	const auto& windowPosition = ImGui::GetCursorScreenPos();
 
-	glViewport(0, 0, window_width, window_height);
-	framebuffer->resize(window_width, window_height);
-	viewport->size = {window_width, window_height};
-	viewport->position = {windowPosition.x, windowPosition.y};
+	if (framebuffer != Services::RenderingService::renderer->defaultFramebuffer) {
+		framebuffer->resize(static_cast<int>(window_width), static_cast<int>(window_height));
+	}
+
+	viewport->size = {
+		static_cast<int>(window_width),
+		static_cast<int>(window_height)
+	};
+	viewport->position = {
+		static_cast<int>(windowPosition.x),
+		static_cast<int>(windowPosition.y)
+	};
 
 	ImGui::GetWindowDrawList()->AddImage(
 		framebuffer->get_texture_id(),

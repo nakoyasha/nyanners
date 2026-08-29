@@ -3,7 +3,7 @@
 #include "instances/services/RenderingService.h"
 
 namespace Nyanners::Debug::UI {
-	class ViewportPanel : public Instances::DebugWindow {
+	class ViewportPanel : public DebugWindow {
 	public:
 		ViewportPanel(Resources::FrameBuffer* newFrameBuffer, Core::Rendering::Viewport* newViewport);
 		void draw() override;

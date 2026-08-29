@@ -39,7 +39,9 @@ namespace Nyanners::Core {
 		Rendering::Viewport* currentViewport {};
 		Resources::FrameBuffer* framebuffer = nullptr;
 
-		std::shared_ptr<Instances::Camera> camera;
+		Resources::FrameBuffer* defaultFramebuffer {};
+
+		std::shared_ptr<Camera> camera;
 		glm::mat4 projection2D = glm::ortho(0.0f, 800.0f, 0.0f, 600.0f);
 		sf::Window* currentWindow;
 
@@ -48,16 +50,16 @@ namespace Nyanners::Core {
 			.transparent = {}
 		};
 
-		virtual void initialize() = 0;
+		virtual void initialize(DataTypes::Vector2 size) = 0;
 		virtual void start_frame() = 0;
 		virtual void clear() = 0;
 		virtual void render(const std::shared_ptr<Instances::Instance> &instanceToRender) = 0;
-		virtual void render_from(const std::shared_ptr<Instances::Instance> &root, std::shared_ptr<Instances::Camera> camera, Resources::FrameBuffer* framebuffer) = 0;
-		virtual void set_current_camera(std::shared_ptr<Instances::Camera> newCamera) {
+		virtual void render_from(const std::shared_ptr<Instances::Instance> &root, std::shared_ptr<Camera> camera, Resources::FrameBuffer* framebuffer) = 0;
+		virtual void set_current_camera(std::shared_ptr<Camera> newCamera) {
 			camera = std::move(newCamera);
 		}
 		virtual void bind_framebuffer(Resources::FrameBuffer* newFrameBuffer) = 0;
-		virtual void calculate_projection(const DataTypes::Vector2& size, std::shared_ptr<Instances::Camera> camera) = 0;
+		virtual void calculate_projection(const DataTypes::Vector2& size, std::shared_ptr<Camera> camera) = 0;
 		virtual void unbind_framebuffer() = 0;
 		virtual void render_mesh(const Resources::Material* material, const Resources::Mesh* mesh, const glm::mat4& transform) = 0;
 		virtual void render_mesh(const Resources::Material* material, const Resources::Mesh* mesh) {

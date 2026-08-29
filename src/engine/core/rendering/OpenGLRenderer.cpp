@@ -18,7 +18,7 @@ OpenGLRenderer::~OpenGLRenderer() {
 	OpenGLRenderer::shutdown();
 }
 
-void OpenGLRenderer::initialize() {
+void OpenGLRenderer::initialize(DataTypes::Vector2 size) {
 	if (!currentWindow->setActive(true)) {
 		throw std::runtime_error("OpenGL initialization failed");
 	};
@@ -40,6 +40,9 @@ void OpenGLRenderer::initialize() {
 	    reinterpret_cast<const char *>(profile)
 	  )
 	);
+
+	defaultFramebuffer = new Resources::FrameBuffer(size.x, size.y);
+	// framebuffer = defaultFramebuffer;
 
 	ImGui::CreateContext();
 	ImGui::StyleColorsDark();
@@ -82,7 +85,7 @@ void OpenGLRenderer::start_frame() {
 	const auto& windowPosition = get_window_position();
 
 	defaultViewport.size = {windowSize.x, windowSize.y};
-	defaultViewport.position = {0, 0};
+	defaultViewport.position = {windowPosition.x, windowPosition.y};
 
 	clear();
 }
@@ -131,18 +134,18 @@ void OpenGLRenderer::render_from(
 	if (const auto cCam = activeCamera.lock(); framebuffer != nullptr) {
 		bind_framebuffer(framebuffer);
 
-		// resize as this will be a rendertarget
 		if (cCam == this->camera) {
 			cCam->resolution = framebuffer->size;
 		} else {
 			framebuffer->resize(cCam->resolution.x, cCam->resolution.y);
 		}
+		calculate_projection({framebuffer->size.x, framebuffer->size.y}, cCam);
 	} else {
 		cCam->resolution = glm::vec2(windowSize.x, windowSize.y);
+		calculate_projection(windowSize, cCam);
 	}
 
 	if (const auto usedCamera = activeCamera.lock()) {
-		calculate_projection(get_window_size(), activeCamera.lock());
 
 		for (const auto &child : root->renderableChildren) {
 			// TODO: optimize this somehow. idk a better way to do this
@@ -181,11 +184,14 @@ void OpenGLRenderer::bind_framebuffer(Resources::FrameBuffer *newFrameBuffer) {
 void OpenGLRenderer::unbind_framebuffer() {
 	if (this->framebuffer != nullptr) {
 		this->framebuffer->release();
-		this->framebuffer = nullptr;
 	}
 
+	this->framebuffer = nullptr;
+
 	const auto size = this->get_window_size();
-	GL_CHECK(glViewport(0, 0, size.x, size.y));
+	const auto width = std::max(1, static_cast<int>(size.x));
+	const auto height = std::max(1, static_cast<int>(size.y));
+	GL_CHECK(glViewport(0, 0, width, height));
 }
 
 void OpenGLRenderer::calculate_projection(const DataTypes::Vector2 &size, const std::shared_ptr<Instances::Camera> camera) {
@@ -393,10 +399,10 @@ void OpenGLRenderer::shutdown() {
 }
 
 Nyanners::DataTypes::Vector2 OpenGLRenderer::get_window_size() {
-	if (this->framebuffer != nullptr) {
-		auto size = this->framebuffer->size;
-		return DataTypes::Vector2(size.x, size.y);
-	}
+	// if (this->framebuffer != nullptr) {
+	// 	auto size = this->framebuffer->size;
+	// 	return DataTypes::Vector2(size.x, size.y);
+	// }
 
 	const auto size = this->currentWindow->getSize();
 	return {size.x, size.y};

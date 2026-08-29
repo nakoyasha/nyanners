@@ -8,15 +8,15 @@ namespace Nyanners::Core {
 			OpenGLRenderer(sf::Window* window);
 			~OpenGLRenderer() override;
 
-			void initialize() override;
+			void initialize(DataTypes::Vector2 size) override;
 			void start_frame() override;
 			void clear() override;
 			void render(const std::shared_ptr<Instances::Instance> &instanceToRender) override;
-			void render_from(const std::shared_ptr<Instances::Instance> &root, std::shared_ptr<Instances::Camera> camera, Resources::FrameBuffer* framebuffer) override;
+			void render_from(const std::shared_ptr<Instances::Instance> &root, std::shared_ptr<Camera> camera, Resources::FrameBuffer* framebuffer) override;
 			void bind_framebuffer(Resources::FrameBuffer* newFrameBuffer) override;
 			void unbind_framebuffer() override;
-			void calculate_projection(const DataTypes::Vector2& size, std::shared_ptr<Instances::Camera> camera) override;
-			void set_renderer_feature(Rendering::RendererFeature feature, bool enabled);
+			void calculate_projection(const DataTypes::Vector2& size, std::shared_ptr<Camera> camera) override;
+			void set_renderer_feature(Rendering::RendererFeature feature, bool enabled) override;
 			void render_mesh(const Resources::Material* material, const Resources::Mesh* mesh, const glm::mat4& transform) override;
 			void render_mesh(const Resources::Material* material, const Resources::Mesh* mesh) override;
 			void render_quad(Resources::Material* material, const glm::vec2& position, const glm::vec2& size) override;
