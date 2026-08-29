@@ -11,7 +11,7 @@ namespace Nyanners::Scripting {
 			{"GeometryOpaque", static_cast<int>(ShaderStage::GeometryOpaque)},
 			{"GeometryTransparent", static_cast<int>(ShaderStage::GeometryTransparent)},
 			{"Lighting", static_cast<int>(ShaderStage::Lighting)},
-			{"PostProcessing", static_cast<int>(ShaderStage::UI)},
+			{"UI", static_cast<int>(ShaderStage::UI)},
 			{"PostLighting", static_cast<int>(ShaderStage::PostLighting)},
 			{"PostProcessing", static_cast<int>(ShaderStage::PostProcessing)},
 		});
