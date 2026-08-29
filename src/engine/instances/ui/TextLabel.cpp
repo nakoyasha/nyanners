@@ -22,6 +22,11 @@ namespace Nyanners::Instances {
 		      std::string,
 		      &TextLabel::get_text,
 		      &TextLabel::set_text>("Text", String)
+		.add_property_chained<
+			  TextLabel,
+			  double,
+			  &TextLabel::get_text_size,
+			  &TextLabel::set_text_size>("TextSize", Number)
 		    .add_property_chained<
 		      TextLabel,
 		      DataTypes::Color3,
@@ -40,17 +45,12 @@ TextLabel::TextLabel() : Instance("TextLabel") {
 	font = new Resources::Font("assets/fonts/arial.ttf");
 	shadowMaterial = Resources::Material::create();
 
-	material->shader->load_from_file(
-	  "assets/shaders/textVert.glsl", "assets/shaders/textFrag.glsl"
-	);
+	material->shader = Services::RenderingService::instance()->create_shader( "assets/shaders/textVert.glsl", "assets/shaders/textFrag.glsl");
 	material->shader->use();
 	material->shader->setInt("uTexture", 0);
+	material->shader->stage = Resources::ShaderStage::UI;
 
-	shadowMaterial->shader->load_from_file(
-		"assets/shaders/textVert.glsl", "assets/shaders/textFrag.glsl"
-	);
-	shadowMaterial->shader->use();
-	material->shader->setInt("uTexture", 0);
+	shadowMaterial->shader = material->shader;
 	shadowMaterial->set_color(shadowColor);
 	shadowMaterial->release();
 
@@ -182,6 +182,16 @@ void TextLabel::set_draw_shadow(bool shouldDraw) {
 
 bool TextLabel::get_draw_shadow() const {
 	return this->drawShadow;
+}
+
+double TextLabel::get_text_size() const {
+	return this->textSize;
+}
+
+void TextLabel::set_text_size(double newTextSize) {
+	this->textSize = newTextSize;
+	this->font->fontHeight = newTextSize;
+	calculate_text(this->text);
 }
 
 void TextLabel::update(float deltaTime) {

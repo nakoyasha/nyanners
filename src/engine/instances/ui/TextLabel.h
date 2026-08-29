@@ -17,6 +17,7 @@ namespace Nyanners::Instances {
   class TextLabel : public UIElement {
   public:
     int maxVisibleGlyph = -1;
+  	int textSize = 48;
   	bool useWorldSpace = false;
   	bool drawShadow = false;
 
@@ -38,6 +39,9 @@ namespace Nyanners::Instances {
   	void set_shadow_color(const DataTypes::Color3 &newColor);
   	void set_draw_shadow(bool shouldDraw);
   	bool get_draw_shadow() const;
+
+    double get_text_size() const;
+  	void set_text_size(double newTextSize);
 
   	void update(float deltaTime) override;
   private:
