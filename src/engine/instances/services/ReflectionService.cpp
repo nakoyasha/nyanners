@@ -633,29 +633,28 @@ void ReflectionService::register_reflections() {
 			.add_method<&Instance::clone>("clone", ReflectionPropertyType::Instance, {})
 			.add_method<Instance, &Instance::destroy_lua>("destroy", Null);
 	create_descriptor("DataModel", {"Instance"}, {ReflectionInstanceFlags::Service})
-			.add_method<Instances::DataModel, &Instances::DataModel::get_service_lua>("get_service", ReflectionPropertyType::Instance)
+			.add_method<DataModel, &DataModel::get_service_lua>("get_service", ReflectionPropertyType::Instance)
 			.add_method_anon("shutdown",[](Object*, lua_State*) -> int {
 				Application::instance()->shutdown();
 				return 0;
 			},Null);
 	create_descriptor("Transformable", {"Instance"}, {ReflectionInstanceFlags::NotCreatable})
-			.add_property_chained<Instances::Transformable, glm::vec3, &Instances::Transformable::get_position, &Instances::Drawable::set_position>("Position", Vector3)
-			.add_property_chained<Instances::Transformable, glm::vec3, &Instances::Transformable::get_rotation, &Instances::Drawable::set_rotation>("Rotation", Vector3)
-			.add_property_chained<Instances::Transformable, glm::vec3, &Instances::Transformable::get_scale, &Instances::Drawable::set_scale>("Scale", Vector3);
+			.add_property_chained<Transformable, glm::vec3, &Transformable::get_position, &Drawable::set_position>("Position", Vector3)
+			.add_property_chained<Transformable, glm::vec3, &Transformable::get_rotation, &Drawable::set_rotation>("Rotation", Vector3)
+			.add_property_chained<Transformable, glm::vec3, &Transformable::get_scale, &Drawable::set_scale>("Scale", Vector3);
 
 	create_descriptor("MeshPart", {"Transformable"})
-			.add_method<&Instances::MeshPart::load_from_obj_file>("load_from_file", Null, {{"ModelPath", String}})
-			.add_constructor<Instances::MeshPart>();
+			.add_method<&MeshPart::load_from_obj_file>("load_from_file", Null, {{"ModelPath", String}})
+			.add_constructor<MeshPart>();
 	create_descriptor("RenderingService",{"Instance"},{ReflectionInstanceFlags::NotCreatable, ReflectionInstanceFlags::Service})
 			.add_property_chained<RenderingService, double, &RenderingService::get_fps>("FPS", Number)
 			.add_property_chained<RenderingService, glm::vec2, &RenderingService::get_window_size>("ViewportSize", Vector2)
 			.add_method<&RenderingService::set_window_title>("set_window_title", Null, {});
 	create_descriptor("RunService", {"Instance"}, {ReflectionInstanceFlags::NotCreatable, ReflectionInstanceFlags::Service})
-			.add_property<RunService, Ref<Instances::SignalBase>, &RunService::get_on_tick>("Tick", ReflectionPropertyType::Instance);
-
+			.add_property<RunService, Ref<SignalBase>, &RunService::get_on_tick>("Tick", ReflectionPropertyType::Instance);
 	create_descriptor("Signal", {"Instance"})
-			.add_method<&Instances::SignalBase::connectLua>("Connect", Unknown, {{"Arguments", Anything}});
-	Instances::link_basic_containers();
+			.add_method<&SignalBase::connectLua>("Connect", Unknown, {{"Arguments", Anything}});
+	link_basic_containers();
 	ReflectionDescriptorRegistry::instance()->flush_registrators();
 	// parents have to be done separately, to ensure all descriptors are registered
 	// as otherwise this creates cases where e.g, Button has Drawable as a parent, but because Drawable is after Button, Button gets a "invalid parent" error.
