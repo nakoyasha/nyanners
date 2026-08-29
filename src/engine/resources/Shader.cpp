@@ -11,11 +11,12 @@ namespace Nyanners::Scripting {
 			{"GeometryOpaque", static_cast<int>(ShaderStage::GeometryOpaque)},
 			{"GeometryTransparent", static_cast<int>(ShaderStage::GeometryTransparent)},
 			{"Lighting", static_cast<int>(ShaderStage::Lighting)},
+			{"PostProcessing", static_cast<int>(ShaderStage::UI)},
 			{"PostLighting", static_cast<int>(ShaderStage::PostLighting)},
 			{"PostProcessing", static_cast<int>(ShaderStage::PostProcessing)},
 		});
 
-			Services::ReflectionService::create_descriptor("Shader", {"Object"})
+		Services::ReflectionService::create_descriptor("Shader", {"Object"})
 			.add_constructor<Shader>()
 			.add_enum_property_chained<Shader, ShaderStage, &Shader::get_shader_stage, &Shader::set_shader_stage>("RunStage", "ShaderStage")
 			.add_method<&Shader::compile>(

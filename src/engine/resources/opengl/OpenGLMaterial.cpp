@@ -1,13 +1,14 @@
 #include "OpenGLMaterial.h"
+
+#include "instances/services/RenderingService.h"
 #include "utils/glCheck.h"
 
 using namespace Nyanners::Resources::OpenGL;
 
 OpenGLMaterial::OpenGLMaterial() {
 	// TODO: swap out shader for Shader::create()
-	shader = new Shader();
-	texture = Texture::create(TextureType::Texture2D);
-	shader->load_from_file("assets/shaders/vertex.glsl", "assets/shaders/frag.glsl");
+	shader = Services::RenderingService::instance()->create_shader("assets/shaders/vertex.glsl", "assets/shaders/frag.glsl");
+	texture = Texture::create(Texture2D);
 
 	shader->use();
 	shader->setInt("uTexture", 0);
@@ -48,9 +49,9 @@ void OpenGLMaterial::set_texture(const std::filesystem::path &newTexturePath) {
 	shader->setBool("uTextureSet", true);
 }
 
-void OpenGLMaterial::set_shader(Resources::Shader *newShader) {
+void OpenGLMaterial::set_shader(Ref<Shader> newShader) {
 	shader->release();
-	delete shader;
+	newShader.reset();
 	shader = newShader;
 }
 

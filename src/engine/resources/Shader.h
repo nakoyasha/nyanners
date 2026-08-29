@@ -11,8 +11,9 @@ namespace Nyanners::Resources {
 		GeometryOpaque = 0,
 		GeometryTransparent = 1,
 		Lighting = 2,
-		PostLighting = 3,
-		PostProcessing = 4,
+		UI = 3,
+		PostLighting = 4,
+		PostProcessing = 5,
 	};
 
 	class Shader : public Instances::Instance {
@@ -21,6 +22,8 @@ namespace Nyanners::Resources {
 		~Shader();
 
 		ShaderStage stage;
+		std::filesystem::path vertexPath;
+		std::filesystem::path fragmentPath;
 
 		void use();
 		void release() const;
@@ -43,8 +46,7 @@ namespace Nyanners::Resources {
 
 	private:
 		GLuint shaderId = 0xDEADBEEF;
-		std::filesystem::path vertexPath;
-		std::filesystem::path fragmentPath;
+
 
 		bool shaderCompiled = false;
 	};

@@ -61,6 +61,7 @@ namespace Nyanners::Services {
         void start_frame();
 
         static Resources::Shader create_default_shader();
+        std::shared_ptr<Resources::Shader> create_shader(const std::filesystem::path& vertex, const std::filesystem::path& fragment);
 
         void end_frame();
 

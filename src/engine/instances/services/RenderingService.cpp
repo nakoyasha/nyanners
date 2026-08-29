@@ -71,6 +71,22 @@ Nyanners::Resources::Shader RenderingService::create_default_shader() {
 	return shader;
 }
 
+std::shared_ptr<Nyanners::Resources::Shader> RenderingService::create_shader(const std::filesystem::path &vertex, const std::filesystem::path &fragment) {
+	for (const auto& child : peek_at<Resources::Shader>("Shader")) {
+		const auto shader = child.lock();
+
+		if (shader->vertexPath == vertex && shader->fragmentPath == fragment) {
+			return shader;
+		}
+	}
+
+	auto shader = std::make_shared<Resources::Shader>();
+	shader->load_from_file(vertex, fragment);
+	add_child(shader);
+
+	return shader;
+}
+
 void RenderingService::set_window_title(const std::string &newWindowTitle
 ) const {
 	// glfwSetWindowTitle(window, newWindowTitle.c_str());
