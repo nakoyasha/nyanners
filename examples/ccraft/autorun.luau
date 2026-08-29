@@ -28,7 +28,7 @@ local filesystem = {
 	},
 }
 local MAX_LINE_COUNT = 10
-local TEXT_SIZE = 48
+local TEXT_SIZE = 24
 
 local currentLocation = "/"
 local InputBox = Instance.new("TextLabel")
