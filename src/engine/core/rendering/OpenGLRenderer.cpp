@@ -5,6 +5,7 @@
 #include "core/Logger.h"
 #include "glad/glad.h"
 #include "instances/drawable/MeshPart.h"
+#include "instances/services/EngineService.h"
 #include "utils/glCheck.h"
 
 using namespace Nyanners::Core;
@@ -169,6 +170,27 @@ void OpenGLRenderer::render_from(
 
 
 	unbind_framebuffer();
+}
+
+void OpenGLRenderer::render_post_process(Resources::FrameBuffer *source, std::shared_ptr<Resources::Shader> shader) {
+	if (source == nullptr || shader == nullptr) {
+		Services::EngineService::panic("render_post_processs called with either invalid framebuffer or shader");
+		return;
+	}
+
+	disable_depth_buffer();
+	shader->use();
+	shader->setInt("uSceneTexture", 0);
+	glActiveTexture(GL_TEXTURE0);
+	source->framebufferTexture->use();
+
+	quadMesh->bind();
+	GL_CHECK(glDrawArrays(GL_TRIANGLES, 0, 6));
+	quadMesh->unbind();
+
+	source->framebufferTexture->unuse();
+	shader->release();
+	enable_depth_buffer();
 }
 
 void OpenGLRenderer::bind_framebuffer(Resources::FrameBuffer *newFrameBuffer) {

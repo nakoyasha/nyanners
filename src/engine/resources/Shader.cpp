@@ -21,6 +21,9 @@ namespace Nyanners::Scripting {
 			.add_enum_property_chained<Shader, ShaderStage, &Shader::get_shader_stage, &Shader::set_shader_stage>("RunStage", "ShaderStage")
 			.add_method<&Shader::compile>(
 				"compile", Null, {{"forceCompile", Boolean}}
+			)
+			.add_method<&Shader::setFloat>(
+				"set_float", Null, {{"float", Number}}
 			);
 	});
 }

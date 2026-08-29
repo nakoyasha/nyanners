@@ -28,7 +28,12 @@ Nyanners::Application::Application() {
 	Application::set_datamodel(make_datamodel());
 }
 
+Nyanners::Application::~Application() {
+	this->Application::shutdown();
+}
+
 void Nyanners::Application::start() {
+	auto run = this->currentModel->get_service<Services::RunService>("RunService");
 	running = true;
 
 	while (running) {
@@ -39,6 +44,7 @@ void Nyanners::Application::start() {
 				return;
 			}
 
+			run->preRender->fire(render->deltaTime);
 			render->start_frame();
 
 			// ^ start_frame might involve the user closing the window
@@ -48,6 +54,7 @@ void Nyanners::Application::start() {
 			}
 
 			this->on_draw();
+			run->onRender->fire(render->deltaTime);
 			render->end_frame();
 		} else {
 			break;
@@ -151,28 +158,31 @@ void Nyanners::Application::on_draw() const {
 #endif
 
 	if (!renderService->active) {
-		renderService->end_frame();
 		return;
 	}
 
 #ifdef INCLUDE_DEBUG_UI_SERVICE
+	auto framebuffer = renderService->renderer->defaultFramebuffer;
+	auto viewport = renderService->renderer->currentViewport;
+
 	if (debugUI->renderWindows) {
-		renderService->renderer->set_viewport(debugUI->debugViewport);
-		if (debugUI->viewportFramebuffer != nullptr) {
-			debugUI->viewportFramebuffer->clear();
-			Services::RenderingService::renderer->render_from(world, nullptr, debugUI->viewportFramebuffer);
-			Services::RenderingService::renderer->render_from(uiService, nullptr, debugUI->viewportFramebuffer);
-		}
-	} else {
-#endif
-		Services::RenderingService::renderer->reset_viewport();
-		Services::RenderingService::renderer->render_from(world, nullptr, nullptr);
-		Services::RenderingService::renderer->render_from(uiService, nullptr, nullptr);
-#ifdef INCLUDE_DEBUG_UI_SERVICE
+		framebuffer = debugUI->viewportFramebuffer;
+		viewport = debugUI->debugViewport;
 	}
 #endif
-}
 
-Nyanners::Application::~Application() {
-	this->Application::shutdown();
+	// 	auto size = renderService->renderer->get_window_size();
+	// renderService->renderer->bind_framebuffer(renderService->renderer->defaultFramebuffer);
+	// renderService->renderer->clear();
+
+	renderService->renderer->set_viewport(viewport);
+	renderService->renderer->bind_framebuffer(framebuffer);
+	renderService->renderer->clear();
+
+	renderService->renderer->render_from(world, nullptr, framebuffer);
+	renderService->renderer->render_from(uiService, nullptr, framebuffer);
+	renderService->renderer->render_post_process(framebuffer, renderService->postProcessShader);
+
+	renderService->renderer->unbind_framebuffer();
+	renderService->renderer->reset_viewport();
 }

@@ -24,6 +24,7 @@ namespace Nyanners::Services
         RunService() : Instance("RunService")
         {
           preRender = std::make_shared<Instances::Signal<float>>();
+            onRender = std::make_shared<Instances::Signal<float>>();
           onTick = std::make_shared<Instances::Signal<float>>();
           onStop = std::make_shared<Instances::Signal<>>();
         };
@@ -35,6 +36,7 @@ namespace Nyanners::Services
         void tick();
 
         std::shared_ptr<Instances::SignalBase> get_on_tick() const;
+        std::shared_ptr<Instances::SignalBase> get_on_render() const;
 
     private:
         std::shared_ptr<Instances::DataModel> model;

@@ -13,6 +13,7 @@ namespace Nyanners::Core {
 			void clear() override;
 			void render(const std::shared_ptr<Instances::Instance> &instanceToRender) override;
 			void render_from(const std::shared_ptr<Instances::Instance> &root, std::shared_ptr<Camera> camera, Resources::FrameBuffer* framebuffer) override;
+			void render_post_process(Resources::FrameBuffer* source, std::shared_ptr<Resources::Shader> shader) override;
 			void bind_framebuffer(Resources::FrameBuffer* newFrameBuffer) override;
 			void unbind_framebuffer() override;
 			void calculate_projection(const DataTypes::Vector2& size, std::shared_ptr<Camera> camera) override;

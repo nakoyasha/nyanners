@@ -2,6 +2,9 @@ local RenderingService = DataModel:get_service("RenderingService")
 local InputService = DataModel:get_service("InputService")
 RenderingService:set_window_title("trash computercraft")
 
+local postProcessShader = RenderingService:create_shader("assets/shaders/post/post.vert.glsl", "assets/shaders/post/crt/crtPost.frag.glsl")
+RenderingService:set_post_process_shader(postProcessShader)
+
 local LayerCollector = Instance.new("LayerCollector")
 LayerCollector.Parent = DataModel.UIService
 
@@ -163,6 +166,10 @@ local function process_command(text: string)
 		line_add("Invalid command.")
 	end
 end
+
+DataModel.RunService.OnRender:Connect(function()
+	postProcessShader:set_float("iTime", os.clock())
+end)
 
 DataModel.RunService.Tick:Connect(function()
 	-- print(os.clock() - timeSinceLastTick)

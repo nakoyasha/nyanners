@@ -649,9 +649,13 @@ void ReflectionService::register_reflections() {
 	create_descriptor("RenderingService",{"Instance"},{ReflectionInstanceFlags::NotCreatable, ReflectionInstanceFlags::Service})
 			.add_property_chained<RenderingService, double, &RenderingService::get_fps>("FPS", Number)
 			.add_property_chained<RenderingService, glm::vec2, &RenderingService::get_window_size>("ViewportSize", Vector2)
-			.add_method<&RenderingService::set_window_title>("set_window_title", Null, {});
+			.add_method<&RenderingService::set_window_title>("set_window_title", Null, {})
+			.add_method<&RenderingService::create_shader>("create_shader", ReflectionPropertyType::Instance, {{"VertexPath", String}, {"FragmentPath", String}})
+			.add_method<&RenderingService::set_post_process_shader>("set_post_process_shader", Null, {{"Shader", ReflectionPropertyType::Instance}})
+			.add_method<&RenderingService::clear_post_process_shader>("clear_post_process_shader", Null, {});
 	create_descriptor("RunService", {"Instance"}, {ReflectionInstanceFlags::NotCreatable, ReflectionInstanceFlags::Service})
-			.add_property<RunService, Ref<SignalBase>, &RunService::get_on_tick>("Tick", ReflectionPropertyType::Instance);
+			.add_property_chained<RunService, Ref<SignalBase>, &RunService::get_on_tick>("Tick", ReflectionPropertyType::Instance)
+			.add_property_chained<RunService, Ref<SignalBase>, &RunService::get_on_render>("OnRender", ReflectionPropertyType::Instance);
 	create_descriptor("Signal", {"Instance"})
 			.add_method<&SignalBase::connectLua>("Connect", Unknown, {{"Arguments", Anything}});
 	link_basic_containers();

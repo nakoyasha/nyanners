@@ -6,7 +6,7 @@
 #include <memory>
 
 namespace Nyanners {
-  class Application : Services::Service<Application> {
+  class Application {
   public:
     Ref<DataModel> currentModel;
     Signal<Ref<DataModel>> onDataModelSwitch;

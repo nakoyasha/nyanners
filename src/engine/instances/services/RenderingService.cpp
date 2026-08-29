@@ -87,6 +87,14 @@ std::shared_ptr<Nyanners::Resources::Shader> RenderingService::create_shader(con
 	return shader;
 }
 
+void RenderingService::set_post_process_shader(const std::shared_ptr<Resources::Shader> &shader) {
+	this->postProcessShader = shader;
+}
+
+void RenderingService::clear_post_process_shader() {
+	this->postProcessShader.reset();
+}
+
 void RenderingService::set_window_title(const std::string &newWindowTitle
 ) const {
 	// glfwSetWindowTitle(window, newWindowTitle.c_str());

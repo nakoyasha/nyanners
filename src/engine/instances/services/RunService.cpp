@@ -36,7 +36,7 @@ void RunService::tick()
 	startClock.reset();
 	startClock.start();
 
-	this->preRender->fire(deltaTime);
+	this->onTick->fire(deltaTime);
 		// renderService->start_frame();
 
 		// ^ start_frame might involve the user closing the window
@@ -54,6 +54,10 @@ void RunService::tick()
     model->update(deltaTime);
 }
 
-std::shared_ptr<Nyanners::Instances::SignalBase> RunService::get_on_tick() const {
+std::shared_ptr<SignalBase> RunService::get_on_tick() const {
 	return this->preRender;
+}
+
+std::shared_ptr<SignalBase> RunService::get_on_render() const {
+	return this->onRender;
 }
