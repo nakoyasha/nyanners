@@ -87,12 +87,25 @@ std::shared_ptr<Nyanners::Resources::Shader> RenderingService::create_shader(con
 	return shader;
 }
 
-void RenderingService::set_post_process_shader(const std::shared_ptr<Resources::Shader> &shader) {
-	this->postProcessShader = shader;
+void RenderingService::add_post_process_shader(const Ref<Resources::Shader> &shader) {
+	postProcessingShaders.push_back(shader);
+
+	// resort
+	resort_post_processing_shaders_by_priority();
 }
 
-void RenderingService::clear_post_process_shader() {
-	this->postProcessShader.reset();
+bool RenderingService::is_shader_post_process(const Ref<Resources::Shader> shader) {
+	return std::find(postProcessingShaders.begin(), postProcessingShaders.end(), shader) != postProcessingShaders.end();
+}
+
+void RenderingService::resort_post_processing_shaders_by_priority() {
+	std::sort(postProcessingShaders.begin(), postProcessingShaders.end(), [](const auto& shaderA, const auto& shaderB) {
+		return shaderA->priority < shaderB->priority;
+	});
+}
+
+void RenderingService::clear_post_processing_shaders() {
+	postProcessingShaders.clear();
 }
 
 void RenderingService::set_window_title(const std::string &newWindowTitle
@@ -169,11 +182,21 @@ void RenderingService::remove_texture(
 GLuint RenderingService::compile_shader(
   const int shaderType, const std::filesystem::path &path
 ) {
-	const GLuint shaderID = glCreateShader(shaderType);
 	const std::string vertexShaderCode = IOService::instance()->read_file(path);
 	Core::Logger::log(std::format("Shader compilation: {}", path.string()));
 
-	const char *sourceRaw = vertexShaderCode.c_str();
+	try {
+		return compile_shader(shaderType, vertexShaderCode);
+	} catch (std::runtime_error& err) {
+		Core::Logger::log_error(std::format("Error while compiling {}: {}", path.string(), err.what()));
+		return -1;
+	}
+}
+
+GLuint RenderingService::compile_shader(const int shaderType, const std::string shader) {
+	const GLuint shaderID = glCreateShader(shaderType);
+
+	const char *sourceRaw = shader.c_str();
 	glShaderSource(shaderID, 1, &sourceRaw, nullptr);
 	glCompileShader(shaderID);
 
@@ -192,19 +215,14 @@ GLuint RenderingService::compile_shader(
 			  shaderID, infoLogLength, nullptr, &shaderErrorMessage[0]
 			);
 
-			Core::Logger::log_error(
-			  std::format(
-			    "Error while compiling {}: {}", path.string(), &shaderErrorMessage[0]
-			  )
-			);
+			throw std::runtime_error(&shaderErrorMessage[0]);
 		}
 	}
 
 	return shaderID;
 }
 
-GLuint
-RenderingService::compile_program(const GLuint vertex, const GLuint fragment) {
+GLuint RenderingService::compile_program(const GLuint vertex, const GLuint fragment) {
 	const GLuint program = glCreateProgram();
 	glAttachShader(program, vertex);
 	glAttachShader(program, fragment);
