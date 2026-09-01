@@ -232,8 +232,7 @@ Nyanners::DataTypes::Color3 *
 Nyanners::Scripting::Reflection::get_color_from_lua(
   lua_State *context, int idx
 ) {
-	auto *color =
-	ReflectionService::get_userdata_from_context<DataTypes::Color3>(context, idx, 0x05);
+	auto *color = ReflectionService::get_userdata_from_context<DataTypes::Color3>(context, idx, 0x05);
 
 	if (color == nullptr) {
 		throw std::runtime_error("Color3 is nullptr");

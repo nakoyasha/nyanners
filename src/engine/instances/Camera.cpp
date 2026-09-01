@@ -1,20 +1,15 @@
 #include "Camera.h"
 #include "Application.h"
-#include "core/Logger.h"
 #include "services/RenderingService.h"
 
 using namespace Nyanners::Instances;
 
 namespace Nyanners::Scripting {
 	auto registrator = ReflectionDescriptorRegistry::instance()->create_registrator([]() {
-		  Services::ReflectionService::create_descriptor(
-		    "Camera", {"Transformable"}
-		  )
-		    .add_property<
-		      Camera,
-		      glm::vec2,
-		      &Camera::get_resolution,
-		      &Camera::set_resolution>("Resolution", Vector2);
+		  Services::ReflectionService::create_descriptor("Camera", {"Transformable"})
+		    .add_property_chained<Camera, glm::vec2, &Camera::get_resolution, &Camera::set_resolution>("Resolution", Vector2)
+			.add_property_chained<Camera, int, &Camera::get_fov, &Camera::set_fov>("FieldOfView", Integer)
+			.add_constructor<Camera>();
 	  });
 }
 
@@ -73,7 +68,11 @@ void Camera::update(const float deltaTime) {
 	}
 }
 
-void Camera::set_fov(unsigned int newFov) {
+int Camera::get_fov() const {
+	return this->fov;
+}
+
+void Camera::set_fov(int newFov) {
 	fov = newFov;
 	calculate_projection(lastSize, true);
 }

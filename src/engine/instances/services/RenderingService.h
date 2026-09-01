@@ -1,10 +1,10 @@
 #pragma once
+#include <filesystem>
+#include "resources/Shader.h"
 #include "core/rendering/Renderer.h"
 #include "instances/Instance.h"
 #include "instances/datatypes/Vector.h"
 #include "resources/FrameBuffer.h"
-#include "resources/Shader.h"
-#include <filesystem>
 
 namespace Nyanners::Rendering {
     enum class RenderingBackend {
@@ -14,7 +14,7 @@ namespace Nyanners::Rendering {
 }
 
 namespace Nyanners::Services {
-    class RenderingService : public Instances::Instance, public Service<RenderingService> {
+    class RenderingService : public Instance, public Service<RenderingService> {
     public:
         float deltaTime = 0.0f;
         float frameTime = 0.0f;
@@ -26,9 +26,9 @@ namespace Nyanners::Services {
 
         sf::Window *window;
         // TODO: make this a list of shaders instead, with priorities on when they should execute
-        std::shared_ptr<Resources::Shader> postProcessShader;
+        List<Ref<Resources::Shader>> postProcessingShaders {};
 
-        RenderingService() : Instance("RenderingService") {};
+        RenderingService() : Instance("RenderingService") {}
 
         void initialize(DataTypes::Vector2, const std::optional<std::string> &windowTitle, Rendering::RenderingBackend withBackend = Rendering::RenderingBackend::OpenGL);
         void set_window_title(const std::string &newWindowTitle) const;
@@ -47,11 +47,14 @@ namespace Nyanners::Services {
 
         // shaders
         static GLuint compile_shader(const int shaderType = GL_VERTEX_SHADER,const std::filesystem::path &path = "assets/shaders/vertex.glsl");
+        static GLuint compile_shader(const int shaderType, const std::string shader);
         static GLuint compile_program(const GLuint vertex, const GLuint fragment);
         static Resources::Shader create_default_shader();
-        std::shared_ptr<Resources::Shader> create_shader(const std::filesystem::path& vertex, const std::filesystem::path& fragment);
-        void set_post_process_shader(const std::shared_ptr<Resources::Shader>& shader);
-        void clear_post_process_shader();
+        [[nodiscard]] std::shared_ptr<Resources::Shader> create_shader(const std::filesystem::path& vertex, const std::filesystem::path& fragment);
+        void add_post_process_shader(const std::shared_ptr<Resources::Shader>& shader);
+        bool is_shader_post_process(const Ref<Resources::Shader> shader);
+        void resort_post_processing_shaders_by_priority();
+        void clear_post_processing_shaders();
 
         void start_frame();
         void end_frame();

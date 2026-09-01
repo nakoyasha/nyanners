@@ -54,9 +54,9 @@ namespace Nyanners::Core {
 		virtual void start_frame() = 0;
 		virtual void clear() = 0;
 		virtual void render(const std::shared_ptr<Instances::Instance> &instanceToRender) = 0;
-		virtual void render_from(const std::shared_ptr<Instances::Instance> &root, std::shared_ptr<Camera> camera, Resources::FrameBuffer* framebuffer) = 0;
-
-		virtual void render_post_process(Resources::FrameBuffer* source, std::shared_ptr<Resources::Shader> shader) = 0;
+		virtual void render_from(const std::shared_ptr<Instances::Instance> &root, Ref<Camera> camera, Resources::FrameBuffer* framebuffer) = 0;
+		virtual void render_framebuffer(Resources::FrameBuffer* buffer) = 0;
+		virtual void render_post_process(Resources::FrameBuffer* source, List<Ref<Resources::Shader>> shaders) = 0;
 		virtual void set_current_camera(std::shared_ptr<Camera> newCamera) {
 			camera = std::move(newCamera);
 		}
@@ -93,5 +93,7 @@ namespace Nyanners::Core {
 		static std::unique_ptr<Renderer> create(sf::Window* window);
 	protected:
 		Rendering::Viewport defaultViewport {};
+	private:
+		std::shared_ptr<Resources::Shader> defaultShader;
 	};
 }

@@ -643,7 +643,7 @@ void ReflectionService::register_reflections() {
 			.add_property_chained<Transformable, glm::vec3, &Transformable::get_rotation, &Drawable::set_rotation>("Rotation", Vector3)
 			.add_property_chained<Transformable, glm::vec3, &Transformable::get_scale, &Drawable::set_scale>("Scale", Vector3);
 
-	create_descriptor("MeshPart", {"Transformable"})
+	create_descriptor("MeshPart", {"Transformable", "Drawable"})
 			.add_method<&MeshPart::load_from_obj_file>("load_from_file", Null, {{"ModelPath", String}})
 			.add_constructor<MeshPart>();
 	create_descriptor("RenderingService",{"Instance"},{ReflectionInstanceFlags::NotCreatable, ReflectionInstanceFlags::Service})
@@ -651,8 +651,8 @@ void ReflectionService::register_reflections() {
 			.add_property_chained<RenderingService, glm::vec2, &RenderingService::get_window_size>("ViewportSize", Vector2)
 			.add_method<&RenderingService::set_window_title>("set_window_title", Null, {})
 			.add_method<&RenderingService::create_shader>("create_shader", ReflectionPropertyType::Instance, {{"VertexPath", String}, {"FragmentPath", String}})
-			.add_method<&RenderingService::set_post_process_shader>("set_post_process_shader", Null, {{"Shader", ReflectionPropertyType::Instance}})
-			.add_method<&RenderingService::clear_post_process_shader>("clear_post_process_shader", Null, {});
+			.add_method<&RenderingService::add_post_process_shader>("add_post_processing_shader", Null, {{"Shader", ReflectionPropertyType::Instance}})
+			.add_method<&RenderingService::clear_post_processing_shaders>("clear_post_processing_shaders", Null, {});
 	create_descriptor("RunService", {"Instance"}, {ReflectionInstanceFlags::NotCreatable, ReflectionInstanceFlags::Service})
 			.add_property_chained<RunService, Ref<SignalBase>, &RunService::get_on_tick>("Tick", ReflectionPropertyType::Instance)
 			.add_property_chained<RunService, Ref<SignalBase>, &RunService::get_on_render>("OnRender", ReflectionPropertyType::Instance);

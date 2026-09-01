@@ -181,8 +181,9 @@ void Nyanners::Application::on_draw() const {
 
 	renderService->renderer->render_from(world, nullptr, framebuffer);
 	renderService->renderer->render_from(uiService, nullptr, framebuffer);
-	renderService->renderer->render_post_process(framebuffer, renderService->postProcessShader);
-
+	renderService->renderer->bind_framebuffer(framebuffer);
 	renderService->renderer->unbind_framebuffer();
+	renderService->renderer->render_post_process(framebuffer, renderService->postProcessingShaders);
+
 	renderService->renderer->reset_viewport();
 }

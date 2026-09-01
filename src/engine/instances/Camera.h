@@ -23,7 +23,9 @@ namespace Nyanners::Instances {
 		bool useDebugMovement = true;
 
 		void update(const float deltaTime) override;
-		void set_fov(unsigned int newFov);
+
+		int get_fov() const;
+		void set_fov(int newFov);
 		void calculate_projection(const DataTypes::Vector2 &size, bool forceRecalculate);
 		void set_position(const glm::vec3 &newPosition) override;
 

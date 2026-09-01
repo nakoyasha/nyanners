@@ -115,14 +115,14 @@ void OpenGLRenderer::render(
 }
 void OpenGLRenderer::render_from(
   const std::shared_ptr<Instances::Instance> &root,
-  const std::shared_ptr<Instances::Camera> camera,
+  const std::shared_ptr<Camera> camera,
   Resources::FrameBuffer *framebuffer
 ) {
 	if (root->active == false) {
 		return;
 	}
 
-	std::weak_ptr<Instances::Camera> activeCamera;
+	std::weak_ptr<Camera> activeCamera;
 
 	if (camera != nullptr) {
 		activeCamera = camera;
@@ -130,7 +130,7 @@ void OpenGLRenderer::render_from(
 		activeCamera = this->camera;
 	}
 
-	auto windowSize = get_window_size();
+	const auto windowSize = get_window_size();
 
 	if (const auto cCam = activeCamera.lock(); framebuffer != nullptr) {
 		bind_framebuffer(framebuffer);
@@ -168,28 +168,34 @@ void OpenGLRenderer::render_from(
 		}
 	}
 
-
 	unbind_framebuffer();
 }
 
-void OpenGLRenderer::render_post_process(Resources::FrameBuffer *source, std::shared_ptr<Resources::Shader> shader) {
-	if (source == nullptr || shader == nullptr) {
-		Services::EngineService::panic("render_post_processs called with either invalid framebuffer or shader");
-		return;
-	}
-
-	disable_depth_buffer();
-	shader->use();
-	shader->setInt("uSceneTexture", 0);
+void OpenGLRenderer::render_framebuffer(Resources::FrameBuffer *buffer) {
 	glActiveTexture(GL_TEXTURE0);
-	source->framebufferTexture->use();
-
+	buffer->framebufferTexture->use();
 	quadMesh->bind();
 	GL_CHECK(glDrawArrays(GL_TRIANGLES, 0, 6));
 	quadMesh->unbind();
+	buffer->framebufferTexture->unuse();
+}
 
-	source->framebufferTexture->unuse();
-	shader->release();
+void OpenGLRenderer::render_post_process(Resources::FrameBuffer *source, List<Ref<Resources::Shader>> shaders) {
+	if (source == nullptr) {
+		Services::EngineService::panic("render_post_processs called with either invalid framebuffer");
+	}
+
+	disable_depth_buffer();
+
+	// FIXME: this is probably wildly inefficient, especially because there'd be a lot of overdraw happening most likely(?)
+	// yeaaahh..
+	for (const auto& shader : shaders) {
+		shader->use();
+		shader->setInt("uSceneTexture", 0);
+		render_framebuffer(source);
+		shader->release();
+	}
+
 	enable_depth_buffer();
 }
 
@@ -260,7 +266,6 @@ void OpenGLRenderer::set_renderer_feature(Rendering::RendererFeature feature, bo
 				throw std::runtime_error("set_renderer_feature on unknown feature");
 		}
 	}
-
 }
 
 void OpenGLRenderer::render_mesh(const Resources::Material* material, const Resources::Mesh *mesh, const glm::mat4& transform) {
@@ -281,7 +286,6 @@ void OpenGLRenderer::render_mesh(const Resources::Material* material, const Reso
 
 	mesh->unbind();
 	material->release();
-
 }
 
 void OpenGLRenderer::render_mesh(const Resources::Material *material, const Resources::Mesh *mesh) {
