@@ -50,7 +50,7 @@ namespace Nyanners::Instances {
     float lineHeight = 1.3;
 
   	Resources::Font* font;
-  	Resources::Material* shadowMaterial;
+  	Ref<Resources::Material> shadowMaterial;
   	std::vector<DataTypes::CalculatedGlyph> glyphs;
 
   	void calculate_text(const std::string& text);
