@@ -1,6 +1,5 @@
 #include "Drawable.h"
 
-#include "lualib.h"
 #include "resources/Mesh.h"
 #include "instances/services/RenderingService.h"
 
@@ -10,6 +9,7 @@ namespace Nyanners::Scripting {
 	static auto drawableDescriptor = ReflectionDescriptorRegistry::instance()->create_registrator([]() {
 		Services::ReflectionService::create_descriptor("Drawable", {})
 		.add_property_chained<Drawable, DataTypes::Color3, &Drawable::get_color, &Drawable::set_color>("Color", Color)
+		.add_property_chained<Drawable, Ref<Object>, &Drawable::get_material>("Material", ReflectionPropertyType::Instance)
 		.add_method<&Drawable::lua_set_texture>("set_texture", Null, {{"textureFile", String}});
 	});
 }
@@ -46,4 +46,12 @@ void Drawable::set_color(const DataTypes::Color3 newColor) {
 
 void Drawable::lua_set_texture(std::string path) {
 	this->material->set_texture(path);
+}
+
+Ref<Object> Drawable::get_material() const  {
+	return this->material;
+}
+
+void Drawable::set_material(const Ref<Resources::Material> &newMaterial) {
+	this->material = newMaterial;
 }

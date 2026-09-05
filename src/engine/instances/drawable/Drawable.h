@@ -15,7 +15,7 @@ namespace Nyanners::Instances {
   	GLuint vertexArrayID {};
 
   	Resources::Mesh* mesh;
-  	Resources::Material* material;
+  	Ref<Resources::Material> material;
 
   	Drawable();
   	~Drawable() override;
@@ -23,6 +23,10 @@ namespace Nyanners::Instances {
   	DataTypes::Color3 get_color() const;
   	virtual void set_color(DataTypes::Color3 newColor);
     void lua_set_texture(std::string path);
+
+    Ref<Object> get_material() const;
+  	void set_material(const Ref<Resources::Material> &material);
+
     virtual void draw() = 0;
   };
 }
