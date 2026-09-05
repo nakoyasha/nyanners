@@ -147,7 +147,6 @@ add_library(Nyanners
         scripting/reflections/ReflectionPropertyReaders.h
         utils/ImGuiColor3.h
         scripting/reflections/ReflectionMethod.h
-        instances/basic/ScriptConnection.h
         instances/ui/Button.cpp
         instances/ui/Button.h
         instances/ui/UIElement.h
@@ -177,6 +176,8 @@ add_library(Nyanners
         debug/editor/ScriptEditor.h
         instances/services/io/FileSystem.h
         core/Aliases.h
+        instances/drawable/Part.cpp
+        instances/drawable/Part.h
 )
 target_compile_definitions(Nyanners PUBLIC INCLUDE_DEBUG_UI_SERVICE)
 
