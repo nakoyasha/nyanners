@@ -46,6 +46,11 @@ void RenderingService::initialize(DataTypes::Vector2 size, const std::optional<s
 
 	renderer = Core::Renderer::create(window);
 	renderer->initialize(size);
+
+	// add default post process
+	const auto defaultPost = create_shader("assets/shaders/post/post.vert.glsl", "assets/shaders/post/fallback_frag.glsl");
+	defaultPost->priority = -99999;
+	add_post_process_shader(defaultPost);
 }
 
 void RenderingService::start_frame() {
