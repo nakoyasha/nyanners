@@ -8,11 +8,11 @@ Nyanners::Instances::Signal<Nyanners::Core::LogLevel, std::string> ConsoleServic
 namespace Nyanners::Scripting {
 	static auto engineDescriptor = ReflectionDescriptorRegistry::instance()->create_registrator([]() {
 		ReflectionService::register_enum("LogLevel", {
-			                                 {"Info", static_cast<int>(Core::LogLevel::Info)},
-			                                 {"Debug", static_cast<int>(Core::LogLevel::Debug)},
-			                                 {"Warning", static_cast<int>(Core::LogLevel::Warning)},
-			                                 {"Error", static_cast<int>(Core::LogLevel::Error)},
-		                                 });
+ 		{"Info", static_cast<int>(Core::LogLevel::Info)},
+		{"Debug", static_cast<int>(Core::LogLevel::Debug)},
+		{"Warning", static_cast<int>(Core::LogLevel::Warning)},
+		{"Error", static_cast<int>(Core::LogLevel::Error)},
+		});
 		ReflectionService::create_descriptor("ConsoleService", {"Instance"}, {
 			ReflectionInstanceFlags::Service
 		})
