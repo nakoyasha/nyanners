@@ -268,7 +268,7 @@ void OpenGLRenderer::set_renderer_feature(Rendering::RendererFeature feature, bo
 	}
 }
 
-void OpenGLRenderer::render_mesh(const Resources::Material* material, const Resources::Mesh *mesh, const glm::mat4& transform) {
+void OpenGLRenderer::render_mesh(const Ref<Resources::Material> material, const Resources::Mesh *mesh, const glm::mat4& transform) {
 	mesh->bind();
 	material->use();
 
@@ -288,12 +288,12 @@ void OpenGLRenderer::render_mesh(const Resources::Material* material, const Reso
 	material->release();
 }
 
-void OpenGLRenderer::render_mesh(const Resources::Material *material, const Resources::Mesh *mesh) {
+void OpenGLRenderer::render_mesh(const Ref<Resources::Material> material, const Resources::Mesh *mesh) {
 	Renderer::render_mesh(material, mesh);
 }
 
 void OpenGLRenderer::render_quad(
-  Resources::Material *material,
+  Ref<Resources::Material> material,
   const glm::vec2 &position,
   const glm::vec2 &size
 ) {
@@ -308,7 +308,7 @@ void OpenGLRenderer::render_quad(
 }
 
 void OpenGLRenderer::render_quad(
-  Resources::Material *material,
+  Ref<Resources::Material> material,
   const glm::vec3 &position,
   const glm::vec2 &size
 ) {
@@ -316,7 +316,7 @@ void OpenGLRenderer::render_quad(
 	render_quad(material, transform);
 }
 
-void OpenGLRenderer::render_quad(Resources::Material *material, const glm::mat4 &transform) {
+void OpenGLRenderer::render_quad(Ref<Resources::Material> material, const glm::mat4 &transform) {
 	material->use();
 
 	material->shader->setMatrix("uTransform", transform);

@@ -7,7 +7,8 @@ using namespace Nyanners::Resources::OpenGL;
 
 OpenGLMaterial::OpenGLMaterial() {
 	// TODO: swap out shader for Shader::create()
-	shader = Services::RenderingService::instance()->create_shader("assets/shaders/vertex.glsl", "assets/shaders/frag.glsl");
+	shader = Services::RenderingService::instance()->create_shader("assets/shaders/vertex.glsl",
+	                                                               "assets/shaders/frag.glsl");
 	texture = Texture::create(Texture2D);
 
 	shader->use();

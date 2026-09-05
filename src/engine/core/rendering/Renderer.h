@@ -63,16 +63,16 @@ namespace Nyanners::Core {
 		virtual void bind_framebuffer(Resources::FrameBuffer* newFrameBuffer) = 0;
 		virtual void calculate_projection(const DataTypes::Vector2& size, std::shared_ptr<Camera> camera) = 0;
 		virtual void unbind_framebuffer() = 0;
-		virtual void render_mesh(const Resources::Material* material, const Resources::Mesh* mesh, const glm::mat4& transform) = 0;
-		virtual void render_mesh(const Resources::Material* material, const Resources::Mesh* mesh) {
+		virtual void render_mesh(const Ref< Resources::Material> material, const Resources::Mesh* mesh, const glm::mat4& transform) = 0;
+		virtual void render_mesh(const Ref<Resources::Material> material, const Resources::Mesh* mesh) {
 			render_mesh(material, mesh, {});
 		};
 
 		// 2d
-		virtual void render_quad(Resources::Material* material, const glm::vec2& position, const glm::vec2& size) = 0;
+		virtual void render_quad(Ref<Resources::Material> material, const glm::vec2& position, const glm::vec2& size) = 0;
 		// 3d
-		virtual void render_quad(Resources::Material* material, const glm::vec3& position, const glm::vec2& size) = 0;
-		virtual void render_quad(Resources::Material *material, const glm::mat4 &transform) = 0;
+		virtual void render_quad(Ref<Resources::Material> material, const glm::vec3& position, const glm::vec2& size) = 0;
+		virtual void render_quad(Ref<Resources::Material> material, const glm::mat4 &transform) = 0;
 
 		virtual void set_depth_test(const Rendering::DepthCheckLevel&) = 0;
 		virtual void set_previous_depth_test() = 0;

@@ -19,11 +19,11 @@ namespace Nyanners::Core {
 			void unbind_framebuffer() override;
 			void calculate_projection(const DataTypes::Vector2& size, std::shared_ptr<Camera> camera) override;
 			void set_renderer_feature(Rendering::RendererFeature feature, bool enabled) override;
-			void render_mesh(const Resources::Material* material, const Resources::Mesh* mesh, const glm::mat4& transform) override;
-			void render_mesh(const Resources::Material* material, const Resources::Mesh* mesh) override;
-			void render_quad(Resources::Material* material, const glm::vec2& position, const glm::vec2& size) override;
-			void render_quad(Resources::Material* material, const glm::vec3& position, const glm::vec2& size) override;
-			void render_quad(Resources::Material *material, const glm::mat4 &transform) override;
+			void render_mesh(const Ref<Resources::Material> material, const Resources::Mesh* mesh, const glm::mat4& transform) override;
+			void render_mesh(const Ref<Resources::Material> material, const Resources::Mesh* mesh) override;
+			void render_quad(Ref<Resources::Material> material, const glm::vec2& position, const glm::vec2& size) override;
+			void render_quad(Ref<Resources::Material> material, const glm::vec3& position, const glm::vec2& size) override;
+			void render_quad(Ref<Resources::Material> material, const glm::mat4 &transform) override;
 			void handle_event(const sf::Event* event) override;
 			void set_depth_test(const Rendering::DepthCheckLevel& level) override;
 			void set_previous_depth_test() override;
