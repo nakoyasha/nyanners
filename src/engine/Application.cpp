@@ -175,9 +175,12 @@ void Nyanners::Application::on_draw() const {
 	}
 #endif
 
-	// 	auto size = renderService->renderer->get_window_size();
-	// renderService->renderer->bind_framebuffer(renderService->renderer->defaultFramebuffer);
-	// renderService->renderer->clear();
+	const auto size = renderService->renderer->get_window_size();
+	renderService->renderer->bind_framebuffer(renderService->renderer->defaultFramebuffer);
+	renderService->renderer->defaultFramebuffer->resize(size.x, size.y);
+	renderService->renderer->clear();
+
+
 
 	renderService->renderer->set_viewport(viewport);
 	renderService->renderer->bind_framebuffer(framebuffer);
