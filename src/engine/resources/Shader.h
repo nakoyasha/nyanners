@@ -5,6 +5,8 @@
 #include <glm/gtc/matrix_transform.hpp>
 #include <filesystem>
 
+#include "shaders/fallback.h"
+
 namespace Nyanners::Resources {
 	enum class ShaderStage {
 		GeometryOpaque = 0,
@@ -31,13 +33,13 @@ namespace Nyanners::Resources {
 		std::filesystem::path vertexPath;
 		std::filesystem::path fragmentPath;
 
-		std::string vertexSource {};
-		std::string fragmentSource {};
+		std::string vertexSource = Shaders::FALLBACK_VERTEX;
+		std::string fragmentSource = Shaders::FALLBACK_FRAGMENT;
 
 		int priority = -1;
 
-		void use();
-		void release();
+		virtual void use();
+		virtual void release();
 		void compile(bool forceCompile = false);
 
 		void load_from_file(
@@ -68,6 +70,8 @@ namespace Nyanners::Resources {
 
 		bool shaderInUse = false;
 		bool shaderCompiled = false;
+		bool shaderValid = false;
+
 
 		// checks if it's not used and uses the shader if isn't, also returns true if the shader wasn't already used.
 		bool use_if_not_used();

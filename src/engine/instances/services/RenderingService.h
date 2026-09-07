@@ -21,7 +21,7 @@ namespace Nyanners::Services {
         int fps = 0;
 
         static Rendering::RenderingBackend backend;
-        static std::vector<std::shared_ptr<Resources::Texture> > textures;
+        static List<std::shared_ptr<Resources::Texture> > textures;
         static std::unique_ptr<Core::Renderer> renderer;
 
         sf::Window *window;

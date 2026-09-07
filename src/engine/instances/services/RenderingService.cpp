@@ -187,6 +187,15 @@ void RenderingService::remove_texture(
 GLuint RenderingService::compile_shader(
   const int shaderType, const std::filesystem::path &path
 ) {
+	if (!IOService::instance()->file_exists(path)) {
+		Core::Logger::log_debug(std::format("Shader {} does not exist", path.string()));
+		if (shaderType == GL_VERTEX_SHADER) {
+			return compile_shader(shaderType, std::string(Shaders::FALLBACK_VERTEX));
+		} else {
+			return compile_shader(shaderType, std::string(Shaders::FALLBACK_FRAGMENT));
+		}
+	}
+
 	const std::string vertexShaderCode = IOService::instance()->read_file(path);
 	Core::Logger::log(std::format("Shader compilation: {}", path.string()));
 
@@ -194,7 +203,11 @@ GLuint RenderingService::compile_shader(
 		return compile_shader(shaderType, vertexShaderCode);
 	} catch (std::runtime_error& err) {
 		Core::Logger::log_error(std::format("Error while compiling {}: {}", path.string(), err.what()));
-		return -1;
+		if (shaderType == GL_VERTEX_SHADER) {
+			return compile_shader(shaderType, std::string(Shaders::FALLBACK_VERTEX));
+		} else {
+			return compile_shader(shaderType, std::string(Shaders::FALLBACK_FRAGMENT));
+		}
 	}
 }
 

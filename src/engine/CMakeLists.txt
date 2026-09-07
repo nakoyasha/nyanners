@@ -182,6 +182,7 @@ add_library(Nyanners
         instances/services/light/LightingService.h
         instances/services/light/Light.h
         instances/services/light/Light.cpp
+        shaders/fallback.h
 )
 target_compile_definitions(Nyanners PUBLIC INCLUDE_DEBUG_UI_SERVICE)
 

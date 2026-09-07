@@ -1,6 +1,7 @@
 #include "Shader.h"
 #include "gtc/type_ptr.hpp"
 #include "instances/services/RenderingService.h"
+#include "instances/services/io/IOService.h"
 #include "utils/glCheck.h"
 
 using namespace Nyanners::Resources;
@@ -36,11 +37,25 @@ void Shader::load_from_file(
   const std::filesystem::path &newVertexPath,
   const std::filesystem::path &newFragmentPath
 ) {
+	// !! shader requires re-compilation !!
+	shaderCompiled = false;
+	const auto io = Services::IOService::instance();
 	this->vertexPath = newVertexPath;
 	this->fragmentPath = newFragmentPath;
 
-	// !! shader requires re-compilation !!
-	shaderCompiled = false;
+	if (!io->file_exists(newVertexPath)) {
+		Core::Logger::log_debug(std::format("Vertex shader ({}) does not exist", newVertexPath.string()));
+		shaderValid = false;
+		return;
+	}
+
+	if (!io->file_exists(newFragmentPath)) {
+		Core::Logger::log_debug(std::format("Fragment shader ({}) does not exist", newFragmentPath.string()));
+		shaderValid = false;
+		return;
+	}
+
+	shaderValid = true;
 }
 
 void Shader::load_from_memory(const std::string &vertex, const std::string &fragment) {
@@ -198,9 +213,15 @@ void Shader::compile(const bool forceCompile) {
 		fragmentShader = Services::RenderingService::compile_shader(GL_FRAGMENT_SHADER, this->fragmentSource);
 	}
 
+	// if (!shaderValid) {
+	// 	vertexShader = Services::RenderingService::compile_shader(GL_VERTEX_SHADER, std::string(Shaders::FALLBACK_VERTEX));
+	// 	fragmentShader = Services::RenderingService::compile_shader(GL_FRAGMENT_SHADER, std::string(Shaders::FALLBACK_FRAGMENT));
+	// }
+
 	if (vertexShader <= 0 || fragmentShader <= 0) {
 		throw std::runtime_error("Shader source invalid");
 	}
+
 	const auto programId = Services::RenderingService::compile_program(vertexShader, fragmentShader);
 
 	if (programId == -1) {
