@@ -96,7 +96,7 @@ Ref<Nyanners::Instances::Instance> Instance::clone() {
 		property.get(this, value, nullptr);
 
 		// for the best, it's probably a good idea to not do this
-		if (property.type != ReflectionPropertyType::Instance && property.type != UserData) {
+		if (property.type != ReflectionPropertyType::Instance && property.type != UserData && !property.has_flag(ReflectionPropertyFlags::ReadOnly)) {
 			property.set(instancePtr, value, nullptr);
 		}
 	};
