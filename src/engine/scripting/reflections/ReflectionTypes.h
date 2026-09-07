@@ -31,6 +31,8 @@ namespace Nyanners::Scripting::Reflection {
 		Integer,
 		Boolean,
 		Instance,
+		Material_,
+		Shader_,
 		Enum,
 		// Method,
 		Vector3,

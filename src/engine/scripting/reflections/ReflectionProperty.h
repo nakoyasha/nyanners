@@ -8,6 +8,7 @@
 
 #include <glm/gtc/matrix_transform.hpp>
 #include "instances/datatypes/Color3.h"
+#include "resources/Material.h"
 
 namespace Nyanners::Scripting::Reflection {
 	using ReflectionValue = std::variant<
@@ -17,8 +18,9 @@ namespace Nyanners::Scripting::Reflection {
 	  double,
 	  float,
 	  std::string,
-	  std::shared_ptr<Instances::Object>,
+	  Ref<Instances::Object>,
 	  Instances::SignalBase *,
+	  Ref<Resources::Material>,
 	  glm::vec3,
 	  glm::vec2,
 	  DataTypes::Color3>;

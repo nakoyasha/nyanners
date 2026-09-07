@@ -9,7 +9,7 @@ namespace Nyanners::Scripting {
 	static auto drawableDescriptor = ReflectionDescriptorRegistry::instance()->create_registrator([]() {
 		Services::ReflectionService::create_descriptor("Drawable", {})
 		.add_property_chained<Drawable, DataTypes::Color3, &Drawable::get_color, &Drawable::set_color>("Color", Color)
-		.add_property_chained<Drawable, Ref<Object>, &Drawable::get_material>("Material", ReflectionPropertyType::Instance)
+		.add_property_chained<Drawable, Ref<Resources::Material>, &Drawable::get_material, &Drawable::set_material>("Material", ReflectionPropertyType::Material_)
 		.add_method<&Drawable::lua_set_texture>("set_texture", Null, {{"textureFile", String}});
 	});
 }
@@ -48,10 +48,10 @@ void Drawable::lua_set_texture(std::string path) {
 	this->material->set_texture(path);
 }
 
-Ref<Object> Drawable::get_material() const  {
+Ref<Nyanners::Resources::Material> Drawable::get_material() const  {
 	return this->material;
 }
 
-void Drawable::set_material(const Ref<Resources::Material> &newMaterial) {
+void Drawable::set_material(const Ref<Resources::Material>& newMaterial) {
 	this->material = newMaterial;
 }

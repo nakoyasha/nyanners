@@ -226,9 +226,12 @@ int ReflectionService::handle_property(
 				lua_pushnil(context);
 			}
 			case (ReflectionPropertyType::Instance): {
-				reflect_class(
-					context, std::get<Ref<Instances::Object> >(value)
-				);
+				reflect_class(context, std::get<Ref<Object> >(value));
+				return 1;
+			}
+
+			case (ReflectionPropertyType::Material_): {
+				reflect_class(context, std::get<Ref<Resources::Material>>(value));
 				return 1;
 			}
 

@@ -6,6 +6,7 @@
 #include "glad/glad.h"
 #include "instances/drawable/MeshPart.h"
 #include "instances/services/EngineService.h"
+#include "instances/services/light/LightingService.h"
 #include "utils/glCheck.h"
 
 using namespace Nyanners::Core;
@@ -269,10 +270,22 @@ void OpenGLRenderer::set_renderer_feature(Rendering::RendererFeature feature, bo
 }
 
 void OpenGLRenderer::render_mesh(const Ref<Resources::Material> material, const Resources::Mesh *mesh, const glm::mat4& transform) {
+	auto lighting = Services::LightingService::instance();
+
 	mesh->bind();
 	material->use();
 
 	material->shader->setMatrix("uModel", transform);
+
+	// temp
+	if (!lighting->lights.empty()) {
+		const auto light = lighting->lights[0];
+		material->shader->setVector3("uLightPos", light.gpu.position);
+		material->shader->setVector3("uViewPos", camera->position);
+		material->shader->setColor("uLightColor", light.cpu->color);
+		material->shader->setColor("uAmbientColor", lighting->ambientLightColor);
+		material->shader->setFloat("uRange", light.gpu.range);
+	}
 
 	if (mesh->indexCount == 0) {
 		GL_CHECK(
@@ -303,6 +316,7 @@ void OpenGLRenderer::render_quad(
 	material->shader->setMatrix("uTransform", glm::scale(transform, glm::vec3(size.x, size.y, 1.0f)));
 	material->shader->setMatrix("uView", glm::mat4(1.0f));
 	material->shader->setMatrix("uProjection", projection2D);
+	material->release();
 
 	render_mesh(material, quadMesh);
 }
@@ -323,6 +337,7 @@ void OpenGLRenderer::render_quad(Ref<Resources::Material> material, const glm::m
 	material->shader->setMatrix("uView", camera->view);
 	material->shader->setMatrix("uProjection", projection2D);
 	material->shader->setBool("uScreenSpace", false);
+	material->release();
 
 	quadMesh->bind();
 	render_mesh(material, quadMesh);

@@ -15,6 +15,16 @@ namespace Nyanners::Scripting {
 
 using namespace Nyanners::Resources;
 
+void Material::set_shader(Ref<Shader> newShader) {
+	shader->release();
+	newShader.reset();
+	shader = newShader;
+}
+
+void Material::set_shader(const std::filesystem::path &vertexPath, const std::filesystem::path &fragmentPath) {
+	shader->load_from_file(vertexPath, fragmentPath);
+}
+
 void Material::set_shader_path(const std::filesystem::path &vertexPath, const std::filesystem::path &fragmentPath) {
 	this->set_shader(vertexPath, fragmentPath);
 }

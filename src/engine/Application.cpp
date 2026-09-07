@@ -12,6 +12,7 @@
 #include "instances/services/SoundService.h"
 #include "instances/services/UIService.h"
 #include "instances/services/io/IOService.h"
+#include "instances/services/light/LightingService.h"
 #include "instances/services/user/InputService.h"
 #include "instances/world/World.h"
 
@@ -91,13 +92,16 @@ void Nyanners::Application::set_datamodel(const std::shared_ptr<DataModel>& mode
 void Nyanners::Application::init_rendering(const DataTypes::Vector2 &size, const std::string &windowTitle) {
 	const auto service = Services::RenderingService::instance();
 	const auto provider = Services::ServiceProvider::instance();
+	const auto lighting = Services::LightingService::instance();
 
 	service->initialize(size, windowTitle);
 	has_rendering = true;
 	provider->add_service(service);
+	provider->add_service(lighting);
 
 	// this should probably be handled better, but whatever...
 	this->currentModel->add_child(service);
+	this->currentModel->add_child(lighting);
 
 #ifdef INCLUDE_DEBUG_UI_SERVICE
 	const auto debug = provider->add_service<Services::DebugUIService>();

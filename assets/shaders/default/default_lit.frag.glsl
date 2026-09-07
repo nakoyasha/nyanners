@@ -9,13 +9,14 @@ in vec3 vNormal;
 uniform vec3 uLightPos;
 uniform vec3 uViewPos;
 uniform vec4 uLightColor;
+uniform vec4 uAmbientColor;
 uniform float uRange;
 uniform vec4 uColor;
 
 void main() {
     // ambient
     float ambientStrength = 0.1;
-    vec3 ambient = ambientStrength * vec3(0.1f, 0.1f, 0.1f);
+    vec3 ambient = ambientStrength * vec3(uLightColor) * vec3(uAmbientColor);
 
     float distance = length(uLightPos - vFragPos);
     float attenuation = 1.0 - smoothstep(0.0, uRange, distance);

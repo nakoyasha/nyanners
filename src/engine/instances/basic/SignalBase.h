@@ -1,7 +1,6 @@
 #pragma once
 #include "instances/Instance.h"
 #include "lua.h"
-#include "ScriptConnection.h"
 
 namespace Nyanners::Instances {
     class SignalBase : public Instance {

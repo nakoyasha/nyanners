@@ -7,13 +7,13 @@ using namespace Nyanners::Resources::OpenGL;
 
 OpenGLMaterial::OpenGLMaterial() {
 	// TODO: swap out shader for Shader::create()
-	shader = Services::RenderingService::instance()->create_shader("assets/shaders/vertex.glsl",
-	                                                               "assets/shaders/frag.glsl");
+	shader = Services::RenderingService::instance()->create_shader("assets/shaders/vertex.glsl","assets/shaders/frag.glsl");
 	texture = Texture::create(Texture2D);
 
 	shader->use();
 	shader->setInt("uTexture", 0);
 	shader->setBool("uTextureSet", false);
+	shader->release();
 }
 
 void OpenGLMaterial::use() const {
@@ -36,11 +36,13 @@ void OpenGLMaterial::set_color(const DataTypes::Color3 newColor) {
 
 void OpenGLMaterial::set_texture(const Ref<Texture>& newTexture) {
 	texture->unuse();
-	texture = newTexture;
+	texture = std::move(newTexture);
 	texture->use();
 
 	shader->use();
 	shader->setBool("uTextureSet", true);
+	shader->release();
+	texture->unuse();
 }
 
 void OpenGLMaterial::set_texture(const std::filesystem::path &newTexturePath) {
@@ -48,15 +50,5 @@ void OpenGLMaterial::set_texture(const std::filesystem::path &newTexturePath) {
 	texture->load_from_file(newTexturePath);
 	shader->use();
 	shader->setBool("uTextureSet", true);
-}
-
-void OpenGLMaterial::set_shader(Ref<Shader> newShader) {
 	shader->release();
-	newShader.reset();
-	shader = newShader;
 }
-
-void OpenGLMaterial::set_shader(const std::filesystem::path& vertexPath, const std::filesystem::path& fragmentPath) {
-	shader->load_from_file(vertexPath, fragmentPath);
-}
-

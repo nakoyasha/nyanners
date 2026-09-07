@@ -24,8 +24,8 @@ namespace Nyanners::Instances {
   	virtual void set_color(DataTypes::Color3 newColor);
     void lua_set_texture(std::string path);
 
-    Ref<Object> get_material() const;
-  	void set_material(const Ref<Resources::Material> &material);
+    Ref<Resources::Material> get_material() const;
+  	void set_material(const Ref<Resources::Material> &newMaterial);
 
     virtual void draw() = 0;
   };

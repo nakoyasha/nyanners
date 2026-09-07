@@ -116,6 +116,11 @@ namespace Nyanners::Debug::UI {
 			{"Button",
 			Texture::create(Texture2D, "assets/textures/editor/Button.png")},
 
+		{"Light",
+				Texture::create(Texture2D, "assets/textures/editor/light.png")},
+{"LightingService",
+Texture::create(Texture2D, "assets/textures/editor/light.png")},
+
 		  {"Unknown",
 		   Texture::create(Texture2D, "assets/textures/editor/Instance.png")},
 		};

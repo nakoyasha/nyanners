@@ -178,6 +178,10 @@ add_library(Nyanners
         core/Aliases.h
         instances/drawable/Part.cpp
         instances/drawable/Part.h
+        instances/services/light/LightingService.cpp
+        instances/services/light/LightingService.h
+        instances/services/light/Light.h
+        instances/services/light/Light.cpp
 )
 target_compile_definitions(Nyanners PUBLIC INCLUDE_DEBUG_UI_SERVICE)
 

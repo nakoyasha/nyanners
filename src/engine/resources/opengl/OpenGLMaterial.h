@@ -13,7 +13,5 @@ namespace Nyanners::Resources::OpenGL {
 		void set_texture(const std::shared_ptr<Texture> &newTexture) override;
 		void set_texture(const std::filesystem::path& newTexturePath) override;
 
-		void set_shader(Ref<Shader> newShader) override;
-		void set_shader(const std::filesystem::path& vertexPath, const std::filesystem::path& fragmentPath) override;
 	};
 }
