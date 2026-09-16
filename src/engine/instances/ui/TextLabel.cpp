@@ -201,62 +201,50 @@ void TextLabel::update(float deltaTime) {
 }
 
 void TextLabel::calculate_text(const std::string &newText) {
-	float globalPositionX = get_absolute_position().x;
-	float globalPositionY = get_absolute_position().y;
+	glyphs.clear();
+	const float finalLineHeight = static_cast<float>(font->fontFace->size->metrics.height >> 6) * textScale * this->lineHeight;
 
-	if (anchorPoint.x != 0) {
-		globalPositionX *= anchorPoint.x;
-	}
+	const auto absolutePosition = get_absolute_position();
+	const auto absoluteSize = get_absolute_size();
 
-	if (anchorPoint.y) {
-		globalPositionY *= anchorPoint.y;
-	}
+	const float startX = absolutePosition.x;
+	const float maxX = startX + absoluteSize.x;
 
-	float penY = globalPositionY + static_cast<float>((font->fontFace->size->metrics.ascender >> 6)) + textScale;
+	float penX = startX;
+	float penY = absolutePosition.y + static_cast<float>(font->fontFace->size->metrics.ascender >> 6) * textScale;
 
-	int renderedGlyph = 0;
-
-	for (char iterator : newText) {
-		if (renderedGlyph >= maxVisibleGlyph && maxVisibleGlyph != -1) {
-			break;
+	for (auto c : newText) {
+		if (c == '\n') {
+			penX = startX;
+			penY += finalLineHeight;
+			continue;
 		}
 
-
-		const auto result = font->characters.find(iterator);
-
+		const auto result = font->characters.find(c);
 		if (result == font->characters.end()) {
-			Core::Logger::log(
-			  std::format("ERROR: Unknown character {}, will not render!!", iterator)
-			);
+			return;
+		}
+
+		const auto &character = result->second;
+
+		if (std::isspace(c)) {
+			penX += static_cast<float>(character.advance >> 6) * textScale;
 			continue;
 		}
 
-		const auto character = result->second;
+		const float glyphWidth = static_cast<float>(character.size.x) * textScale;
 
-		// taken from https://youtu.be/S0PyZKX4lyI, very good watch
-		if (iterator == '\n') {
-			penY += lineHeight;
-			globalPositionX = position.x;
-			continue;
+		if (penX + glyphWidth > maxX) {
+			penX = startX;
+			penY += finalLineHeight;
 		}
 
-		if (std::isspace(iterator)) {
-			globalPositionX += static_cast<float>(character.advance >> 6) * textScale;
-			continue;
-		}
-
-		const auto position = glm::vec2(
-			globalPositionX + static_cast<float>(character.bearing.x) * textScale,
-			penY - static_cast<float>(character.bearing.y) * textScale);
-		const auto size = glm::vec2(static_cast<float>(character.size.x) * textScale, static_cast<float>(character.size.y) * textScale);
-
-		DataTypes::CalculatedGlyph glyph{};
-		glyph.position = position;
-		glyph.size = size;
-		glyph.character = character;
-
-		glyphs.push_back(glyph);
-		globalPositionX += static_cast<float>(character.advance >> 6) * textScale; // bitshift by 6 to get value in pixels (2^6 = 64)
-
-	};
+		glyphs.push_back({
+			.character = character,
+			.position = glm::vec2(penX + static_cast<float>(character.bearing.x) * textScale,penY - static_cast<float>(character.bearing.y) * textScale),
+			.size = glm::vec2( glyphWidth,static_cast<float>(character.size.y) * textScale),
+		});
+		
+		penX += static_cast<float>(character.advance >> 6) * textScale;
+	}
 }
