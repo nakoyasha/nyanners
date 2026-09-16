@@ -34,6 +34,14 @@ Script::Script() : Instance("Script") {
 	context = Services::ScriptService::make_context();
 	lua_pushlightuserdatatagged(context, this, 0x02);
 	lua_setfield(context, LUA_REGISTRYINDEX, "current_script");
+	ReflectionEnumRegistry::instance().push_to_lua(context);
+	Scripting::LibDatatype::attach(context);
+	Services::ScriptService::add_script(this);
+}
+
+Script::~Script() {
+	Services::ScriptService::remove_script(this);
+	lua_close(context);
 }
 
 // kept because im lazy to remove
@@ -96,8 +104,6 @@ void Script::run_script() {
 
 	Scripting::LibInstance::attach(context);
 	lua_setglobal(context, "Instance");
-	ReflectionEnumRegistry::instance().push_to_lua(context);
-	Scripting::LibDatatype::attach(context);
 
 	if (result != LUA_OK) {
 		Core::Logger::log(

@@ -1,0 +1,48 @@
+{
+  "id": "start",
+  "settings": {
+    "render.api": "opengl"
+  },
+
+  "model": [
+    {
+      "type": "UIService",
+      "properties": {},
+      "children": [
+        {
+          "type": "LayerCollector",
+          "properties": {},
+          "children": [
+            {
+              "type": "TextLabel",
+              "children": [],
+              "properties": {
+                "Name": "InputBox",
+                "TextSize": 48,
+                "SizeScale": {
+                  "x": 1,
+                  "y": 0.1
+                },
+                "Text": "you aren't meant to ssee this shhh"
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "type": "ScriptService",
+      "properties": {},
+      "children": [
+        {
+          "type": "Script",
+          "children": [],
+          "properties": {
+            "Name": "Init",
+            "Path": "autorun.luau"
+          }
+        }
+      ]
+    }
+  ]
+}

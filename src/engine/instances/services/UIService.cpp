@@ -1,5 +1,17 @@
 #include "UIService.h"
+
+#include "ReflectionService.h"
+#include "scripting/reflections/ReflectionDescriptorRegistry.h"
 using namespace Nyanners::Services;
+
+namespace Nyanners::Scripting {
+	[[maybe_unused]]
+	static auto scriptServiceDescriptor = ReflectionDescriptorRegistry::instance()->create_registrator([]() {
+		ReflectionService::create_descriptor("UIService", {"Instance"}, {ReflectionInstanceFlags::Service});
+	});
+}
+
+
 //
 // void UIService::add_child(const std::shared_ptr<Instance>& child)
 // {

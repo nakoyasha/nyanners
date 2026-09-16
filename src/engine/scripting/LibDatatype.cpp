@@ -40,19 +40,19 @@ void LibDatatype::attach(lua_State *context) {
 		Reflection::push_color3(context, *color);
 		return 1;
 	}, "Color3.new");
-	lua_setfield(context, 2, "new");
+	lua_setfield(context, -2, "new");
 	lua_setglobal(context, "Color3");
 	// Vectors
 
 	// Vector3
 	lua_createtable(context, 0, 1);
 	lua_pushcfunction(context, luaVector3_new, "Vector3.new");
-	lua_setfield(context, 2, "new");
+	lua_setfield(context, -2, "new");
 	lua_setglobal(context, "Vector3");
 
 	// Vector2
 	lua_createtable(context, 0, 1);
 	lua_pushcfunction(context, luaVector2_new, "Vector2.new");
-	lua_setfield(context, 2, "new");
+	lua_setfield(context, -2, "new");
 	lua_setglobal(context, "Vector2");
 }

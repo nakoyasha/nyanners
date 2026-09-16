@@ -1,12 +1,7 @@
 local RenderingService = DataModel:get_service("RenderingService")
 local InputService = DataModel:get_service("InputService")
-RenderingService:set_window_title("trash computercraft")
 
-local postProcessShader = RenderingService:create_shader("assets/shaders/post/post.vert.glsl", "assets/shaders/post/crt/crtPost.frag.glsl")
-RenderingService:set_post_process_shader(postProcessShader)
-
-local LayerCollector = Instance.new("LayerCollector")
-LayerCollector.Parent = DataModel.UIService
+local LayerCollector = DataModel:get_service("UIService").LayerCollector
 
 local filesystem = {
 	["/"] = {
@@ -28,17 +23,14 @@ local filesystem = {
 		["hi15.txt"] = "hii",
 		["hi16.txt"] = "hii",
 		["hi17.txt"] = "hii",
+		["hhhhh"] = "new",
 	},
 }
 local MAX_LINE_COUNT = 10
-local TEXT_SIZE = 24
+local TEXT_SIZE = 48
 
 local currentLocation = "/"
-local InputBox = Instance.new("TextLabel")
-InputBox.Name = "InputBox"
-InputBox.Parent = LayerCollector
-InputBox.Text = string.format("[%s]: ", currentLocation)
-InputBox.TextSize = TEXT_SIZE
+local InputBox = LayerCollector.InputBox
 
 local function get_current_location()
 	return string.format("[%s]: ", currentLocation)
@@ -53,6 +45,7 @@ function line_add(text: string)
 	local label = Instance.new("TextLabel")
 	label.Text = text
 	label.TextSize = TEXT_SIZE
+	label.SizeScale = Vector2.new(1, 0.1);
 	label.Parent = LayerCollector
 	label.Name = #lines
 
@@ -167,15 +160,36 @@ local function process_command(text: string)
 	end
 end
 
+-- local time = 0
+-- local next = os.clock() + 1 / 60
+
+local radius = 16
+local height = 5
+
 DataModel.RunService.OnRender:Connect(function()
-	postProcessShader:set_float("iTime", os.clock())
+    -- crtShader:set_float("iTime", time)
+  --  fireShader:set_float("iTime", time)
+  	local time = os.clock() * 8
+
+ 	local lightPos = Vector3.new(
+        math.cos(time) * radius,
+        height,
+        math.sin(time) * radius
+    )
+
+ 	-- light.Position = lightPos
+
+    -- local now = os.clock()
+    -- if now >= next then
+       -- time += 1 / 120
+        -- next += 1 / 120
+    --- end
 end)
 
 DataModel.RunService.Tick:Connect(function()
 	-- print(os.clock() - timeSinceLastTick)
 	if os.clock() - timeSinceLastTick >= 1 then
 		if hasTick then
-			print("h")
 			InputBox.Text = get_current_location() .. text
 			hasTick = false
 			timeSinceLastTick = os.clock()
@@ -188,6 +202,7 @@ DataModel.RunService.Tick:Connect(function()
 end)
 
 InputService.OnInput:Connect(function(input: InputObject)
+
 	if input.InputState ~= Enum.InputState.Began then
 		return
 	end

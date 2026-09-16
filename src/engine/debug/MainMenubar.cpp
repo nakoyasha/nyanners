@@ -6,8 +6,10 @@
 #include "instances/services/EngineService.h"
 #include "instances/services/ReflectionService.h"
 #include "instances/services/RenderingService.h"
+#include "instances/services/RunService.h"
 #include "instances/services/SelectionService.h"
 #include "scripting/reflections/ReflectionDescriptorRegistry.h"
+#include "serialization/ProjectParser.h"
 #include "utils/ImGuiColor3.h"
 
 using namespace Nyanners::Debug::UI;
@@ -144,9 +146,14 @@ void MainMenubar::draw() {
 
 	if (ImGui::BeginMenu("##Debug")) {
 		if (ImGui::MenuItem("Switch DM")) {
-			const auto newModel = Application::make_datamodel();
+			const auto newModel = Serialization::ProjectParser::make_blank_data_model();
 			newModel->name = "TempDM";
 			app->set_datamodel(newModel);
+		}
+
+		if (ImGui::MenuItem("Reload Project")) {
+			app->load_project(app->project);
+			app->currentModel->get_service<Services::RunService>("RunService")->run();
 		}
 
 		ImGui::EndMenu();

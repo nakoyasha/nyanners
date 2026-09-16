@@ -32,3 +32,6 @@
 [submodule "src/engine/third_party/plutosvg"]
 	path = src/engine/third_party/plutosvg
 	url = https://github.com/sammycage/plutosvg
+[submodule "src/engine/third_party/json"]
+	path = src/engine/third_party/json
+	url = https://github.com/nlohmann/json

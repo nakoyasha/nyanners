@@ -14,6 +14,13 @@
 using namespace Nyanners::Services;
 using namespace Nyanners::Scripting::Scheduler;
 
+namespace Nyanners::Scripting {
+	[[maybe_unused]]
+	static auto scriptServiceDescriptor = ReflectionDescriptorRegistry::instance()->create_registrator([]() {
+		ReflectionService::create_descriptor("ScriptService", {"Instance"}, {ReflectionInstanceFlags::Service});
+	});
+}
+
 std::map<lua_State*, ScriptResumptionDate> ScriptService::scheduled;
 lua_State* ScriptService::mainContext;
 
@@ -180,4 +187,12 @@ void ScriptService::update(const float deltaTime) {
 	}
 
 	Instance::update(deltaTime);
+}
+
+void ScriptService::add_script(Script *script) {
+	scripts.push_back(script);
+}
+
+void ScriptService::remove_script(Script *script) {
+	scripts.erase(std::ranges::find(scripts, script));
 }

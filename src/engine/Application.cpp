@@ -4,19 +4,20 @@
 #ifdef INCLUDE_DEBUG_UI_SERVICE
 #include "debug/DebugUIService.h"
 #endif
+#include "instances/services/AssetService.h"
 #include "instances/services/EngineService.h"
 #include "instances/services/RenderingService.h"
 #include "instances/services/RunService.h"
-#include "instances/services/ScriptService.h"
-#include "instances/services/SelectionService.h"
 #include "instances/services/SoundService.h"
 #include "instances/services/UIService.h"
-#include "instances/services/io/IOService.h"
 #include "instances/services/light/LightingService.h"
 #include "instances/services/user/InputService.h"
 #include "instances/world/World.h"
+#include "serialization/ProjectParser.h"
 
-Nyanners::Application::Application() {
+using namespace Nyanners;
+
+Application::Application() : project("none", "none", "none") {
 	const auto provider = Services::ServiceProvider::instance();
 
 	provider->add_service<Services::ReflectionService>();
@@ -26,15 +27,16 @@ Nyanners::Application::Application() {
 	provider->add_service<Services::RunService>();
 
 	Services::ReflectionService::register_reflections();
-	Application::set_datamodel(make_datamodel());
+	Application::set_datamodel(Serialization::ProjectParser::make_blank_data_model());
 }
 
-Nyanners::Application::~Application() {
+Application::~Application() {
 	this->Application::shutdown();
 }
 
-void Nyanners::Application::start() {
-	auto run = this->currentModel->get_service<Services::RunService>("RunService");
+void Application::start() {
+	const auto run = this->currentModel->get_service<Services::RunService>("RunService");
+	run->run();
 	running = true;
 
 	while (running) {
@@ -64,7 +66,7 @@ void Nyanners::Application::start() {
 	}
 }
 
-void Nyanners::Application::shutdown() {
+void Application::shutdown() {
 	running = false;
 	Services::ServiceProvider::instance()->get_service<Services::RunService>("RunService")->stop();
 
@@ -76,7 +78,30 @@ void Nyanners::Application::shutdown() {
 	this->currentModel = nullptr;
 }
 
-void Nyanners::Application::set_datamodel(const std::shared_ptr<DataModel>& model) {
+void Application::load_default_project() {
+	this->load_project(defaultProject);
+}
+
+void Application::load_from_project_file(const std::filesystem::path &path) {
+	const auto newProject = Serialization::ProjectParser::load_project_from_file(path);
+	Services::AssetService::instance()->set_asset_root(path.parent_path());
+	load_project(newProject);
+}
+
+void Application::load_project(const Core::Project &newProject) {
+	Core::Logger::log_debug(std::format("Loading project {}", newProject.name));
+	this->project = newProject;
+
+	if (is_rendering_enabled()) {
+		Services::RenderingService::instance()->set_window_title(this->project.name);
+	}
+
+	if (this->project.initScene != "none") {
+		set_datamodel(this->project.load_init_scene());
+	}
+}
+
+void Application::set_datamodel(const std::shared_ptr<DataModel>& model) {
 	assert(model != nullptr);
 	const auto provider = Services::ServiceProvider::instance();
 	provider->get_service<Services::RunService>("RunService")->bind_model(model);
@@ -89,7 +114,7 @@ void Nyanners::Application::set_datamodel(const std::shared_ptr<DataModel>& mode
 	this->onDataModelSwitch.fire(this->currentModel);
 }
 
-void Nyanners::Application::init_rendering(const DataTypes::Vector2 &size, const std::string &windowTitle) {
+void Application::init_rendering(const DataTypes::Vector2 &size, const std::string &windowTitle) {
 	const auto service = Services::RenderingService::instance();
 	const auto provider = Services::ServiceProvider::instance();
 	const auto lighting = Services::LightingService::instance();
@@ -99,33 +124,17 @@ void Nyanners::Application::init_rendering(const DataTypes::Vector2 &size, const
 	provider->add_service(service);
 	provider->add_service(lighting);
 
-	// this should probably be handled better, but whatever...
-	this->currentModel->add_child(service);
-	this->currentModel->add_child(lighting);
-
 #ifdef INCLUDE_DEBUG_UI_SERVICE
 	const auto debug = provider->add_service<Services::DebugUIService>();
 	debug->add_standard_elements();
 #endif
 }
 
-bool Nyanners::Application::is_rendering_enabled() const {
+bool Application::is_rendering_enabled() const {
 	return this->has_rendering;
 }
 
-std::shared_ptr<DataModel> Nyanners::Application::make_datamodel() {
-	const auto model = std::make_shared<DataModel>();
-
-	model->add_child(std::make_shared<Services::SelectionService>());
-	model->add_child(std::make_shared<Services::UIService>());
-	model->add_child(std::make_shared<Services::World>());
-	model->add_child(std::make_shared<Services::ScriptService>());
-	model->add_child(std::make_shared<Services::IOService>());
-
-	return model;
-}
-
-void Nyanners::Application::on_update() {
+void Application::on_update() {
 	const auto runService = Services::ServiceProvider::instance()->get_service<Services::RunService>("RunService");
 
 	if (has_rendering) {
@@ -151,7 +160,7 @@ void Nyanners::Application::on_update() {
 	runService->tick();
 }
 
-void Nyanners::Application::on_draw() const {
+void Application::on_draw() const {
 	const auto world = currentModel->get_service<Services::World>("World");
 	const auto uiService = currentModel->get_service<Services::UIService>("UIService");
 	const auto renderService = Services::RenderingService::instance();

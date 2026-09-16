@@ -25,6 +25,7 @@ namespace Nyanners::Services {
   public:
   	static std::map<lua_State*, Scripting::Scheduler::ScriptResumptionDate> scheduled;
   	static std::map<lua_State*, Instance*> luaToInstance;
+  	inline static std::vector<Instances::Script*> scripts;
   	static lua_State* mainContext;
 
   	static lua_State* get_active_context();
@@ -43,6 +44,9 @@ namespace Nyanners::Services {
 
   	static void pause_context(lua_State *context, const sf::Time &duration);
   	void update(const float deltaTime) override;
+
+  	static void add_script(Instances::Script* script);
+  	static void remove_script(Instances::Script* script);
   private:
   	static lua_State* active_context;
   };

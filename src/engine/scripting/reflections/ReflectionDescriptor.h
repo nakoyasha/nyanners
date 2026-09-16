@@ -37,6 +37,10 @@ namespace Nyanners::Scripting::Reflection {
 		std::vector<ReflectionDescriptor *> parents;
 		std::vector<std::string> pending_parents{};
 
+		[[nodiscard]] bool has_flag(const ReflectionInstanceFlags &flag) const {
+			return this->flags & static_cast<uint8_t>(flag);
+		};
+
 		template <
 		  typename object,
 		  typename T,

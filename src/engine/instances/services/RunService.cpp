@@ -16,6 +16,10 @@ float RunService::get_time_since_start() const {
 void RunService::run()
 {
     frameClock.start();
+	for (const auto& script : ScriptService::scripts) {
+		script->run_script();
+	}
+
     this->isRunning = true;
 }
 

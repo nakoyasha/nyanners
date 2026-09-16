@@ -11,7 +11,8 @@ namespace Nyanners::Instances {
     std::filesystem::path filePath;
     lua_State* context;
 
-    Script();;
+    Script();
+    ~Script() override;
 
     void initialize_script();
 

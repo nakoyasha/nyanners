@@ -1,0 +1,9 @@
+{
+  "id": "ccraft",
+  "name": "CompCaft",
+
+  "initial_scene": "examples/ccraft/scenes/start.nscene.json",
+  "settings": {
+    "render.api": "opengl"
+  }
+}

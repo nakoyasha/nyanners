@@ -17,6 +17,7 @@ add_subdirectory(third_party/glm EXCLUDE_FROM_ALL)
 add_subdirectory(third_party/fast_obj EXCLUDE_FROM_ALL)
 add_subdirectory(third_party/freetype EXCLUDE_FROM_ALL)
 add_subdirectory(third_party/plutosvg EXCLUDE_FROM_ALL)
+add_subdirectory(third_party/json EXCLUDE_FROM_ALL)
 
 add_library(Nyanners
         Application.h
@@ -183,6 +184,10 @@ add_library(Nyanners
         instances/services/light/Light.h
         instances/services/light/Light.cpp
         shaders/fallback.h
+        serialization/ProjectParser.cpp
+        serialization/ProjectParser.h
+        core/Project.h
+        core/Project.cpp
 )
 target_compile_definitions(Nyanners PUBLIC INCLUDE_DEBUG_UI_SERVICE)
 
@@ -234,7 +239,7 @@ target_include_directories(Nyanners.ThirdParty PUBLIC third_party/dear-imgui thi
 target_include_directories(Nyanners PRIVATE third_party/glm/glm)
 
 target_link_options(Nyanners PRIVATE -static-libgcc -static-libstdc++)
-target_link_libraries(Nyanners Nyanners.ThirdParty Nyanners.ThirdParty.Glad Nyanners.ThirdParty.Miniaudio Luau.VM Luau.Require Luau.Compiler glfw SFML::Window stdc++exp glm::glm freetype fast_obj fast_obj_lib)
+target_link_libraries(Nyanners Nyanners.ThirdParty Nyanners.ThirdParty.Glad Nyanners.ThirdParty.Miniaudio Luau.VM Luau.Require Luau.Compiler glfw SFML::Window stdc++exp glm::glm freetype fast_obj fast_obj_lib nlohmann_json::nlohmann_json)
 
 
 #if (CMAKE_BUILD_TYPE STREQUAL "Debug")
