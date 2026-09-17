@@ -10,6 +10,7 @@
 #include "instances/services/SelectionService.h"
 #include "scripting/reflections/ReflectionDescriptorRegistry.h"
 #include "serialization/ProjectParser.h"
+#include "serialization/SceneSerializer.h"
 #include "utils/ImGuiColor3.h"
 
 using namespace Nyanners::Debug::UI;
@@ -46,6 +47,17 @@ void MainMenubar::draw() {
 	    );
 
 	ImGui::BeginMainMenuBar();
+
+	if (ImGui::BeginMenu("File")) {
+		if (ImGui::MenuItem("Save Scene")) {
+			const auto path = Services::EngineService::prompt_save_file("%USERPROFILE%/Documents", {});
+			const auto serialized = Serialization::SceneSerializer::serialize_scene("start", app->currentModel);
+
+			Services::IOService::instance()->write_file(path, serialized.dump());
+		}
+
+		ImGui::EndMenu();
+	}
 
 	if (ImGui::BeginMenu("Instances")) {
 		if (ImGui::BeginMenu("Create..")) {

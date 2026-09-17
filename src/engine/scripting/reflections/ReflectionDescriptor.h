@@ -6,6 +6,7 @@
 #include "ReflectionTypes.h"
 #include "lua.h"
 #include <functional>
+#include <initializer_list>
 #include <memory>
 #include <optional>
 #include <string>
@@ -28,6 +29,16 @@ namespace Nyanners::Scripting::Reflection {
 
 	class ReflectionDescriptor {
 	public:
+		static uint8_t combine_property_flags(
+		  const std::initializer_list<ReflectionPropertyFlags> flags
+		) {
+			uint8_t combined = 0;
+			for (const auto flag : flags) {
+				combined |= static_cast<uint8_t>(flag);
+			}
+			return combined;
+		}
+
 		std::string name;
 		ReflectionDescriptorInstance constructorInstance;
 		uint8_t flags = (0 | static_cast<int>(ReflectionInstanceFlags::NotCreatable));
@@ -47,10 +58,11 @@ namespace Nyanners::Scripting::Reflection {
 		  T (object::*getter)() const,
 		  void (object::*setter)(const T &)>
 		ReflectionProperty add_property(
-		  const std::string &propertyName, const ReflectionPropertyType type
+				const std::string &propertyName, const ReflectionPropertyType type,
+				const std::initializer_list<ReflectionPropertyFlags> flags = {}
 		) {
 			ReflectionProperty property{
-			  .name = propertyName, .type = type, .flags = 0
+					.name = propertyName, .type = type, .flags = combine_property_flags(flags)
 			};
 
 			property.get = [](
@@ -90,10 +102,11 @@ namespace Nyanners::Scripting::Reflection {
 		  T (object::*getter)() const,
 		  void (object::*setter)(const T)>
 		ReflectionProperty add_property(
-		  const std::string &propertyName, const ReflectionPropertyType type
+				const std::string &propertyName, const ReflectionPropertyType type,
+				const std::initializer_list<ReflectionPropertyFlags> flags = {}
 		) {
 			ReflectionProperty property{
-			  .name = propertyName, .type = type, .flags = 0
+					.name = propertyName, .type = type, .flags = combine_property_flags(flags)
 			};
 
 			property.get = [](
@@ -129,12 +142,14 @@ namespace Nyanners::Scripting::Reflection {
 
 		template <typename object, typename T, T (object::*getter)() const>
 		ReflectionProperty add_property(
-		  const std::string &propertyName, const ReflectionPropertyType type
+				const std::string &propertyName, const ReflectionPropertyType type,
+				const std::initializer_list<ReflectionPropertyFlags> flags = {}
 		) {
 			ReflectionProperty property{
-			  .name = propertyName, .type = type, .flags = 0
+					.name = propertyName, .type = type,
+					.flags = static_cast<uint8_t>(ReflectionPropertyFlags::ReadOnly) |
+										combine_property_flags(flags)
 			};
-			property.flags ^= static_cast<uint8_t>(ReflectionPropertyFlags::ReadOnly);
 
 			property.get = [](
 			                 Instances::Object *instance,
@@ -167,9 +182,10 @@ namespace Nyanners::Scripting::Reflection {
 		  T (object::*getter)() const,
 		  void (object::*setter)(const T &)>
 		ReflectionDescriptor &add_property_chained(
-		  const std::string &propertyName, const ReflectionPropertyType type
+		const std::string &propertyName, const ReflectionPropertyType type,
+		const std::initializer_list<ReflectionPropertyFlags> flags = {}
 		) {
-			add_property<object, T, getter, setter>(propertyName, type);
+		add_property<object, T, getter, setter>(propertyName, type, flags);
 			return *this;
 		};
 
@@ -179,13 +195,14 @@ namespace Nyanners::Scripting::Reflection {
 		  T (object::*getter)() const,
 		  void (object::*setter)(const T &)> 
 		ReflectionDescriptor &add_enum_property_chained(
-		  const std::string &propertyName, const std::string &enumName
+		const std::string &propertyName, const std::string &enumName,
+		const std::initializer_list<ReflectionPropertyFlags> flags = {}
 		) {
 			static_assert(std::is_enum_v<T>);
 			ReflectionProperty property{
 			  .name = propertyName,
 			  .type = ReflectionPropertyType::Enum,
-			  .flags = 0,
+			  .flags = combine_property_flags(flags),
 			  .enumName = enumName
 			};
 
@@ -210,13 +227,15 @@ namespace Nyanners::Scripting::Reflection {
 
 		template <typename object, typename T, T (object::*getter)() const>
 		ReflectionDescriptor &add_enum_property_chained(
-		  const std::string &propertyName, const std::string &enumName
+		const std::string &propertyName, const std::string &enumName,
+		const std::initializer_list<ReflectionPropertyFlags> flags = {}
 		) {
 			static_assert(std::is_enum_v<T>);
 			ReflectionProperty property{
 			  .name = propertyName,
 			  .type = ReflectionPropertyType::Enum,
-			  .flags = static_cast<uint8_t>(ReflectionPropertyFlags::ReadOnly),
+			  .flags = static_cast<uint8_t>(ReflectionPropertyFlags::ReadOnly) |
+							combine_property_flags(flags),
 			  .enumName = enumName
 			};
 
@@ -240,26 +259,31 @@ namespace Nyanners::Scripting::Reflection {
 		  T (object::*getter)() const,
 		  void (object::*setter)(const T)>
 		ReflectionDescriptor &add_property_chained(
-		  const std::string &propertyName, const ReflectionPropertyType type
+		const std::string &propertyName, const ReflectionPropertyType type,
+		const std::initializer_list<ReflectionPropertyFlags> flags = {}
 		) {
-			add_property<object, T, getter, setter>(propertyName, type);
+		add_property<object, T, getter, setter>(propertyName, type, flags);
 			return *this;
 		};
 
 		template <typename object, typename T, T (object::*getter)() const>
 		ReflectionDescriptor &add_property_chained(
-		  const std::string &propertyName, const ReflectionPropertyType type
+		const std::string &propertyName, const ReflectionPropertyType type,
+		const std::initializer_list<ReflectionPropertyFlags> flags = {}
 		) {
-			add_property<object, T, getter>(propertyName, type);
+		add_property<object, T, getter>(propertyName, type, flags);
 			return *this;
 		};
 
 		template <typename object, typename T, T object::*member>
 		ReflectionDescriptor &add_property_chained(
-		  const std::string &propertyName, const ReflectionPropertyType type
+		const std::string &propertyName, const ReflectionPropertyType type,
+		const std::initializer_list<ReflectionPropertyFlags> flags = {}
 		) {
 			ReflectionProperty property{
-				.name = propertyName, .type = type, .flags =  static_cast<uint8_t>(ReflectionPropertyFlags::ReadOnly)
+			.name = propertyName, .type = type,
+			.flags = static_cast<uint8_t>(ReflectionPropertyFlags::ReadOnly) |
+					  combine_property_flags(flags)
 			  };
 
 			property.get = [](

@@ -188,6 +188,8 @@ add_library(Nyanners
         serialization/ProjectParser.h
         core/Project.h
         core/Project.cpp
+        serialization/SceneSerializer.cpp
+        serialization/SceneSerializer.h
 )
 target_compile_definitions(Nyanners PUBLIC INCLUDE_DEBUG_UI_SERVICE)
 

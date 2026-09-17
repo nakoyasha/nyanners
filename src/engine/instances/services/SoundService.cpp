@@ -16,7 +16,7 @@ using namespace Nyanners::Services;
 namespace Nyanners::Scripting {
 	static auto soundDescriptor =
 	  ReflectionDescriptorRegistry::instance()->create_registrator([]() {
-		  ReflectionService::create_descriptor("SoundService", {"Instance"})
+		  ReflectionService::create_descriptor("SoundService", {"Instance"}, {ReflectionInstanceFlags::Service})
 		    .add_property_chained<
 		      SoundService,
 		      double,

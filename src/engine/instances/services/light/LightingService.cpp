@@ -10,8 +10,8 @@ using namespace Nyanners::Services;
 namespace Nyanners::Scripting {
 	[[maybe_unused]]
 	static auto lightingService = ReflectionDescriptorRegistry::instance()->create_registrator([]() {
-		ReflectionService::create_descriptor("LightingService", {"Instance"})
-			.add_property_chained<LightingService, DataTypes::Color3, &LightingService::get_ambient_color, &LightingService::set_ambient_color>("AmbientColor", Reflection::ReflectionPropertyType::Color);
+		ReflectionService::create_descriptor("LightingService", {"Instance"}, {ReflectionInstanceFlags::Service})
+				.add_property_chained<LightingService, DataTypes::Color3, &LightingService::get_ambient_color, &LightingService::set_ambient_color>("AmbientColor", Reflection::ReflectionPropertyType::Color, {ReflectionPropertyFlags::NotSerializable});
 	});
 }
 

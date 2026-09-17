@@ -19,7 +19,7 @@ bool DebugUIService::renderWindows = false;
 namespace Nyanners::Scripting {
 	auto debugUIService = ReflectionDescriptorRegistry::instance()->create_registrator([]() {
 		ReflectionService::create_descriptor("DebugUIService", {"Instance"})
-			.add_property_chained<DebugUIService, bool, &DebugUIService::get_demo_open, &DebugUIService::set_demo_open>("DemoWindowEnabled", Boolean)
+			.add_property_chained<DebugUIService, bool, &DebugUIService::get_demo_open, &DebugUIService::set_demo_open>("DemoWindowEnabled", Boolean, {ReflectionPropertyFlags::NotSerializable})
 			.add_constructor<DebugUIService>();
 	});
 }

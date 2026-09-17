@@ -8,7 +8,7 @@ using namespace Nyanners::Services;
 namespace Nyanners::Scripting {
 	static auto ioServiceDescriptor =
 	  ReflectionDescriptorRegistry::instance()->create_registrator([]() {
-		  ReflectionService::create_descriptor("IOService", {"Instance"})
+		  ReflectionService::create_descriptor("IOService", {"Instance"}, {ReflectionInstanceFlags::Service})
 		    .add_method<&IOService::write_file>("write_file", Null,{})
 	  		.add_method<&IOService::read_file>("read_file", Null,{})
 	  		.add_method<&IOService::file_exists>("file_exists", Null,{});

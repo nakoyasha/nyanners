@@ -65,7 +65,13 @@ Ref<Nyanners::Instances::Instance> ProjectParser::deserialize_instance(const nlo
 	hydrate_instance(instance, descriptor, properties);
 
 	for (const auto& child : children) {
-		instance->add_child(deserialize_instance(child));
+		const auto object = deserialize_instance(child);
+
+		if (object == nullptr) {
+			continue;
+		}
+
+		instance->add_child(object);
 	}
 
 	return instance;
@@ -76,9 +82,7 @@ Ref<DataModel> ProjectParser::deserialize_scene(const std::filesystem::path &pat
 	const auto registry = ReflectionDescriptorRegistry::instance();
 
 	const auto json = nlohmann::json::parse(Services::IOService::instance()->read_file(path));
-	const auto& items = json.at("model").items();
-
-	for (const auto& [key, value] : items) {
+	for (const auto& items = json.at("model").items(); const auto& [key, value] : items) {
 		const auto type = value.at("type");
 		const auto descriptorIndex = registry->descriptors.find(type);
 
@@ -122,6 +126,10 @@ void ProjectParser::hydrate_instance(const Ref<Instances::Instance> &instance, c
 			// special case
 			if (property->name == "Material") {
 				Logger::log_error("Material deserialization is not yet implemented");
+				continue;
+			}
+
+			if (property->has_flag(ReflectionPropertyFlags::ReadOnly)) {
 				continue;
 			}
 

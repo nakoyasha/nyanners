@@ -23,7 +23,7 @@ using namespace Nyanners::Scripting::Reflection;
 namespace Nyanners::Scripting {
 	static auto reflectionServiceDescriptor =
 			ReflectionDescriptorRegistry::instance()->create_registrator([]() {
-				ReflectionService::create_descriptor("ReflectionService", {"Instance"})
+				ReflectionService::create_descriptor("ReflectionService", {"Instance"}, {ReflectionInstanceFlags::Service})
 						.add_method<
 							&ReflectionService::generate_lua_reflection_table>(
 							"get_descriptors", Null, {}
@@ -630,7 +630,7 @@ void ReflectionService::register_reflections() {
 	create_descriptor("Object", {}, {ReflectionInstanceFlags::NotCreatable})
 			.add_property_chained<Object, bool, &Object::get_active, &Object::set_active>("Active", Boolean)
 			.add_property_chained<Object, std::string, &Object::get_name, &Object::set_name>("Name", String)
-			.add_property_chained<Object, std::string, &Object::get_basename>("ClassName", String);
+			.add_property_chained<Object, std::string, &Object::get_basename>("ClassName", String, {ReflectionPropertyFlags::NotSerializable});
 	create_descriptor("Instance", {"Object"}, {ReflectionInstanceFlags::NotCreatable})
 			.add_property_chained<Instance, Ref<Object>, &Instance::get_parent_object, &Instance::set_parent_object>("Parent", ReflectionPropertyType::Instance)
 			.add_method<&Instance::clone>("clone", ReflectionPropertyType::Instance, {})
@@ -649,16 +649,16 @@ void ReflectionService::register_reflections() {
 	create_descriptor("MeshPart", {"Transformable", "Drawable"})
 			.add_method<&MeshPart::load_from_obj_file>("load_from_file", Null, {{"ModelPath", String}})
 			.add_constructor<MeshPart>();
-	create_descriptor("RenderingService",{"Instance"},{ReflectionInstanceFlags::NotCreatable, ReflectionInstanceFlags::Service})
-			.add_property_chained<RenderingService, double, &RenderingService::get_fps>("FPS", Number)
-			.add_property_chained<RenderingService, glm::vec2, &RenderingService::get_window_size>("ViewportSize", Vector2)
+	create_descriptor("RenderingService",{"Instance"},{ReflectionInstanceFlags::NotCreatable, ReflectionInstanceFlags::Service, ReflectionInstanceFlags::NotSerializable})
+			.add_property_chained<RenderingService, double, &RenderingService::get_fps>("FPS", Number, {ReflectionPropertyFlags::NotSerializable})
+			.add_property_chained<RenderingService, glm::vec2, &RenderingService::get_window_size>("ViewportSize", Vector2, {ReflectionPropertyFlags::NotSerializable})
 			.add_method<&RenderingService::set_window_title>("set_window_title", Null, {})
 			.add_method<&RenderingService::create_shader>("create_shader", ReflectionPropertyType::Instance, {{"VertexPath", String}, {"FragmentPath", String}})
 			.add_method<&RenderingService::add_post_process_shader>("add_post_processing_shader", Null, {{"Shader", ReflectionPropertyType::Instance}})
 			.add_method<&RenderingService::clear_post_processing_shaders>("clear_post_processing_shaders", Null, {});
 	create_descriptor("RunService", {"Instance"}, {ReflectionInstanceFlags::NotCreatable, ReflectionInstanceFlags::Service})
-			.add_property_chained<RunService, Ref<SignalBase>, &RunService::get_on_tick>("Tick", ReflectionPropertyType::Instance)
-			.add_property_chained<RunService, Ref<SignalBase>, &RunService::get_on_render>("OnRender", ReflectionPropertyType::Instance);
+			.add_property_chained<RunService, Ref<SignalBase>, &RunService::get_on_tick>("Tick", ReflectionPropertyType::Instance, {ReflectionPropertyFlags::NotSerializable})
+			.add_property_chained<RunService, Ref<SignalBase>, &RunService::get_on_render>("OnRender", ReflectionPropertyType::Instance, {ReflectionPropertyFlags::NotSerializable});
 	create_descriptor("Signal", {"Instance"})
 			.add_method<&SignalBase::connectLua>("Connect", Unknown, {{"Arguments", Anything}});
 	link_basic_containers();

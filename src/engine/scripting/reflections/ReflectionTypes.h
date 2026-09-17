@@ -7,6 +7,7 @@ namespace Nyanners::Scripting::Reflection {
 		Service = 1 << 0,
 		NotCreatable = 1 << 1,
 		Deprecated = 1 << 2,
+		NotSerializable = 1 << 3,
 	};
 
 	enum class ReflectionPropertyFlags {
@@ -14,6 +15,7 @@ namespace Nyanners::Scripting::Reflection {
 		ReadOnly = 1 << 0,
 		WriteOnly = 1 << 1,
 		Accessible = 1 << 2,
+		NotSerializable = 1 << 3,
 	};
 
 	enum class ReflectionMethodFlags {

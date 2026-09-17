@@ -7,8 +7,8 @@ using namespace Nyanners::Services;
 
 namespace Nyanners::Scripting {
 	static auto inputRegistrator = ReflectionDescriptorRegistry::instance()->create_registrator([]() {
-		ReflectionService::create_descriptor("InputService", {"Instance"})
-		.add_property_chained<InputService, std::shared_ptr<SignalBase>, &InputService::get_on_input>("OnInput", ReflectionPropertyType::Instance);
+		ReflectionService::create_descriptor("InputService", {"Instance"}, {ReflectionInstanceFlags::Service})
+		.add_property_chained<InputService, std::shared_ptr<SignalBase>, &InputService::get_on_input>("OnInput", ReflectionPropertyType::Instance, {ReflectionPropertyFlags::NotSerializable});
 	});
 }
 
