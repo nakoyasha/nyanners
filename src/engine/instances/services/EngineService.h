@@ -38,6 +38,7 @@ namespace Nyanners::Services {
 
     static void handle_event(const sf::Event* event);
     static void open_url(const std::string& url);
+    static std::filesystem::path prompt_save_file(const std::filesystem::path &startPath, std::string fileType);
   private:
     static Core::EngineInfo engineInfo;
     static Core::EnginePlatform platform;
